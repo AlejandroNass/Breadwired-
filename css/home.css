@@ -1,0 +1,1873 @@
+/* ============================================================
+   breadwire · portada (home.html)
+   ------------------------------------------------------------
+   Orden: el bloque de marca (compartido con css/login.css), las piezas
+   que se conservan (escenas, mascota, menú, diálogos) y la página.
+   ============================================================ */
+/* MARCA:INICIO ================================================
+   Bloque compartido por la portada (css/home.css) y la entrada
+   (css/login.css). Es idéntico en los dos archivos: si se cambia en uno,
+   se copia en el otro.
+
+   Reparto de colores (para que nada «se vea del mismo color»):
+   (R1) --accent, el color del tema, es SÓLO acción: el botón principal en
+        los temas oscuros, los enlaces y el foco.
+   (R2) --env-*, el color de cada entorno, es SÓLO identidad: la barra de
+        su tarjeta, su icono, su punto y el subrayado de su pestaña. Son
+        cuatro tonos fijos (azul, verde, coral y orquídea) que no salen
+        del tema, así que nunca coinciden entre sí ni con el acento.
+   (R3) --ok y --warn significan estado, nada más.
+   (R4) --text-mute no se usa para texto (no llega a 4,5:1 en sepia).
+   ============================================================ */
+:root{
+  --env-trad:#4FA3FF; --env-trad-rgb:79,163,255;
+  --env-dig:#3ECF74;  --env-dig-rgb:62,207,116;
+  --env-sim:#FF7A59;  --env-sim-rgb:255,122,89;
+  --env-circ:#E070D6; --env-circ-rgb:224,112,214;
+  --cta-bg:var(--accent); --cta-ink:#0b0d12;
+  --bw-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --fs-hero:clamp(36px,2.6vw + 22px,60px);
+  --fs-h2:clamp(28px,1.4vw + 20px,40px);
+  --fs-h3:clamp(20px,.5vw + 17px,24px);
+  --fs-lede:clamp(16px,.3vw + 15px,19px);
+  --sec-y:clamp(56px,6vw,96px);
+  --gut:clamp(16px,4vw,40px);
+}
+/* En los temas claros, los cuatro tonos se oscurecen (texto ≥ 4,7:1) y el
+   botón principal pasa a tinta: un botón rojo o amarillo sobre blanco se
+   lee como «error» o no llega al contraste. */
+html:is([data-theme="light"],[data-theme="sepia"],[data-theme="ivory"],[data-theme="workbuddy"],[data-theme="deepseek"],[data-theme="custom-light"]){
+  --env-trad:#1957C2; --env-trad-rgb:25,87,194;
+  --env-dig:#166B37;  --env-dig-rgb:22,107,55;
+  --env-sim:#AD3B0B;  --env-sim-rgb:173,59,11;
+  --env-circ:#9B2C8E; --env-circ-rgb:155,44,142;
+  --cta-bg:var(--text); --cta-ink:var(--surface);
+}
+html[data-theme="custom"]{--cta-bg:var(--text);--cta-ink:var(--bg)}
+[data-env="traductor"]{--env:var(--env-trad);--env-rgb:var(--env-trad-rgb)}
+[data-env="digital"]{--env:var(--env-dig);--env-rgb:var(--env-dig-rgb)}
+[data-env="simulador"]{--env:var(--env-sim);--env-rgb:var(--env-sim-rgb)}
+[data-env="circuitos"]{--env:var(--env-circ);--env-rgb:var(--env-circ-rgb)}
+
+/* Fondo de página liso (sin brillos de tema) y caja de borde en todo. */
+html[data-theme] body.bw-landing{background:var(--bg);background-image:none}
+.bw-landing *,.bw-landing *::before,.bw-landing *::after{box-sizing:border-box}
+.bw-landing :is(h1,h2,h3,h4,p){text-wrap:pretty}
+.bw-landing :is(h1,h2,h3){text-wrap:balance}
+
+/* El ancho de la página: 1120 px de contenido con su margen. */
+.bw-wrap{width:100%;max-width:calc(1120px + 2 * var(--gut));margin-inline:auto;padding-inline:var(--gut)}
+
+/* Botones: uno relleno por sección, el resto fantasma. */
+.bw-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;padding:0 22px;border-radius:8px;border:1px solid transparent;
+  font:600 16px/1 var(--sans);text-decoration:none;white-space:nowrap;cursor:pointer;
+  background:var(--cta-bg);color:var(--cta-ink);
+  transition:background-color .15s ease,border-color .15s ease,transform .15s ease,filter .15s ease;
+}
+.bw-btn[hidden]{display:none}
+.bw-btn:hover{filter:brightness(1.08)}
+.bw-btn:active{transform:translateY(1px)}
+.bw-btn svg{width:18px;height:18px;flex:none}
+.bw-btn--ghost{background:transparent;color:var(--text);border-color:var(--border-hi,var(--border))}
+.bw-btn--ghost:hover{filter:none;background:color-mix(in srgb,var(--text) 7%,transparent)}
+.bw-btn--sm{min-height:40px;padding:0 16px;font-size:15px}
+.bw-link{
+  display:inline-flex;align-items:center;gap:6px;min-height:40px;
+  font:600 15px var(--sans);color:var(--accent-ink);text-decoration:none;cursor:pointer;
+  background:none;border:0;padding:0;
+}
+.bw-link::after{content:"→";transition:transform .15s ease}
+.bw-link:hover{text-decoration:underline;text-underline-offset:4px}
+.bw-link:hover::after{transform:translateX(3px)}
+:is(.bw-btn,.bw-link,.bw-landing a,.bw-landing button):focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+
+/* Etiquetas: el «beta» (uno solo por página) y los rótulos. */
+.bw-badge{
+  display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;
+  font:500 11px/1.3 var(--bw-mono);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-dim);border:1px solid var(--border-hi,var(--border));
+}
+.bw-eyebrow{
+  margin:0;font:500 12px/1.3 var(--bw-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);
+}
+:lang(ja) .bw-eyebrow{text-transform:none;letter-spacing:.04em;font-size:13px}
+
+/* La marca de cada entorno: un cuadro con su icono y un punto. */
+.bw-envtile{
+  display:inline-grid;place-items:center;width:36px;height:36px;flex:none;border-radius:8px;
+  color:var(--env,var(--text-dim));
+  background:color-mix(in srgb,var(--env,var(--text)) 14%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--env,var(--text)) 40%,transparent);
+}
+.bw-envtile svg{width:20px;height:20px;display:block}
+.bw-dot{display:inline-block;width:8px;height:8px;border-radius:2px;flex:none;background:var(--env,var(--text-dim))}
+
+/* Las capturas: un marco plano y oscuro (las de serie están en el tema
+   azul), que en los temas claros se lee como la ventana de la aplicación. */
+.bw-shot{margin:0;background:#0b1a33;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.bw-shot img{display:block;width:100%;height:auto}
+.bw-crop{position:relative;overflow:hidden;background:#0b1a33}
+.bw-crop img{display:block;width:100%;height:100%;object-fit:cover;transform:scale(var(--z,1));transform-origin:var(--o,50% 50%)}
+/* Los temas secretos tienen sus propias capturas (js/theme-shots.js):
+   el marco va del color de su página, no del azul. */
+html:is([data-theme="workbuddy"],[data-theme="deepseek"],[data-theme="ivory"],[data-theme="japan"]) :is(.bw-shot,.bw-crop){background:var(--bg)}
+
+/* La tuerca, neutra en la cabecera de estas dos páginas. */
+html :is(.lnd-head,.lgn-head) #themeGear{
+  width:40px;height:40px;border-radius:8px;background:transparent;box-shadow:none;
+  border:1px solid var(--border);color:var(--text-dim);
+}
+html :is(.lnd-head,.lgn-head) #themeGear:hover{color:var(--text);background:color-mix(in srgb,var(--text) 7%,transparent)}
+html :is(.lnd-head,.lgn-head) #themeGear svg{width:18px;height:18px;filter:none}
+
+/* Con movimiento reducido, nada se mueve (la única excepción a la regla
+   de no usar !important en estas hojas). */
+@media (prefers-reduced-motion:reduce){
+  .bw-landing *,.bw-landing *::before,.bw-landing *::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+/* Japonés: los titulares se cortan por frases, no a mitad de palabra; el
+   enlace en sepia, un punto más oscuro (4,5:1 sobre el fondo alterno); y
+   en el tema Japón el Simulador se aleja del bermellón del acento. */
+:lang(ja) .bw-landing :is(h1,h2,h3,p,b,span){word-break:auto-phrase}
+:lang(ja) .bw-landing .lnd-h1{max-width:11em}
+html[data-theme="sepia"] .bw-link{color:#7A4A1F}
+html[data-theme="japan"]{--env-sim:#FFA65C;--env-sim-rgb:255,166,92}
+/* MARCA:FIN ================================================== */
+
+/* ============================================================
+   PIEZAS QUE SE CONSERVAN (escenas, mascota, menú, diálogos)
+   ------------------------------------------------------------
+   Familias de reglas que pintan otros módulos o que el dueño pidió
+   expresamente (la mascota y sus animaciones, la vista previa del
+   menú, los puntos de la guía). Se traen tal cual; el diseño de la
+   página va después y manda.
+   ============================================================ */
+
+/* ---------- Fondo vivo (lienzo, rejilla y foco) ---------- */
+/* ---------- Fondo vivo ----------
+   RENDIMIENTO: la rejilla de huecos es una imagen CSS fija (se pinta una
+   vez); el lienzo sólo lleva los pulsos de corriente, sin máscara; el foco
+   del ratón es un círculo que se mueve con `transform` (no repinta la
+   pantalla). Nada de desenfoques de fondo encima del lienzo animado. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(var(--accent-rgb),.16) 1.3px,transparent 1.7px);
+  background-size:28px 28px;background-position:0 0;
+  -webkit-mask-image:radial-gradient(ellipse 75% 65% at 50% 40%,rgba(0,0,0,.25),#000 85%);
+          mask-image:radial-gradient(ellipse 75% 65% at 50% 40%,rgba(0,0,0,.25),#000 85%);
+}
+.lnd-bg{
+  position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity 1.2s ease;
+}
+.lnd-bg.ready{opacity:.75}
+.lnd-spot{
+  position:fixed;left:-300px;top:-300px;width:600px;height:600px;z-index:0;pointer-events:none;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--accent-rgb),.14),transparent 62%);
+  transform:translate3d(70vw,35vh,0);will-change:transform;
+}
+
+
+.lnd-page{
+  position:relative;z-index:1;
+  max-width:1180px;margin:0 auto;
+  padding:4px 24px 28px;
+  box-sizing:border-box;
+}
+
+
+/* ---------- Escenas del héroe: estados on1…on5 ---------- */
+.lnd-stage{display:block;width:100%;height:auto;overflow:visible;transition:opacity .5s}
+.lnd-stage.out{opacity:0}
+.lnd-stage.reset,.lnd-stage.reset *{transition:none !important}
+.lnd-stage .ls-draw{
+  stroke:var(--text-dim);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .9s ease-out;
+}
+.lnd-stage .ls-d2{transition-delay:.25s}
+.lnd-stage .ls-d3{transition-delay:.45s}
+.lnd-stage .ls-arrows{stroke:#ff5a4a;stroke-width:1.6}
+.lnd-stage .ls-node{fill:var(--text-dim);opacity:0;transition:opacity .3s .8s}
+.lnd-stage .ls-lbl{fill:var(--text-mute);font:600 14px var(--mono);text-anchor:middle;opacity:0;transition:opacity .4s .6s}
+.lnd-stage.on1 .ls-draw{stroke-dashoffset:0}
+.lnd-stage.on1 .ls-node,.lnd-stage.on1 .ls-lbl{opacity:1}
+
+.lnd-stage .ls-hop{opacity:0;transition:opacity .4s}
+.lnd-stage .ls-hop-line{stroke:var(--text-mute);stroke-width:2;stroke-dasharray:4 5}
+.lnd-stage .ls-hop-head{stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lnd-stage .ls-hop-pulse{stroke:var(--accent);stroke-width:4;stroke-linecap:round;stroke-dasharray:.22 1.4;stroke-dashoffset:.22;
+  filter:drop-shadow(0 0 5px rgba(var(--accent-rgb),.9))}
+.lnd-stage.on2 .ls-hop{opacity:1}
+
+.lnd-stage .ls-board{opacity:0;transform:translateY(10px);transition:opacity .6s,transform .6s cubic-bezier(.22,.61,.36,1)}
+.lnd-stage.on2 .ls-board{opacity:1;transform:none}
+.lnd-stage .ls-rail-lbl{font:700 11px var(--mono);text-anchor:end;fill:var(--text-mute)}
+
+/* Las piezas caen con un rebote corto, como al clavarlas en la placa. */
+.lnd-stage .ls-part{opacity:0;transform:translateY(-38px);transition:opacity .25s,transform .55s cubic-bezier(.34,1.56,.64,1)}
+.lnd-stage .ls-led{transition-delay:.22s}
+.lnd-stage.on3 .ls-part{opacity:1;transform:none}
+.lnd-stage .ls-led-dome{fill:#c9302c;fill-opacity:.85;stroke:#8f1d1a;stroke-width:1;transition:fill .3s}
+.lnd-stage .ls-led-rim{fill:#a8231f}
+.lnd-stage .ls-led-glow{opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity .5s}
+
+.lnd-stage .ls-wire{stroke-width:3.6;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .8s ease-in-out}
+.lnd-stage .ls-w-red{stroke:#e5484d}
+.lnd-stage .ls-w-blk{stroke:#3a3f47;transition-delay:.3s}
+.lnd-stage .ls-pin{fill:#b8bcc2;opacity:0;transition:opacity .2s .7s}
+.lnd-stage.on4 .ls-wire{stroke-dashoffset:0}
+.lnd-stage.on4 .ls-pin{opacity:1}
+/* La corriente: guiones que corren por los cables con el LED encendido. */
+.lnd-stage .ls-flow{stroke:#fff6c2;stroke-width:1.8;stroke-linecap:round;stroke-dasharray:.03 .09;opacity:0;transition:opacity .4s}
+.lnd-stage.on5 .ls-flow{opacity:.9}
+.lnd-stage.on5 .ls-led-dome{fill:#ff6b5b;fill-opacity:1}
+.lnd-stage.on5 .ls-led-glow{opacity:1}
+
+.lnd-stage .ls-ok circle{fill:var(--ok)}
+.lnd-stage .ls-ok path{stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lnd-stage .ls-ok{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.3);transition:opacity .3s .35s,transform .45s .35s cubic-bezier(.34,1.56,.64,1)}
+.lnd-stage.on5 .ls-ok{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:no-preference){
+  .lnd-stage.on2 .ls-hop-pulse{animation:lsHop 1s linear infinite}
+  .lnd-stage.on5 .ls-flow{animation:lsFlow 1.4s linear infinite}
+  .lnd-stage.on5 .ls-led-glow{animation:lsGlow 1.8s ease-in-out infinite}
+}
+@keyframes lsHop{to{stroke-dashoffset:-1.4}}
+@keyframes lsFlow{to{stroke-dashoffset:-.12}}
+@keyframes lsGlow{0%,100%{transform:scale(.92)}50%{transform:scale(1.08)}}
+
+
+/* ---------- Menú lateral (cajón de «Empezar») ---------- */
+/* ---------- Menú lateral izquierdo ---------- */
+.lnd-scrim{
+  position:fixed;inset:0;z-index:40;
+  background:rgba(0,0,0,.6);
+  opacity:0;transition:opacity .28s;
+}
+.lnd-scrim.show{opacity:1}
+.lnd-menu{
+  position:fixed;top:0;left:0;bottom:0;z-index:50;
+  width:min(360px,86vw);padding:20px 18px;
+  display:flex;flex-direction:column;gap:16px;
+  background:var(--glass-solid);
+  border-right:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow);
+  transform:translateX(-104%);
+  transition:transform .32s cubic-bezier(.22,.61,.36,1);
+  visibility:hidden;
+}
+.lnd-menu.open{transform:none;visibility:visible}
+@media (prefers-reduced-motion:reduce){.lnd-menu{transition:none}}
+.lnd-menu-head{display:flex;align-items:center;justify-content:space-between}
+.lnd-menu-head h2{margin:0;font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--text-mute)}
+.lnd-x{
+  width:34px;height:34px;border-radius:10px;cursor:pointer;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:16px;line-height:1;color:var(--text-dim);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  transition:color .2s,background .2s;
+}
+.lnd-x:hover{color:var(--text);background:var(--glass-control-hi)}
+
+.lnd-nav{display:flex;flex-direction:column;gap:8px}
+.lnd-item{
+  display:flex;flex-direction:column;gap:4px;
+  padding:12px 14px;border-radius:12px;text-decoration:none;
+  color:var(--text);border:1px solid transparent;
+  background:var(--glass-control);
+  transition:background .2s,border-color .2s,transform .15s;
+}
+.lnd-item:hover{background:var(--glass-control-hi);border-color:var(--glass-border);transform:translateX(2px)}
+.lnd-item:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+.lnd-item-main{
+  flex-direction:row;align-items:center;gap:12px;
+  border-color:rgba(var(--accent-rgb),.35);
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.06));
+}
+.lnd-item-main:hover{border-color:rgba(var(--accent-rgb),.6)}
+.lnd-item-main .lnd-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--accent-ink);background:rgba(var(--accent-rgb),.14);
+}
+.lnd-item-main .lnd-ico svg{width:20px;height:20px;display:block}
+
+/* Segundo entorno del menú: el simulador. Comparte forma con el traductor
+   pero no su color, para que se lean como dos puertas distintas y la beta
+   se anuncie sola. */
+.lnd-item-beta{
+  flex-direction:row;align-items:center;gap:12px;
+  border-color:rgba(var(--warn-rgb),.28);
+  background:linear-gradient(180deg,rgba(var(--warn-rgb),.10),rgba(var(--warn-rgb),.03));
+}
+.lnd-item-beta:hover{border-color:rgba(var(--warn-rgb),.5)}
+.lnd-item-beta .lnd-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--warn);background:rgba(var(--warn-rgb),.14);
+}
+.lnd-item-beta .lnd-ico svg{width:20px;height:20px;display:block}
+.lnd-beta{
+  font:600 9px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  padding:2px 6px;margin-left:6px;border-radius:4px;vertical-align:2px;
+  color:var(--warn);border:1px solid rgba(var(--warn-rgb),.45);
+  background:rgba(var(--warn-rgb),.12);
+}
+/* Tercer entorno del menú: electrónica digital. Se lee como una puerta
+   distinta, en verde, para no confundirla con la beta del simulador
+   analógico (ámbar). */
+.lnd-item-digital{
+  flex-direction:row;align-items:center;gap:12px;
+  border-color:rgba(var(--ok-rgb),.28);
+  background:linear-gradient(180deg,rgba(var(--ok-rgb),.10),rgba(var(--ok-rgb),.03));
+}
+.lnd-item-digital:hover{border-color:rgba(var(--ok-rgb),.5)}
+.lnd-item-digital .lnd-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--ok);background:rgba(var(--ok-rgb),.14);
+}
+.lnd-item-digital .lnd-ico svg{width:20px;height:20px;display:block}
+/* Cuarta puerta: las plantillas. No es un entorno, así que va en el tono
+   neutro del cristal. Es un <button> (abre el selector, no navega) y
+   necesita quitarse la letra y la alineación del navegador. */
+.lnd-item-tpl{
+  flex-direction:row;align-items:center;gap:12px;
+  width:100%;font:inherit;text-align:left;cursor:pointer;
+  border-color:var(--glass-border);
+}
+.lnd-item-tpl .lnd-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--text-dim);background:var(--glass-control-hi);
+}
+.lnd-item-tpl .lnd-item-txt{flex:1}
+/* Red de seguridad: un icono de una puerta nueva sin su bloque propio no
+   puede estirarse a todo el menú (pasó con las plantillas: 332 px). */
+.lnd-ico svg{width:20px;height:20px;display:block}
+.dig-beta{
+  font:600 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;
+  color:var(--ok);border:1px solid rgba(var(--ok-rgb),.45);
+  background:rgba(var(--ok-rgb),.12);
+}
+
+.lnd-item-t{display:block;font-size:14.5px;font-weight:500;line-height:1.2}
+.lnd-item-s{display:block;font-size:12px;color:var(--text-dim);line-height:1.35;margin-top:2px}
+
+/* ---------- Desplegable del menú ----------
+   «Traductor de esquemático» es un acordeón: al pulsarlo se abren las
+   Vistas y el Ejecutable. Nace plegado. */
+.lnd-item-txt{min-width:0}
+.lnd-acc{display:flex;flex-direction:column}
+.lnd-acc-head{width:100%;font:inherit;text-align:left;color:inherit;cursor:pointer}
+.lnd-acc-head .lnd-item-txt{flex:1}
+.lnd-chev{margin-left:auto;flex:none;color:var(--text-mute);transition:transform .2s ease}
+.lnd-acc.open .lnd-chev{transform:rotate(180deg)}
+.lnd-acc-body{display:none;flex-direction:column;gap:6px;margin-top:8px;padding-left:6px;border-left:1px solid var(--border)}
+.lnd-acc.open .lnd-acc-body{display:flex}
+.lnd-sub-label{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mute);padding:2px 0 2px 8px}
+.lnd-acc-body .lnd-item{padding:10px 12px;font-size:13.5px;background:transparent;border-color:transparent}
+.lnd-acc-body .lnd-item:hover{background:var(--glass-control);border-color:var(--glass-border)}
+
+/* ---------- Modales ---------- */
+/* ---------- Modales ---------- */
+/* El `display:flex` de abajo ganaría al `display:none` que el navegador
+   da a [hidden], así que hay que reponerlo explícitamente: sin esto, el
+   modal cerrado sigue ocupando toda la pantalla y bloquea los clics. */
+.lnd-modal[hidden]{display:none}
+.lnd-scrim[hidden]{display:none}
+.lnd-modal{
+  position:fixed;inset:0;z-index:60;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  animation:lndFade .2s ease both;
+}
+@keyframes lndFade{from{opacity:0}to{opacity:1}}
+.lnd-card{
+  position:relative;width:min(560px,100%);max-height:86vh;overflow:auto;
+  padding:26px 26px 24px;border-radius:16px;
+  background:var(--glass-solid);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow),var(--glass-specular);
+  animation:lndPop .26s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes lndPop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.lnd-card .lnd-x{position:absolute;top:14px;right:14px}
+.lnd-card h2{margin:0 0 6px;font-size:20px;font-weight:600;color:var(--text)}
+.lnd-card h3{margin:18px 0 6px;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mute)}
+.lnd-card p{margin:0 0 10px;font-size:14px;line-height:1.6;color:var(--text-dim)}
+.lnd-card p strong{color:var(--text);font-weight:500}
+.lnd-card ul{margin:0 0 6px;padding-left:20px}
+.lnd-card li{font-size:13.5px;line-height:1.6;color:var(--text-dim)}
+.lnd-card li b{color:var(--text);font-weight:500}
+.lnd-card a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid rgba(var(--accent-rgb),.4)}
+.lnd-card a:hover{border-bottom-color:var(--accent)}
+.lnd-role{margin:0 0 4px;font-size:13.5px;color:var(--text-dim)}
+.lnd-mail{display:inline-block;font-family:var(--mono);font-size:13px;margin:2px 0}
+.lnd-brandline{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.lnd-brandline svg{width:34px;height:34px;flex:none;filter:drop-shadow(0 0 10px rgba(var(--accent-rgb),calc(.5 * var(--glow,1))))}
+.lnd-brandline strong{font-size:16px;font-weight:600;letter-spacing:.02em}
+
+
+/* ---------- Contacto: lista de correos ---------- */
+/* ---------- Lista de desarrolladores (con su correo) ---------- */
+.lnd-devs{list-style:none;padding-left:0;margin:0 0 4px}
+.lnd-devs li{
+  display:flex;flex-direction:column;gap:2px;
+  padding:10px 12px;border-radius:10px;margin-bottom:8px;
+  background:var(--glass-control);border:1px solid var(--glass-border);
+}
+.lnd-dev-name{font-size:14px;font-weight:500;color:var(--text)}
+.lnd-devs .lnd-mail{margin:0;border-bottom:0}
+.lnd-uni{font-size:13.5px;color:var(--text-dim)}
+/* Enlaces legales del modal de información: mismo sitio donde se busca
+   «quién hizo esto», que es donde se buscan también las condiciones. */
+.lnd-legal-links{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  margin:18px 0 0;padding-top:14px;
+  border-top:1px solid var(--glass-border);
+  font-size:11.5px;color:var(--text-mute);
+}
+.lnd-legal-links a{color:var(--text-dim);text-decoration:none;border-bottom:1px solid transparent}
+.lnd-legal-links a:hover{color:var(--accent-ink);border-bottom-color:rgba(var(--accent-rgb),.5)}
+
+@media (max-width:520px){
+  .lnd-head{padding:10px 12px}
+  .lnd-ic{min-width:38px;height:38px}
+  .lnd-card{padding:22px 18px}
+  .lnd-steps{grid-template-columns:repeat(2,1fr)}
+}
+
+
+/* ---------- Selector de plantillas ---------- */
+/* ============================================================
+   Plantillas de proyecto (plan 03 · R6)
+   ------------------------------------------------------------
+   El ítem del menú es un <button> y no un <a>, así que hay que
+   devolverle el aspecto: los botones traen borde, fondo y tipografía
+   del sistema. El resto son las tarjetas del selector.
+   ============================================================ */
+.lnd-item-tpl{
+  width:100%;font:inherit;color:inherit;text-align:left;
+  background:none;border:0;cursor:pointer;
+}
+.tpl-dlg{
+  border:1px solid var(--border-hi);border-radius:14px;
+  background:var(--glass-solid);color:var(--text);
+  width:min(920px,calc(100vw - 32px));max-height:calc(100vh - 64px);
+  padding:0;box-shadow:0 24px 64px var(--shadow);
+}
+.tpl-dlg::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+.tpl-head{
+  display:flex;align-items:center;gap:12px;padding:16px 18px 0;
+}
+.tpl-head h2{margin:0;font-size:19px;font-weight:600;flex:1}
+.tpl-mode{display:flex;gap:6px;padding:12px 18px 0}
+.tpl-mode button{
+  border:1px solid var(--glass-border);background:var(--glass-control);color:var(--text-dim);
+  border-radius:999px;padding:6px 12px;font:600 11.5px var(--mono);letter-spacing:.04em;cursor:pointer;
+}
+.tpl-mode button[aria-pressed="true"]{color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.14)}
+.tpl-lead{margin:6px 18px 0;color:var(--text-dim);font-size:13px;line-height:1.55}
+.tpl-filter{display:flex;flex-wrap:wrap;gap:6px;padding:14px 18px 0}
+.tpl-filter button{
+  font:inherit;font-size:12px;color:var(--text-dim);cursor:pointer;
+  background:var(--glass-control);border:1px solid var(--border);
+  border-radius:999px;padding:6px 12px;
+}
+.tpl-filter button[aria-pressed="true"]{
+  color:var(--accent-ink);border-color:var(--accent);
+  background:rgba(var(--accent-rgb),.14);
+}
+.tpl-list{
+  display:grid;gap:12px;padding:14px 18px 18px;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  overflow:auto;max-height:calc(100vh - 260px);
+}
+.tpl-card{
+  display:flex;flex-direction:column;gap:8px;
+  border:1px solid var(--border);border-radius:12px;
+  background:var(--glass-control);padding:14px 14px;
+}
+.tpl-top{display:flex;align-items:center;gap:8px}
+.tpl-lv{
+  font-size:10px;letter-spacing:.03em;text-transform:uppercase;
+  border-radius:999px;padding:2px 8px;border:1px solid var(--border-hi);
+  color:var(--text-dim);
+}
+.tpl-lv-beginner{color:var(--ok);border-color:rgba(var(--ok-rgb),.5)}
+.tpl-lv-intermediate{color:var(--warn);border-color:rgba(var(--warn-rgb),.5)}
+.tpl-lv-advanced{color:var(--err);border-color:rgba(var(--err-rgb),.5)}
+.tpl-min{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text-mute)}
+.tpl-title{margin:0;font-size:14px;font-weight:600;line-height:1.3}
+.tpl-note{margin:0;font-size:12px;color:var(--text-dim);line-height:1.5;flex:1}
+.tpl-learn{margin:0;font-size:12px;color:var(--text-dim);line-height:1.5}
+.tpl-learn::before{content:'▸ ';color:var(--accent)}
+.tpl-key{margin:0;font:11px var(--mono);color:var(--text-mute)}
+.tpl-key span{color:var(--text-dim)}
+.tpl-open{
+  font:inherit;font-size:12px;color:var(--accent-ink);cursor:pointer;
+  background:rgba(var(--accent-rgb),.14);border:1px solid var(--accent);
+  border-radius:8px;padding:6px 12px;align-self:flex-start;
+}
+.tpl-open:hover{background:rgba(var(--accent-rgb),.24)}
+.tpl-card.done{border-color:rgba(var(--ok-rgb),.45)}
+.tpl-done{font:600 10.5px var(--mono);letter-spacing:.06em;color:var(--ok);text-transform:uppercase}
+.tpl-card[data-challenge] .tpl-note{min-height:2.6em}
+.tpl-empty{margin:8px 0;color:var(--text-mute);font-size:13px}
+.tpl-msg{margin:0 18px 16px;font-size:12px;color:var(--err);min-height:1em}
+
+
+/* ---------- Plantillas: etiqueta de entorno ---------- */
+/* Plantillas de los tres entornos: filtro y etiqueta de entorno */
+.tpl-envbar{padding-top:10px}
+.tpl-envbar[hidden]{display:none}
+.tpl-env{
+  font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 8px;border-radius:999px;border:1px solid currentColor;
+}
+.tpl-env-traductor{color:var(--accent-ink)}
+.tpl-env-digital{color:var(--ok)}
+.tpl-env-simulador{color:var(--warn)}
+
+/* ---------- Escenas apiladas, Digital y Simulador ---------- */
+/* Escenas apiladas */
+.lnd-scenes{display:grid}
+.lnd-scenes .lnd-scene{grid-area:1/1;opacity:0;visibility:hidden;transition:opacity .5s,visibility 0s .5s}
+.lnd-scenes .lnd-scene.is-on{opacity:1;visibility:visible;transition:opacity .5s}
+.lnd-scenes .lnd-scene.is-on.out{opacity:0}
+
+/* Pastillas: un rótulo por entorno */
+.lnd-steps-bar span{display:none}
+[data-env="traductor"] .lnd-steps-bar span[data-env="traductor"],
+[data-env="digital"] .lnd-steps-bar span[data-env="digital"],
+[data-env="simulador"] .lnd-steps-bar span[data-env="simulador"]{display:inline}
+
+/* --- Escena Digital: la tabla de verdad --- */
+.lnd-stage .ls-tbl{fill:var(--glass-2);stroke:var(--glass-border);opacity:0;transition:opacity .4s}
+.lnd-stage .ls-th{fill:var(--text-dim);font:700 15px var(--mono);text-anchor:middle;opacity:0;transition:opacity .4s .2s}
+.lnd-stage .ls-th-out{fill:var(--ok)}
+.lnd-stage .ls-row text{fill:var(--text);font:600 15px var(--mono);text-anchor:middle}
+.lnd-stage .ls-row .ls-y{fill:var(--ok)}
+.lnd-stage .ls-row{opacity:0;transform:translateX(-10px);transition:opacity .3s,transform .3s}
+.lnd-stage .ls-r2{transition-delay:.15s}.lnd-stage .ls-r3{transition-delay:.3s}.lnd-stage .ls-r4{transition-delay:.45s}
+.lnd-stage .ls-row-hi rect{fill:rgba(var(--ok-rgb),.0);transition:fill .4s}
+.lnd-stage.on1 .ls-tbl,.lnd-stage.on1 .ls-th,.lnd-stage.on1 .ls-row{opacity:1;transform:none}
+.lnd-stage.on5 .ls-row-hi rect{fill:rgba(var(--ok-rgb),.18)}
+.lnd-stage .ls-chip-txt{fill:#e9ecf1;font:700 12px var(--mono);text-anchor:middle;letter-spacing:.06em}
+.lnd-stage .ls-knob{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.lnd-stage.on5 .ls-knob{transform:translateY(-14px)}
+.lnd-stage .ls-w-yel{stroke:#f5c518}
+.lnd-stage .ls-w-grn{stroke:#2fb36b;transition-delay:.15s}
+.lnd-stage .ls-w-blu{stroke:#3e8ed0;transition-delay:.3s}
+.lnd-stage .ls-w-red{transition-delay:.45s}
+
+/* --- Escena Simulador: valores, osciloscopio y polímetro --- */
+.lnd-stage .ls-val{fill:var(--text-dim);font:600 13px var(--mono);text-anchor:middle;opacity:0;transition:opacity .4s .7s}
+.lnd-stage .ls-val-hot{fill:var(--warn);font-weight:700;text-anchor:start;transition-delay:0s}
+.lnd-stage.on1 .ls-val:not(.ls-val-hot){opacity:1}
+.lnd-stage.on2 .ls-val-hot{opacity:1}
+.lnd-stage.on2 .ls-flow-sch{opacity:.9}
+.lnd-stage .ls-scope-lbl{fill:#4ade80;font:700 10px var(--mono)}
+.lnd-stage .ls-trace{transform:none;opacity:1}
+.lnd-stage .ls-wave{stroke:#4ade80;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.1s ease-in-out}
+.lnd-stage.on3 .ls-wave{stroke-dashoffset:0}
+.lnd-stage .ls-w-charge{stroke:#facc15;stroke-width:2.6;transition-duration:1.1s}
+.lnd-stage .ls-meter-txt{fill:#facc15;font:700 15px var(--mono);text-anchor:middle;letter-spacing:.04em}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-stage.on2 .ls-flow-sch{animation:lsFlow 1.4s linear infinite}
+}
+
+
+/* ---------- La mascota ---------- */
+/* ============================================================
+   La mascota: el pan con ojos binarios. Arriba a la derecha de la
+   escena, de pie sobre la placa.
+   · Sigue la escena: mira el esquema, salta con el pulso, señala las
+     piezas, levanta los brazos con los cables y lo celebra («0 1» →
+     «1 1», su LED se enciende y salen chispas).
+   · Cambia con el tema: colores propios y un accesorio por tema
+     (orejas, bigotes y cola de gato en WorkBuddy, capucha de ballena con
+     su chorro en DeepSeek, la chispa de Claude como antena, hachimaki con
+     sakura en Japón…). Ningún accesorio le tapa la cara.
+   · Los ojos siguen al ratón; al pulsarla salta y da un consejo; a veces
+     sale con sombrero y su fusil electrónico de oro.
+   Todo es transform/opacity; nada de filtros sobre lo que se mueve.
+   ============================================================ */
+.lnd-mascot{
+  --mc-line:#f39a2b; --mc-fill:#24170f; --mc-eye:#ffd43b; --mc-crumb:#f6c58a; --mc-led-on:#ffe066;
+  --mc-limb:#ffc83d;
+  --ex:0px; --ey:0px;
+  position:absolute;top:-6px;right:3%;z-index:2;
+  width:150px;height:150px;padding:0;margin:0;border:0;cursor:pointer;
+  background:radial-gradient(closest-side,rgba(var(--accent-rgb),.16),transparent 72%);
+  border-radius:50%;
+}
+.lnd-mascot:focus-visible{outline:2px solid var(--accent-ink);outline-offset:4px}
+.lnd-mascot svg{display:block;width:100%;height:100%;overflow:visible}
+
+/* Colores por tema */
+html[data-theme="default"] .lnd-mascot{--mc-limb:#ffc83d;--mc-line:#ffc83d;--mc-fill:#10264d;--mc-eye:#ffe48a;--mc-crumb:#6ea8ff}
+html[data-theme="dark"] .lnd-mascot{--mc-limb:#7dd3fc;--mc-line:#7dd3fc;--mc-fill:#0b1424;--mc-eye:#e0f4ff;--mc-crumb:#7dd3fc}
+html[data-theme="midnight"] .lnd-mascot{--mc-limb:#a78bfa;--mc-line:#a78bfa;--mc-fill:#120e1f;--mc-eye:#f0e9ff;--mc-crumb:#c4b5fd}
+html[data-theme="neon"] .lnd-mascot{--mc-limb:#2ffcb4;--mc-line:#2ffcb4;--mc-fill:#06120e;--mc-eye:#eafff7;--mc-crumb:#ff3db4}
+html[data-theme="pcb"] .lnd-mascot{--mc-limb:#e0b04a;--mc-line:#e0b04a;--mc-fill:#0b3326;--mc-eye:#ffe9a8;--mc-crumb:#7ee0a1}
+html[data-theme="light"] .lnd-mascot{--mc-limb:#e5484d;--mc-line:#e5484d;--mc-fill:#ffffff;--mc-eye:#b4232a;--mc-crumb:#e5484d;--mc-led-on:#e5484d}
+html[data-theme="sepia"] .lnd-mascot{--mc-limb:#b87333;--mc-line:#b87333;--mc-fill:#fbf3e3;--mc-eye:#7a4517;--mc-crumb:#c08a4e;--mc-led-on:#e0912f}
+html[data-theme="ivory"] .lnd-mascot{--mc-limb:#d97757;--mc-line:#d97757;--mc-fill:#fffaf2;--mc-eye:#a9502f;--mc-crumb:#d97757;--mc-led-on:#d97757}
+html[data-theme="workbuddy"] .lnd-mascot{--mc-limb:#12c29b;--mc-line:#12c29b;--mc-fill:#ffffff;--mc-eye:#0a8569;--mc-crumb:#7ed56f;--mc-led-on:#12c29b}
+html[data-theme="deepseek"] .lnd-mascot{--mc-limb:#4d6bfe;--mc-line:#4d6bfe;--mc-fill:#ffffff;--mc-eye:#2f4be0;--mc-crumb:#9fb0ff;--mc-led-on:#4d6bfe}
+html[data-theme="japan"] .lnd-mascot{--mc-limb:#e8452c;--mc-line:#e8452c;--mc-fill:#1d1418;--mc-eye:#ffd7a8;--mc-crumb:#f4a7b9}
+:is(html[data-theme="custom"],html[data-theme="custom-light"]) .lnd-mascot{--mc-limb:var(--accent-ink);--mc-line:var(--accent-ink);--mc-fill:var(--surface);--mc-eye:var(--accent-ink);--mc-crumb:var(--accent-ink);--mc-led-on:var(--accent-ink)}
+
+/* El contorno es el del pan del logo (--mc-line, fijo); los ojos, los
+   brazos, las piernas —la izquierda es el símbolo de tierra— y el
+   circuito de la barriga llevan el color del tema (--mc-limb). */
+.lnd-mascot :is(.mc-arm,.mc-leg,.mc-circuit) > :is(path,circle){stroke:var(--mc-limb);stroke-linecap:round;stroke-linejoin:round}
+.lnd-mascot .mc-shell{fill:var(--mc-fill);stroke:var(--mc-line);stroke-linejoin:round}
+.lnd-mascot .mc-leg-r path:last-child,.lnd-mascot .mc-arm > circle{fill:var(--mc-fill)}
+.lnd-mascot .mc-crumbs circle{fill:var(--mc-crumb);opacity:.5}
+.lnd-mascot .mc-eyes text{fill:var(--mc-limb);font:800 17px var(--mono);text-anchor:middle}
+.lnd-mascot .mc-eyes-b{opacity:0}
+.lnd-mascot .mc-src{fill:var(--mc-fill)}
+.lnd-mascot .mc-tr{opacity:.4}
+.lnd-mascot .mc-pulse{stroke:var(--mc-limb);stroke-width:2;stroke-dasharray:.24 1.2;stroke-dashoffset:.24;opacity:0}
+.lnd-mascot .mc-node{fill:var(--mc-fill);stroke-width:1.4}
+.lnd-mascot .mc-led{fill:var(--mc-fill);stroke:var(--mc-limb);stroke-width:1.4;transition:fill .3s}
+.lnd-mascot .mc-shadow{fill:rgba(0,0,0,.28);transform-box:fill-box;transform-origin:center}
+.lnd-mascot .mc-face{transform:translate(var(--ex),var(--ey));transition:transform .25s ease-out}
+.lnd-mascot .mc-body{transform-box:fill-box;transform-origin:50% 100%;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.lnd-mascot .mc-arm{transform-box:fill-box;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.lnd-mascot .mc-arm-l{transform-origin:100% 0}
+.lnd-mascot .mc-arm-r{transform-origin:0 0}
+.lnd-mascot .mc-eyes{transition:opacity .2s}
+
+/* Accesorios: ninguno a la vista salvo el de su tema */
+.lnd-mascot :is(.mc-acc,.mc-out,.mc-gun,.mc-radio){display:none}
+html[data-theme="default"] .lnd-mascot .mc-acc-default,
+html[data-theme="workbuddy"] .lnd-mascot .mc-acc-wb,
+html[data-theme="deepseek"] .lnd-mascot .mc-acc-ds,
+html[data-theme="ivory"] .lnd-mascot .mc-acc-claude,
+html[data-theme="japan"] .lnd-mascot .mc-acc-jp,
+html[data-theme="neon"] .lnd-mascot .mc-acc-neon,
+html[data-theme="pcb"] .lnd-mascot .mc-acc-pcb,
+html[data-theme="dark"] .lnd-mascot .mc-acc-lamp,
+html[data-theme="midnight"] .lnd-mascot .mc-acc-night,
+html[data-theme="light"] .lnd-mascot .mc-acc-paper,
+html[data-theme="sepia"] .lnd-mascot .mc-acc-sepia{display:inline}
+.lnd-mascot .mc-cap-b{fill:#10264d;font:800 9px var(--sans);text-anchor:middle}
+/* WorkBuddy: la máscara tapa los ojos binarios; los suyos miran al ratón.
+   Con el vestuario secreto o sin accesorio vuelve la cara de siempre. */
+html[data-theme="workbuddy"] .lnd-mascot .mc-face{display:none}
+html[data-theme="workbuddy"] .lnd-mascot:is(.gag,.bare) .mc-face{display:inline}
+.lnd-mascot .mc-wb-eyes{transform:translate(var(--ex),var(--ey));transition:transform .25s ease-out}
+/* La antena se cambia por lo que lleva en la cabeza: la chispa de
+   Claude, el integrado, la válvula y el LED de la gorra. */
+html:is([data-theme="ivory"],[data-theme="pcb"],[data-theme="sepia"],[data-theme="default"]) .lnd-mascot:not(.gag):not(.bare) .mc-antenna{display:none}
+.lnd-mascot .mc-jp-ai{fill:#fff;font:800 6.4px var(--sans);text-anchor:middle;letter-spacing:.02em}
+.lnd-mascot .mc-chip-txt{fill:#cfd3da;font:700 6.6px var(--mono);text-anchor:middle;letter-spacing:.06em}
+.lnd-mascot .mc-neon-leds .on{fill:#2ffcb4}
+.lnd-mascot .mc-neon-leds .off{fill:#0f3b2c}
+.lnd-mascot .mc-lamp-glow{opacity:.22}
+.lnd-mascot .mc-tube-glow{opacity:.55}
+/* Lo que sólo existe mientras se mueve: quieto, no se ve. */
+.lnd-mascot :is(.mc-ds-spout,.mc-jp-petal){opacity:0}
+.lnd-mascot .mc-claude-halo{opacity:.12}
+
+/* Sombrero y fusil: tapan el accesorio del tema mientras duran */
+.lnd-mascot.gag .mc-acc{display:none}
+/* Modo secreto: un vestuario por activación (js/home-hero.js). */
+.lnd-mascot.gag-heis :is(.mc-out-heis,.mc-gun),
+.lnd-mascot.gag-vaquero .mc-out-vaquero,
+.lnd-mascot.gag-radio :is(.mc-out-radio,.mc-radio),
+.lnd-mascot.gag-bigote .mc-out-bigote,
+.lnd-mascot.gag-explorador .mc-out-explorador{display:inline}
+.lnd-stage-wrap .lnd-mascot.gag-heis .mc-arm-r{transform:rotate(-24deg)}
+.lnd-stage-wrap .lnd-mascot.gag-heis .mc-arm-l{transform:rotate(30deg)}
+.lnd-stage-wrap .lnd-mascot.gag-radio .mc-arm-r{transform:rotate(-42deg)}
+.lnd-stage-wrap .lnd-mascot.gag :is(.mc-crumbs,.mc-circuit){opacity:0}
+.lnd-mascot .mc-gun-led-a{fill:#ff4d4d}
+.lnd-mascot .mc-gun-led-b{fill:#4ade80}
+.lnd-mascot .mc-gun-glint{opacity:0;transform-box:fill-box;transform-origin:center}
+
+/* Chispas al celebrar */
+.lnd-mascot .mc-spark path{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.2)}
+
+/* Poses según el paso de la escena */
+[data-step="0"] > .lnd-mascot,[data-step="1"] > .lnd-mascot,[data-step="2"] > .lnd-mascot,
+[data-step="3"] > .lnd-mascot,[data-step="4"] > .lnd-mascot{--ex:-2.5px}
+[data-step="1"] > .lnd-mascot .mc-arm-l{transform:rotate(28deg)}
+[data-step="3"] > .lnd-mascot .mc-arm-l{transform:rotate(38deg)}
+[data-step="4"] > .lnd-mascot .mc-arm-l{transform:rotate(58deg)}
+[data-step="4"] > .lnd-mascot .mc-arm-r{transform:rotate(-58deg)}
+[data-step="5"] > .lnd-mascot .mc-arm-l{transform:rotate(80deg)}
+[data-step="5"] > .lnd-mascot .mc-arm-r{transform:rotate(-80deg)}
+[data-step="5"] > .lnd-mascot .mc-eyes-a{opacity:0}
+[data-step="5"] > .lnd-mascot .mc-eyes-b{opacity:1}
+[data-step="5"] > .lnd-mascot .mc-led{fill:var(--mc-led-on)}
+
+@media (prefers-reduced-motion:no-preference){
+  [data-step="5"] > .lnd-mascot .mc-spark path{animation:mcSpark 1.6s ease-out infinite}
+  [data-step="5"] > .lnd-mascot .mc-spark path:nth-child(2){animation-delay:.5s}
+  [data-step="5"] > .lnd-mascot .mc-spark path:nth-child(3){animation-delay:1s}
+  .lnd-mascot .mc-eyes-a{animation:mcBlink 4.6s 2s infinite}
+  /* Una animación gana a cualquier regla: sin esto el parpadeo dejaba
+     los ojos en «0 1» también al celebrar. */
+  [data-step="5"] > .lnd-mascot .mc-eyes-a{animation:none}
+  .lnd-mascot.wave .mc-arm-r{animation:mcWave .42s ease-in-out 3}
+  .lnd-mascot.hop svg{animation:mcHop .6s cubic-bezier(.3,.7,.4,1)}
+  .lnd-mascot .mc-claude-spark{transform-box:fill-box;transform-origin:center;animation:mcSpin 6s linear infinite}
+  /* Los temas secretos, cada uno con su tic (los dibujos están en home.html):
+     el gato mueve la cola y las orejas, la ballena echa su chorro, la chispa
+     de Claude respira y en Japón ondean las cintas y cae un pétalo. */
+  .lnd-mascot .mc-wb-ear{transform-box:fill-box;transform-origin:50% 100%}
+  .lnd-mascot .mc-wb-ear-l{animation:mcEarL 5.2s ease-in-out infinite}
+  .lnd-mascot .mc-wb-ear-r{animation:mcEarR 7.4s 1.3s ease-in-out infinite}
+  .lnd-mascot .mc-wb-eyes path{transform-box:fill-box;transform-origin:center;animation:mcPill 4.8s 2s ease-in-out infinite}
+  .lnd-mascot .mc-ds-tail{transform-box:fill-box;transform-origin:0 100%;animation:mcFluke 3s ease-in-out infinite}
+  .lnd-mascot .mc-ds-spout{transform-box:fill-box;transform-origin:50% 100%;animation:mcSpout 5.5s 1s ease-out infinite}
+  .lnd-mascot .mc-claude-halo{transform-box:fill-box;transform-origin:center;animation:mcHalo 3.2s ease-in-out infinite}
+  .lnd-mascot .mc-jp-tails{transform-box:fill-box;transform-origin:0 50%;animation:mcFlutter 1.3s ease-in-out infinite}
+  .lnd-mascot .mc-jp-petal{transform-box:fill-box;transform-origin:center;animation:mcPetal 6.5s 1.5s ease-in infinite}
+  .lnd-mascot.gag .mc-gun-glint{animation:mcGlint 1.4s ease-in-out infinite}
+  .lnd-mascot.gag .mc-gun-led-a{animation:mcLed .5s steps(2) infinite}
+  .lnd-mascot.gag .mc-gun-led-b{animation:mcLed .5s .25s steps(2) infinite}
+  .lnd-mascot.gag .mc-out{transform-box:fill-box;transform-origin:50% 100%;animation:mcHat .5s cubic-bezier(.34,1.56,.64,1) both}
+  .lnd-mascot.gag-radio .mc-radio rect:nth-of-type(2){animation:mcLed .8s steps(2) infinite}
+  html.lnd-hero-off .lnd-mascot *,
+  html.lnd-hero-off .lnd-play,
+  html.lnd-hero-off .lnd-play-wrap::before,
+  html.lnd-hero-off .lnd-play-wrap::after{animation-play-state:paused}
+}
+/* ---------- Lo que le pasa a la mascota ----------
+   .zap (descarga al cablear), .burn (queda chamuscada y echa humo),
+   .crazy (ojos locos), .think (se le enciende la bombilla) y, con el
+   circuito funcionando, se sonroja y le salen corazones. */
+.lnd-mascot .mc-eyes-x,.lnd-mascot .mc-eyes-o{opacity:0}
+.lnd-mascot .mc-fx{opacity:0;pointer-events:none}
+.lnd-mascot .mc-bolts{fill:#ffe14d;stroke:#fff8c4;stroke-width:.6}
+.lnd-mascot .mc-smoke{fill:#9aa0a8}
+.lnd-mascot .mc-idea{fill:var(--mc-eye);font:700 9px var(--mono)}
+.lnd-mascot .mc-shell,.lnd-mascot .mc-crumbs circle{transition:fill .5s,stroke .3s}
+.lnd-mascot.zap :is(.mc-eyes-a,.mc-eyes-b),.lnd-mascot.burn :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-mascot.zap .mc-eyes-x{opacity:1}
+.lnd-mascot.burn .mc-eyes-o{opacity:1}
+.lnd-mascot.zap .mc-bolts{opacity:1}
+.lnd-mascot.zap .mc-shell{stroke:#fff6b0}
+.lnd-stage-wrap .lnd-mascot.burn{--mc-fill:#1c1a19}
+.lnd-mascot.burn .mc-shell{stroke:#5b524c}
+.lnd-mascot.burn .mc-crumbs circle{fill:#3a3532}
+.lnd-mascot.think .mc-bulb{opacity:1}
+.lnd-mascot.think{--ey:-2.5px}
+.lnd-stage-wrap .lnd-mascot.zap .mc-arm-l{transform:rotate(95deg)}
+.lnd-stage-wrap .lnd-mascot.zap .mc-arm-r{transform:rotate(-95deg)}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-mascot.zap svg{animation:mcZap .1s steps(2) infinite}
+  .lnd-mascot.zap .mc-bolts{animation:mcFlick .16s steps(2) infinite}
+  .lnd-mascot.burn .mc-smoke{animation:mcSmoke 1.3s ease-out infinite}
+  .lnd-mascot.burn .mc-smoke circle{transform-box:fill-box;transform-origin:center}
+  .lnd-mascot.burn svg{animation:mcDaze 1.3s ease-in-out infinite}
+  .lnd-mascot.crazy .mc-face{animation:mcDizzy .5s ease-in-out infinite}
+  .lnd-mascot.think .mc-bulb{animation:mcBulb 1.2s ease-in-out infinite}
+}
+@keyframes mcZap{0%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}100%{transform:translate(-1px,-2px)}}
+@keyframes mcFlick{50%{opacity:.15}}
+@keyframes mcSmoke{0%{opacity:0;transform:translateY(6px)}30%{opacity:.75}100%{opacity:0;transform:translateY(-18px)}}
+@keyframes mcDaze{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes mcDizzy{0%,100%{transform:translate(var(--ex),var(--ey)) rotate(-8deg)}50%{transform:translate(var(--ex),var(--ey)) rotate(8deg)}}
+@keyframes mcBulb{0%,100%{opacity:.75}50%{opacity:1}}
+@keyframes mcHop{0%{transform:translateY(0) scale(1,1)}20%{transform:translateY(2px) scale(1.08,.9)}50%{transform:translateY(-18px) scale(.94,1.08) rotate(-6deg)}80%{transform:translateY(0) scale(1.06,.94)}100%{transform:none}}
+@keyframes mcBlink{0%,94%,100%{opacity:1}96%{opacity:0}}
+@keyframes mcWave{0%,100%{transform:rotate(-70deg)}50%{transform:rotate(-115deg)}}
+@keyframes mcSpark{0%{opacity:0;transform:scale(.2) rotate(0)}30%{opacity:1;transform:scale(1.1) rotate(45deg)}100%{opacity:0;transform:scale(.4) rotate(90deg)}}
+@keyframes mcSpin{to{transform:rotate(360deg)}}
+/* Un pulso: sale de la fuente, recorre la pista y se apaga en el nodo;
+   el nodo se enciende justo cuando llega (30 % del ciclo). */
+@keyframes mcPulse{0%{stroke-dashoffset:.24;opacity:1}30%{stroke-dashoffset:-1;opacity:1}31%,100%{stroke-dashoffset:-1;opacity:0}}
+@keyframes mcNode{0%,24%{fill:var(--mc-fill)}30%{fill:var(--mc-limb)}55%,100%{fill:var(--mc-fill)}}
+@keyframes mcPill{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.15)}}
+@keyframes mcFluke{0%,100%{transform:rotate(0)}50%{transform:rotate(-9deg)}}
+@keyframes mcEarL{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-16deg)}92%{transform:rotate(4deg)}95%{transform:rotate(-8deg)}}
+@keyframes mcEarR{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(16deg)}95%{transform:rotate(-4deg)}}
+@keyframes mcSpout{0%,62%{opacity:0;transform:scale(.6,.1)}68%{opacity:1;transform:scale(1,1.08)}80%{opacity:1;transform:scale(1.05,1)}100%{opacity:0;transform:scale(1.2,.9) translateY(-6px)}}
+@keyframes mcHalo{0%,100%{opacity:.08;transform:scale(.8)}50%{opacity:.22;transform:scale(1.15)}}
+@keyframes mcFlutter{0%,100%{transform:rotate(0) skewY(0)}50%{transform:rotate(7deg) skewY(-6deg)}}
+@keyframes mcPetal{0%,55%{opacity:0;transform:translate(0,0) rotate(0)}60%{opacity:1}100%{opacity:0;transform:translate(-26px,90px) rotate(260deg)}}
+@keyframes mcGlint{0%,60%,100%{opacity:0;transform:scale(.3)}75%{opacity:1;transform:scale(1.3)}}
+@keyframes mcLed{50%{opacity:.25}}
+@keyframes mcHat{from{transform:translateY(-26px) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+
+/* El bocadillo */
+.lnd-bubble{
+  position:absolute;right:calc(100% + 6px);top:4px;
+  width:max-content;max-width:230px;padding:10px 12px;border-radius:14px 14px 4px 14px;
+  font:500 13px/1.45 var(--sans);color:var(--text);text-align:left;
+  background:var(--bg2);border:1px solid rgba(var(--accent-rgb),.45);
+  box-shadow:0 10px 28px rgba(0,0,0,.28);
+}
+.lnd-bubble[hidden]{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-bubble{animation:lndPop .25s ease both}
+}
+
+
+/* ---------- Escena de Análisis: fasores ---------- */
+/* Escena: el plano de fasores */
+.lnd-stage .ls-z{fill:#c9d6ee;font:600 12px var(--mono)}
+.lnd-stage .ls-z-s{font-size:8px;baseline-shift:sub}
+.lnd-stage .ls-z-t{fill:#ffc83d;font-weight:700}
+.lnd-stage .ls-ax{fill:#6b82ad}
+.lnd-stage .ls-zs{transform:none}
+.lnd-stage .ls-zs text{opacity:0;transition:opacity .35s}
+.lnd-stage .ls-zs text:nth-child(2){transition-delay:.15s}
+.lnd-stage .ls-zs text:nth-child(3){transition-delay:.3s}
+.lnd-stage .ls-zs text:nth-child(4){transition-delay:.5s}
+.lnd-stage.on3 .ls-zs text{opacity:1}
+.lnd-stage .ls-wire.ls-ph-v{stroke:#ffc83d;stroke-width:3}
+.lnd-stage .ls-wire.ls-ph-i{stroke:#5b8cff;stroke-width:3;transition-delay:.25s}
+.lnd-stage .ls-wire.ls-ph-l{stroke:#2fd39a;transition-delay:.5s}
+.lnd-stage .ls-wire.ls-ph-c{stroke:#ff6b9a;transition-delay:.7s}
+.lnd-stage .ls-heads path{stroke:none}
+.lnd-stage .ls-heads .ls-ph-v{fill:#ffc83d}.lnd-stage .ls-heads .ls-ph-i{fill:#5b8cff}
+.lnd-stage .ls-heads .ls-ph-l{fill:#2fd39a}.lnd-stage .ls-heads .ls-ph-c{fill:#ff6b9a}
+.lnd-stage .ls-heads{opacity:0;transition:opacity .3s 1.1s}
+.lnd-stage.on4 .ls-heads{opacity:1}
+.lnd-stage .ls-res{font-size:13px}
+
+
+/* ---------- La mascota: aventuras, grieta y mar binario ---------- */
+/* ============================================================
+   Más vida para la mascota (26 oct)
+   ------------------------------------------------------------
+   · .walk   camina por la placa y vuelve.
+   · .jet    jetpack: vuela hasta el circuito y se pone a soldar
+             (.jet-fix); el circuito hace un corto, le da la descarga, el
+             jetpack falla (.jet-fail) y se estrella contra la pantalla
+             (js/home-hero.js pinta la grieta en el cristal).
+   · .dive   una ola de ceros y unos sube por debajo, se lleva el pan
+             hacia la izquierda y rompe (.mc-wave01, dentro del dibujo).
+   · .dance  baila cuando el circuito funciona (notas y LED de colores).
+   · .nap    se duerme si nadie toca nada un rato.
+   Todo es transform/opacity; el mar sólo se anima mientras se bucea.
+   ============================================================ */
+.lnd-mascot :is(.mc-jet,.mc-dive,.mc-zzz,.mc-notes,.mc-wave01){display:none}
+.lnd-mascot.jet .mc-jet,.lnd-mascot.dive :is(.mc-dive,.mc-wave01),.lnd-mascot.nap .mc-zzz,.lnd-mascot.dance .mc-notes{display:inline}
+/* La ola: el color del tema, translúcida, con las filas de cifras dentro
+   y la espuma de cifras en la cresta. */
+.lnd-mascot .mc-wave-body{fill:var(--mc-limb);fill-opacity:.2;stroke:var(--mc-limb);stroke-opacity:.55;stroke-width:1.4}
+.lnd-mascot .mc-wrow{fill:var(--mc-limb);fill-opacity:.55;font:700 10px var(--mono);letter-spacing:.12em}
+.lnd-mascot .mc-wave-foam{fill:var(--mc-limb);font:800 8px var(--mono)}
+.lnd-mascot .mc-wave01{transform-box:fill-box;transform-origin:50% 100%}
+/* El jetpack arreglando el circuito: soldador en la mano y chispas; al
+   fallar, descarga, «× ×», humo y llamas que petardean. */
+.lnd-mascot.jet-fix .mc-iron{display:inline}
+.lnd-stage-wrap .lnd-mascot.jet-fix .mc-arm-r{transform:rotate(38deg)}
+.lnd-mascot.jet-fix .mc-csparks{opacity:1}
+.lnd-mascot.jet-fail :is(.mc-bolts,.mc-smoke,.mc-eyes-x){opacity:1}
+.lnd-mascot.jet-fail .mc-smoke{fill:#2b2b2e}
+.lnd-stage-wrap .lnd-mascot.jet-fail :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-mascot .mc-zzz text{fill:var(--mc-eye);font:800 13px var(--mono)}
+.lnd-mascot .mc-notes text{fill:var(--mc-line);font:700 18px var(--sans)}
+.lnd-mascot.nap :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-mascot.nap .mc-eyes-o{opacity:1}
+.lnd-mascot.dive .mc-face{transform:none}
+.lnd-mascot :is(.mc-leg,.mc-flame){transform-box:fill-box}
+.lnd-mascot .mc-leg{transform-origin:50% 0}
+.lnd-mascot .mc-flame{transform-origin:50% 0}
+
+@media (prefers-reduced-motion:no-preference){
+  /* Caminar */
+  .lnd-mascot.walk{animation:mcWalk 4.4s ease-in-out}
+  .lnd-mascot.walk .mc-leg-l{animation:mcStep .34s ease-in-out infinite alternate}
+  .lnd-mascot.walk .mc-leg-r{animation:mcStep .34s ease-in-out infinite alternate-reverse}
+  /* Jetpack */
+  .lnd-mascot.jet{animation:mcJet 6s cubic-bezier(.45,.05,.55,.95) both;z-index:40}
+  .lnd-mascot.jet .mc-flame{animation:mcFlame .09s ease-in-out infinite alternate}
+  .lnd-mascot.jet .mc-arm-l{animation:mcFlap .25s ease-in-out infinite alternate}
+  .lnd-mascot.jet-fix .mc-iron-hot{animation:mcHot .5s ease-in-out infinite alternate}
+  .lnd-mascot.jet-fix .mc-csparks path{animation:mcSpark .45s ease-out infinite}
+  .lnd-mascot.jet-fix .mc-csparks path:nth-child(2){animation-delay:.15s}
+  .lnd-mascot.jet-fix .mc-csparks path:nth-child(3){animation-delay:.3s}
+  .lnd-mascot.jet-fail .mc-flame{animation:mcSputter .16s steps(2) infinite}
+  .lnd-mascot.jet-fail .mc-bolts{animation:mcFlick .16s steps(2) infinite}
+  .lnd-mascot.jet-fail .mc-smoke{animation:mcSmoke 1s ease-out infinite}
+  .lnd-mascot.jet-fail .mc-smoke circle{transform-box:fill-box;transform-origin:center}
+  .lnd-stage-wrap.jet-short .lnd-stage{animation:lndShort .1s steps(2) 7}
+  /* La ola */
+  .lnd-mascot.dive{animation:mcDive 6.2s ease-in-out both;z-index:3}
+  .lnd-mascot.dive .mc-wave01{animation:mcWaveRise 6.2s ease-in-out both}
+  .lnd-mascot.dive .mc-wrow{animation:mcWaveRow 1.1s linear infinite}
+  .lnd-mascot.dive .mc-wrow-1{animation-duration:.8s}
+  .lnd-mascot.dive .mc-wrow-2{animation-duration:1.4s}
+  .lnd-mascot.dive .mc-arm-l{animation:mcSwim .6s ease-in-out infinite alternate}
+  .lnd-mascot.dive .mc-arm-r{animation:mcSwim .6s .3s ease-in-out infinite alternate}
+  /* Baile */
+  .lnd-mascot.dance svg{animation:mcDance .44s ease-in-out infinite alternate}
+  .lnd-mascot.dance .mc-arm-l{animation:mcFlap .44s ease-in-out infinite alternate}
+  .lnd-mascot.dance .mc-arm-r{animation:mcFlap .44s .22s ease-in-out infinite alternate}
+  .lnd-mascot.dance .mc-led{animation:mcDisco .9s steps(1) infinite}
+  .lnd-mascot.dance .mc-notes text{animation:mcNote 1.4s ease-out infinite}
+  .lnd-mascot.dance .mc-notes text:nth-child(2){animation-delay:.45s}
+  .lnd-mascot.dance .mc-notes text:nth-child(3){animation-delay:.9s}
+  /* Siesta */
+  .lnd-mascot.nap svg{animation:mcBreath 3.6s ease-in-out infinite}
+  .lnd-mascot.nap .mc-zzz text{animation:mcZ 2.4s ease-out infinite}
+  .lnd-mascot.nap .mc-zzz text:nth-child(2){animation-delay:.8s}
+  .lnd-mascot.nap .mc-zzz text:nth-child(3){animation-delay:1.6s}
+  .lnd-mascot :is(.mc-zzz,.mc-notes) text{transform-box:fill-box;transform-origin:center}
+}
+@keyframes mcWalk{0%{transform:none}45%,55%{transform:translateX(-170px)}100%{transform:none}}
+@keyframes mcStep{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+/* --jx/--jy: del sitio de la mascota al esquema de la escena (los pone
+   js/home-hero.js al despegar). */
+@keyframes mcJet{
+  0%{transform:none}
+  8%{transform:translate(0,-30px) rotate(-4deg)}
+  22%{transform:translate(var(--jx,-240px),var(--jy,120px)) rotate(-8deg)}
+  30%{transform:translate(calc(var(--jx,-240px) - 4px),calc(var(--jy,120px) - 6px)) rotate(-6deg)}
+  38%{transform:translate(calc(var(--jx,-240px) + 2px),calc(var(--jy,120px) + 3px)) rotate(-9deg)}
+  46%{transform:translate(calc(var(--jx,-240px) - 2px),calc(var(--jy,120px) - 4px)) rotate(-7deg)}
+  50%{transform:translate(var(--jx,-240px),var(--jy,120px)) rotate(-8deg)}
+  53%{transform:translate(calc(var(--jx,-240px) + 4px),calc(var(--jy,120px) - 8px)) rotate(16deg)}
+  56%{transform:translate(calc(var(--jx,-240px) - 24px),calc(var(--jy,120px) - 70px)) rotate(-32deg)}
+  60%{transform:translate(calc(var(--jx,-240px) * .8),calc(var(--jy,120px) * .2)) scale(1.5) rotate(22deg)}
+  64%{transform:translate(calc(var(--jx,-240px) * .85),calc(var(--jy,120px) * .35)) scale(2.8)}
+  68%{transform:translate(calc(var(--jx,-240px) * .85),calc(var(--jy,120px) * .35)) scale(2.9,2.5)}
+  80%{transform:translate(calc(var(--jx,-240px) * .85),calc(var(--jy,120px) * .35 + 100px)) scale(2.7) rotate(12deg)}
+  90%{transform:translate(calc(var(--jx,-240px) * .85),calc(var(--jy,120px) * .35 + 280px)) scale(2.4) rotate(20deg);opacity:0}
+  91%{transform:translate(0,-60px) scale(.6);opacity:0}
+  100%{transform:none;opacity:1}
+}
+@keyframes mcSputter{0%{transform:scaleY(1.1);opacity:1}50%{transform:scaleY(.25);opacity:.2}}
+@keyframes lndShort{50%{opacity:.35}}
+@keyframes mcFlame{from{transform:scaleY(.7)}to{transform:scaleY(1.25)}}
+@keyframes mcFlap{from{transform:rotate(10deg)}to{transform:rotate(70deg)}}
+/* La ola: sube por debajo (0–12 %), se lleva el pan hacia la izquierda
+   meciéndolo (12–74 %), rompe y lo tira (74–85 %); vuelve a su sitio. */
+@keyframes mcDive{
+  0%{transform:none;opacity:1}
+  10%{transform:translate(0,4px)}
+  18%{transform:translate(-14px,-14px) rotate(-4deg)}
+  30%{transform:translate(-110px,-6px) rotate(3deg)}
+  42%{transform:translate(-200px,-16px) rotate(-5deg)}
+  54%{transform:translate(-290px,-4px) rotate(4deg)}
+  66%{transform:translate(-360px,-14px) rotate(-6deg)}
+  76%{transform:translate(-400px,6px) rotate(-14deg);opacity:1}
+  84%{transform:translate(-430px,70px) rotate(-70deg);opacity:0}
+  86%{transform:translate(0,-30px);opacity:0}
+  100%{transform:none;opacity:1}
+}
+@keyframes mcWaveRise{0%{transform:scaleY(0);opacity:0}12%{transform:scaleY(1);opacity:1}74%{transform:scaleY(1);opacity:1}84%{transform:scaleY(.15);opacity:0}100%{transform:scaleY(0);opacity:0}}
+@keyframes mcWaveRow{from{transform:translateX(0)}to{transform:translateX(-26px)}}
+@keyframes mcSwim{from{transform:rotate(-20deg)}to{transform:rotate(60deg)}}
+@keyframes mcDance{0%{transform:translateY(0) rotate(-9deg)}100%{transform:translateY(-7px) rotate(9deg)}}
+@keyframes mcDisco{0%{fill:#ff4d6d}25%{fill:#ffe066}50%{fill:#4ade80}75%{fill:#5b8cff}}
+@keyframes mcNote{0%{opacity:0;transform:translateY(6px)}30%{opacity:1}100%{opacity:0;transform:translateY(-18px) rotate(14deg)}}
+@keyframes mcBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.02,.97) translateY(2px)}}
+@keyframes mcZ{0%{opacity:0;transform:translate(0,4px) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px) scale(1.2)}}
+
+/* La grieta del cristal cuando se estrella (la pone home-hero.js). */
+.lnd-crack{position:fixed;z-index:80;pointer-events:none;width:260px;height:260px;margin:-130px 0 0 -130px}
+.lnd-crack path{fill:none;stroke:rgba(255,255,255,.85);stroke-width:1.6;stroke-linecap:round}
+.lnd-crack .thin{stroke-width:.9;stroke:rgba(255,255,255,.6)}
+.lnd-crack circle{fill:rgba(255,255,255,.22)}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-crack{animation:lndCrack 1.9s ease-out forwards}
+  .lnd-hero.lnd-shake{animation:lndShake .38s cubic-bezier(.36,.07,.19,.97)}
+}
+@keyframes lndCrack{0%{opacity:0;transform:scale(.6)}8%{opacity:1;transform:scale(1)}70%{opacity:1}100%{opacity:0}}
+@keyframes lndShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+
+
+
+/* ---------- Fondo sólido, cuenta, mascota tranquila, sentada, aparcada y vista previa ---------- */
+/* ---------- Fondo sólido (tuerca → Animación del fondo) ---------- */
+html[data-bg="solid"] body::before,
+html[data-bg="solid"] .lnd-bg,
+html[data-bg="solid"] .lnd-spot{display:none}
+.lnd-bg.ready{opacity:1}
+
+/* ---------- La cuenta en la cabecera ---------- */
+.lnd-ic-av{display:none}
+.lnd-ic-enter.is-user .lnd-ic-av{
+  display:grid;place-items:center;width:26px;height:26px;margin-left:-4px;border-radius:50%;flex:none;
+  font:700 12px var(--sans);color:var(--on-accent,#0b1a33);background:var(--accent) center/cover no-repeat;
+}
+.lnd-ic-enter.is-user svg{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-ic-enter.lnd-ic-in{animation:lndIcIn .35s cubic-bezier(.34,1.56,.64,1) both}
+}
+@keyframes lndIcIn{from{opacity:0;transform:translateY(-6px) scale(.92)}to{opacity:1;transform:none}}
+
+/* ---------- La mascota, quieta ----------
+   El cuerpo no se mece: sólo se mueve en sus animaciones (jetpack,
+   buceo, baile, calambre…). En la escena levanta los brazos y cambia
+   los ojos con cada paso, nada más. */
+.lnd-mascot{touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:transform 1.4s cubic-bezier(.45,.05,.3,1)}
+/* A veces sale sin accesorio: sólo el pan. */
+.lnd-mascot.bare:not(.gag) .mc-acc{display:none}
+
+/* Lo nuevo de electrónica: oculto hasta su animación. */
+.lnd-mascot .mc-iron{display:none}
+.lnd-mascot :is(.mc-eyes-w,.mc-eyes-ex){opacity:0}
+.lnd-mascot .mc-meter-v{fill:#1d2a12;font:700 8px var(--mono);text-anchor:middle}
+.lnd-mascot .mc-batt-lvl{transform-box:fill-box;transform-origin:0 50%;transform:scaleX(.08)}
+.lnd-mascot .mc-scope-wave{stroke-dasharray:1 1;stroke-dashoffset:1}
+.lnd-mascot :is(.mc-iron-smoke circle,.mc-iron-hot){transform-box:fill-box;transform-origin:center}
+
+.lnd-mascot.charge .mc-batt,.lnd-mascot.scope .mc-scope,.lnd-mascot.meter .mc-meter,.lnd-mascot.short .mc-short{opacity:1}
+.lnd-mascot.solder .mc-iron{display:inline}
+.lnd-stage-wrap .lnd-mascot.solder .mc-arm-r{transform:rotate(38deg)}
+.lnd-mascot.solder{--ey:2px;--ex:1px}
+.lnd-stage-wrap .lnd-mascot.meter .mc-arm-l{transform:rotate(-20deg)}
+.lnd-mascot.meter{--ex:-2.5px;--ey:1.5px}
+.lnd-stage-wrap .lnd-mascot:is(.count,.charge,.solder,.meter) .mc-eyes-a{opacity:1;animation:none}
+.lnd-stage-wrap .lnd-mascot:is(.count,.charge,.solder,.meter) .mc-eyes-b{opacity:0}
+.lnd-stage-wrap .lnd-mascot.scope :is(.mc-eyes-a,.mc-eyes-b),
+.lnd-stage-wrap .lnd-mascot.short :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-mascot.scope .mc-eyes-w,.lnd-mascot.short .mc-eyes-ex{opacity:1}
+.lnd-mascot.count .mc-led{fill:var(--mc-led-on)}
+.lnd-stage-wrap .lnd-mascot.scope .mc-arm-l{transform:rotate(70deg)}
+.lnd-stage-wrap .lnd-mascot.charge .mc-arm-r{transform:rotate(-70deg)}
+.lnd-stage-wrap .lnd-mascot:is(.count,.charge,.solder,.meter,.scope,.short) .mc-spark{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-mascot.count .mc-led{animation:mcLed .38s steps(2) infinite}
+  .lnd-mascot.charge .mc-batt-lvl{animation:mcCharge 2.6s cubic-bezier(.4,0,.2,1) forwards}
+  .lnd-mascot.charge .mc-batt path{animation:mcLed .5s steps(2) infinite}
+  .lnd-mascot.scope .mc-scope-wave{animation:mcTrace 1.2s linear infinite}
+  .lnd-mascot.solder .mc-iron-hot{animation:mcHot .5s ease-in-out infinite alternate}
+  .lnd-mascot.solder .mc-iron-smoke circle{animation:mcSmoke 1.4s ease-out infinite}
+  .lnd-mascot.solder .mc-iron-smoke circle:nth-child(2){animation-delay:.45s}
+  .lnd-mascot.solder .mc-iron-smoke circle:nth-child(3){animation-delay:.9s}
+  .lnd-mascot.short svg{animation:mcZap .09s steps(2) infinite}
+  .lnd-mascot.short .mc-short{animation:mcFlick .12s steps(2) infinite}
+  .lnd-mascot.short .mc-led{animation:mcDisco .24s steps(1) infinite}
+  .lnd-mascot :is(.mc-batt,.mc-scope,.mc-meter){transform-box:fill-box;transform-origin:50% 100%}
+  .lnd-mascot.charge .mc-batt,.lnd-mascot.scope .mc-scope,.lnd-mascot.meter .mc-meter{animation:mcRise .35s cubic-bezier(.34,1.56,.64,1) both}
+}
+@keyframes mcCharge{
+  0%{transform:scaleX(.08);fill:#e5484d}
+  45%{fill:#facc15}
+  85%,100%{transform:scaleX(1);fill:#4ade80}
+}
+@keyframes mcTrace{from{stroke-dashoffset:1}to{stroke-dashoffset:-1}}
+@keyframes mcHot{from{fill:#ff8a1f;transform:scale(.8)}to{fill:#fff1a8;transform:scale(1.25)}}
+@keyframes mcRise{from{opacity:0;transform:translateY(6px) scale(.85)}to{opacity:1;transform:none}}
+
+/* ---------- Sentada encima de la placa ----------
+   js/home-hero.js calcula el sitio (--sx, --sy) y la mueve con una
+   transición; mientras va, anda; sentada, balancea los pies despacio y
+   al rato se duerme. */
+.lnd-mascot.sit{transform:translate(var(--sx,0),var(--sy,0))}
+.lnd-mascot.sit .mc-shadow{opacity:0;transition:opacity .4s}
+.lnd-stage-wrap .lnd-mascot.seated .mc-arm-l{transform:rotate(16deg)}
+.lnd-stage-wrap .lnd-mascot.seated .mc-arm-r{transform:rotate(-16deg)}
+.lnd-stage-wrap .lnd-mascot.seated .mc-eyes-a{opacity:1}
+.lnd-stage-wrap .lnd-mascot.seated .mc-eyes-b{opacity:0}
+.lnd-stage-wrap .lnd-mascot.seated .mc-spark{display:none}
+.lnd-stage-wrap .lnd-mascot.nap :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-stage-wrap .lnd-mascot.nap .mc-eyes-o{opacity:1}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-mascot.moving .mc-leg-l{animation:mcStep .3s ease-in-out infinite alternate}
+  .lnd-mascot.moving .mc-leg-r{animation:mcStep .3s ease-in-out infinite alternate-reverse}
+  .lnd-mascot.seated .mc-leg-l{animation:mcDangle 2.6s ease-in-out infinite alternate}
+  .lnd-mascot.seated .mc-leg-r{animation:mcDangle 2.6s .9s ease-in-out infinite alternate-reverse}
+  .lnd-stage-wrap .lnd-mascot.seated:not(.nap) .mc-eyes-a{animation:mcBlink 6s 1s infinite}
+  .lnd-mascot.nap .mc-leg{animation:none}
+}
+@keyframes mcDangle{from{transform:rotate(-9deg)}to{transform:rotate(11deg)}}
+@media (prefers-reduced-motion:reduce){.lnd-mascot{transition:none}}
+
+/* ---------- Aparcada al bajar por la página ----------
+   Pequeña, abajo a la izquierda (abajo a la derecha está el aviso de la
+   nube) y tranquila: parpadea y mira, nada más. */
+.lnd-stage-wrap .lnd-mascot.docked{
+  position:fixed;top:auto;right:auto;left:14px;bottom:14px;z-index:30;
+  width:96px;height:96px;transform:none;transition:none;
+  background:radial-gradient(closest-side,rgba(var(--accent-rgb),.2),transparent 78%);
+}
+.lnd-stage-wrap .lnd-mascot.docked .mc-arm{transform:none}
+.lnd-stage-wrap .lnd-mascot.docked .mc-eyes-a{opacity:1}
+.lnd-stage-wrap .lnd-mascot.docked .mc-eyes-b{opacity:0}
+.lnd-stage-wrap .lnd-mascot.docked :is(.mc-spark,.mc-fx){display:none}
+.lnd-mascot.docked .mc-led{fill:var(--mc-led-on)}
+.lnd-mascot.docked .lnd-bubble{right:auto;left:calc(100% + 4px);top:auto;bottom:46px;border-radius:14px 14px 14px 4px}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-stage-wrap .lnd-mascot.docked{animation:mcDockIn .45s cubic-bezier(.34,1.56,.64,1) both}
+}
+@keyframes mcDockIn{from{opacity:0;transform:translateY(24px) scale(.6)}to{opacity:1;transform:none}}
+/* En el móvil, más pequeña y a la derecha, donde tapa menos texto. */
+@media (max-width:620px){
+  .lnd-stage-wrap .lnd-mascot.docked{width:58px;height:58px;left:auto;right:8px;bottom:8px}
+  .lnd-mascot.docked .lnd-bubble{left:auto;right:calc(100% + 4px);border-radius:14px 14px 4px 14px}
+}
+@media print{.lnd-mascot.docked{display:none}}
+
+/* ---------- «Empezar»: vista previa con la mascota guía ---------- */
+.lnd-peek{
+  --pk:var(--accent-ink);--pk-rgb:var(--accent-rgb);
+  position:fixed;z-index:50;top:0;left:calc(min(360px,86vw) + 36px + 34px);
+  width:min(430px,calc(100vw - min(360px,86vw) - 36px - 64px));
+  transform:translateY(var(--py,80px));opacity:0;
+  transition:transform .38s cubic-bezier(.22,.61,.36,1),opacity .25s;
+  pointer-events:none;
+}
+.lnd-peek.show{opacity:1;pointer-events:auto}
+.lnd-peek[hidden]{display:none}
+.lnd-peek[data-env="digital"]{--pk:var(--ok);--pk-rgb:var(--ok-rgb)}
+.lnd-peek[data-env="simulador"]{--pk:var(--warn);--pk-rgb:var(--warn-rgb)}
+.lnd-peek[data-env="circuitos"]{--pk:var(--circ);--pk-rgb:var(--circ-rgb)}
+.lnd-peek-guide{position:relative;height:112px;margin:0 0 -16px -18px}
+.lnd-peek-guide .lnd-mascot.mc-guide{
+  position:absolute;left:0;top:0;width:132px;height:132px;cursor:default;
+  --ex:-2.6px;--ey:.5px;background:none;transition:none;
+}
+.lnd-peek-guide .mc-guide .mc-arm-l{transform:rotate(52deg)}
+.lnd-peek-guide .mc-guide .mc-arm-r{transform:rotate(-30deg)}
+.lnd-peek-guide .mc-guide :is(.mc-spark,.mc-fx,.mc-out,.mc-gun,.mc-radio,.mc-iron,.mc-jet,.mc-dive,.mc-zzz,.mc-notes){display:none}
+.lnd-peek-say{
+  position:absolute;left:124px;top:12px;margin:0;max-width:310px;padding:10px 14px;
+  border-radius:14px 14px 14px 4px;font:500 13px/1.45 var(--sans);color:var(--text);
+  background:var(--bg2);border:1px solid rgba(var(--pk-rgb),.55);box-shadow:0 10px 28px rgba(0,0,0,.3);
+}
+.lnd-peek-card{
+  position:relative;overflow:hidden;cursor:pointer;border-radius:18px;
+  background:var(--glass-solid);border:1px solid rgba(var(--pk-rgb),.5);
+  box-shadow:0 24px 60px rgba(0,0,0,.4),0 0 0 4px rgba(var(--pk-rgb),.08);
+  transition:border-color .3s,box-shadow .3s;
+}
+.lnd-peek-card:hover{border-color:var(--pk)}
+.lnd-peek-shot{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--bg2);border-bottom:3px solid var(--pk)}
+.lnd-peek-shot > img{width:100%;height:100%;object-fit:cover;display:block}
+.lnd-peek-shot.mosaic > img{display:none}
+.lnd-peek-mos{display:none}
+.lnd-peek-shot.mosaic .lnd-peek-mos{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:100%}
+.lnd-peek-mos img{width:100%;height:100%;object-fit:cover;display:block;min-height:0}
+.lnd-peek-body{padding:14px 18px 16px}
+.lnd-peek-body h3{margin:0 0 6px;font-size:17px;font-weight:650;color:var(--pk)}
+.lnd-peek-what{margin:0 0 10px;font-size:13.5px;line-height:1.55;color:var(--text-dim)}
+.lnd-peek-body h4{margin:0 0 6px;font:600 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-mute)}
+.lnd-peek-body ul{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.lnd-peek-body li{position:relative;padding-left:18px;font-size:13px;line-height:1.45;color:var(--text)}
+.lnd-peek-body li::before{content:"";position:absolute;left:2px;top:.5em;width:7px;height:7px;border-radius:2px;background:var(--pk)}
+.lnd-peek-how{margin:0;padding:8px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;color:var(--text-dim);background:rgba(var(--pk-rgb),.1)}
+.lnd-peek-how b{color:var(--text);font-weight:600}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-peek-card.swap .lnd-peek-shot,.lnd-peek-card.swap .lnd-peek-body{animation:lndPeekSwap .32s ease both}
+  .lnd-peek.show .mc-guide{animation:mcDockIn .5s .1s cubic-bezier(.34,1.56,.64,1) both}
+  .lnd-peek .mc-guide.hop svg{animation:mcHop .6s cubic-bezier(.3,.7,.4,1)}
+}
+@media (prefers-reduced-motion:reduce){.lnd-peek{transition:none}}
+@keyframes lndPeekSwap{from{opacity:.2;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:979px){.lnd-peek{display:none}}
+
+
+/* ---------- La mascota: contorno del pan y modo fasores ---------- */
+/* ---------- La mascota: el contorno SIEMPRE del color del pan ----------
+   Es el mismo trazo del logo (--bread-crust). Con el tema cambian el
+   relleno, los ojos, el LED y el accesorio; el borde no. */
+.lnd-mascot,.lnd-mascot.mc-guide{--mc-line:var(--bread-crust,#c08a4e) !important}
+
+/* Modo Circuitos: un diagrama fasorial sobre la cabeza, con la tensión y
+   la corriente girando juntas. */
+.lnd-mascot.phasor .mc-phasor{opacity:1}
+.lnd-mascot :is(.mc-ph-v,.mc-ph-i){transform-box:view-box;transform-origin:60px -14px}
+.lnd-stage-wrap .lnd-mascot.phasor .mc-arm-r{transform:rotate(-70deg)}
+.lnd-stage-wrap .lnd-mascot.phasor .mc-spark{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-mascot.phasor .mc-phasor{transform-box:fill-box;transform-origin:50% 100%;animation:mcRise .35s cubic-bezier(.34,1.56,.64,1) both}
+  .lnd-mascot.phasor :is(.mc-ph-v,.mc-ph-i){animation:mcSpin 3.2s linear infinite}
+}
+
+
+/* ---------- Vista previa del menú: modos de la mascota ---------- */
+/* ---------- La guía del menú: despacio y explicada ----------
+   La mascota cambia de modo con cada entorno (suelda en el Traductor,
+   cuenta en binario en Digital, osciloscopio en el Simulador, fasores en
+   Circuitos) y lo dice en el bocadillo, escribiendo. La captura cambia
+   con un fundido largo y el panel se desliza sin prisa. */
+.lnd-peek{transition:transform .7s cubic-bezier(.22,.61,.36,1),opacity .45s ease}
+.lnd-peek-guide .mc-guide :is(.mc-fx,.mc-iron){display:revert}
+.lnd-peek-guide .mc-guide .mc-iron{display:none}
+.lnd-peek-guide .mc-guide.solder .mc-iron{display:inline}
+.lnd-peek-guide .mc-guide.solder .mc-arm-r{transform:rotate(30deg)}
+.lnd-peek-guide .mc-guide.scope :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-peek-guide .mc-guide.scope .mc-eyes-w{opacity:1}
+.lnd-peek-guide .mc-guide.count .mc-eyes-a{animation:none}
+.lnd-peek-guide .mc-guide .mc-meter{display:none}
+.lnd-peek-guide .mc-guide{transition:none}
+.lnd-peek-say{display:flex;flex-direction:column;gap:4px;min-width:220px;min-height:46px}
+.lnd-peek-mode{font:700 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--pk)}
+.lnd-peek-say span::after{content:"";display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:currentColor;opacity:0}
+.lnd-peek-say.typing span::after{opacity:.7}
+.lnd-peek-shot .lnd-peek-next{position:absolute;inset:0;opacity:0;transition:opacity .6s ease}
+.lnd-peek-shot .lnd-peek-next.on{opacity:1}
+.lnd-peek-body{transition:opacity .35s ease}
+.lnd-peek-body.fade{opacity:0}
+.lnd-peek-card,.lnd-peek-say{transition:border-color .5s ease,box-shadow .5s ease}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-peek-card.swap .lnd-peek-shot,.lnd-peek-card.swap .lnd-peek-body{animation:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .lnd-peek-shot .lnd-peek-next,.lnd-peek-body{transition:none}
+}
+
+/* ---------- Menú: entradas y vista previa ---------- */
+/* ---------- Menú: entradas neutras; el color del entorno al verla ----------
+   Todas iguales en reposo. La que se está viendo (o la que tiene el
+   ratón encima) se tiñe de su color con una barra a la izquierda; así
+   el color aparece también en la primera, el Traductor. */
+.lnd-nav .lnd-item{
+  --c:var(--accent);--c-rgb:var(--accent-rgb);
+  position:relative;border:1px solid transparent;background:transparent;
+  transition:background .3s ease,border-color .3s ease,transform .3s ease;
+}
+.lnd-nav .lnd-item-digital{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.lnd-nav .lnd-item-beta{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.lnd-nav .lnd-item-circ{--c:var(--circ);--c-rgb:var(--circ-rgb)}
+.lnd-nav .lnd-item-tpl{--c:var(--text-dim);--c-rgb:var(--accent-rgb)}
+.lnd-nav .lnd-item::before{
+  content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:4px;
+  background:var(--c);transform:scaleY(0);transition:transform .3s ease;
+}
+.lnd-nav .lnd-item:is(:hover,:focus-visible,.is-peek){
+  background:rgba(var(--c-rgb),.1);border-color:rgba(var(--c-rgb),.35);transform:none;
+}
+.lnd-nav .lnd-item:is(:hover,:focus-visible,.is-peek)::before{transform:scaleY(1)}
+.lnd-nav .lnd-item .lnd-ico{color:var(--c);background:rgba(var(--c-rgb),.12);border-color:transparent}
+.lnd-nav .lnd-item-tpl .lnd-ico{color:var(--text-dim);background:var(--glass-control)}
+.lnd-nav .lnd-item .lnd-chev{transition:transform .3s ease,color .3s}
+.lnd-nav .lnd-item:is(:hover,.is-peek) .lnd-chev{transform:translateX(3px);color:var(--c)}
+
+/* ---------- La vista previa del menú: imagen y una frase ---------- */
+.lnd-peek-say{min-width:0;min-height:0;padding:8px 12px;top:34px}
+.lnd-peek-mode{font-size:11px}
+.lnd-peek-shot{aspect-ratio:5/3}
+.lnd-peek-shot > img{object-position:top left}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-peek-shot > img:not(.lnd-peek-next){animation:lndKen 9s ease-out both}
+}
+@keyframes lndKen{from{transform:scale(1.07)}to{transform:scale(1)}}
+.lnd-peek-body{padding:18px 22px 20px}
+.lnd-peek-eb{margin:0 0 6px;font:600 11.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--pk)}
+.lnd-peek-body h3{margin:0;font-size:22px;font-weight:650;line-height:1.2;letter-spacing:-.015em;color:var(--text)}
+.lnd-peek-go{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font:600 14px var(--sans);color:var(--pk)}
+.lnd-peek-go span{transition:transform .25s}
+.lnd-peek-card:hover .lnd-peek-go span{transform:translateX(3px)}
+
+
+/* ---------- Guía: puntos del recorrido ---------- */
+/* Los puntos del recorrido. */
+.lnd-hots{position:absolute;inset:0;z-index:2;opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
+.lnd-hots.on{opacity:1;visibility:visible;transition:opacity .5s .3s}
+.lnd-hot{
+  position:absolute;width:30px;height:30px;margin:16px 0 0 16px;padding:0;border:0;border-radius:50%;
+  background:none;cursor:pointer;
+}
+.lnd-hot-dot{
+  position:absolute;inset:7px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 3px var(--gc,var(--accent)),0 4px 14px rgba(0,0,0,.45);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.lnd-hot.lit .lnd-hot-dot,.lnd-hot:hover .lnd-hot-dot,.lnd-hot:focus-visible .lnd-hot-dot{transform:scale(1.25)}
+.lnd-hot-tip{
+  position:absolute;left:calc(100% + 6px);top:50%;width:max-content;max-width:230px;
+  padding:8px 12px;border-radius:10px;font:600 13px/1.35 var(--sans);text-align:left;
+  color:#0b1220;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.35);
+  opacity:0;transform:translate(-6px,-50%);pointer-events:none;
+  transition:opacity .35s ease,transform .35s ease;
+}
+.lnd-hot.left .lnd-hot-tip{left:auto;right:calc(100% + 6px);transform:translate(6px,-50%)}
+.lnd-hot.up .lnd-hot-tip{top:auto;bottom:calc(100% + 4px);left:50%;transform:translate(-50%,6px)}
+.lnd-hot.up.left .lnd-hot-tip{left:auto;right:-10px;transform:translate(0,6px)}
+.lnd-hot.lit .lnd-hot-tip,.lnd-hot:hover .lnd-hot-tip,.lnd-hot:focus-visible .lnd-hot-tip{opacity:1;transform:translate(0,-50%)}
+.lnd-hot.up.lit .lnd-hot-tip,.lnd-hot.up:hover .lnd-hot-tip,.lnd-hot.up:focus-visible .lnd-hot-tip{transform:translate(-50%,0)}
+.lnd-hot.up.left.lit .lnd-hot-tip,.lnd-hot.up.left:hover .lnd-hot-tip{transform:none}
+.lnd-hot:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){
+  .lnd-hot::after{
+    content:"";position:absolute;inset:4px;border-radius:50%;border:2px solid var(--gc,var(--accent));
+    animation:lndHotPing 2.4s ease-out infinite;
+  }
+}
+@keyframes lndHotPing{0%{transform:scale(.7);opacity:.9}80%,100%{transform:scale(1.9);opacity:0}}
+@media (max-width:900px){
+  .lnd-guide-grid{grid-template-columns:minmax(0,1fr)}
+  .lnd-hot-tip{max-width:160px;font-size:12px}
+}
+
+
+/* ============================================================
+   LA PÁGINA (28 oct) · cabecera, barra de secciones, héroe con la
+   ventana del producto, entornos, cómo funciona, especificaciones,
+   aprender, colegios, cierre y pie.
+   Referencias: ni.com, la página de OrCAD y labcenter.com. Mucho aire,
+   tipografía grande, un solo color de acción (el del tema) y un color
+   fijo por entorno sólo como marca de identidad.
+   ============================================================ */
+html{scroll-behavior:smooth}
+body.bw-landing{margin:0;min-height:100%;font:400 16px/1.6 var(--sans);color:var(--text);-webkit-font-smoothing:antialiased}
+.lnd-page{position:relative;z-index:1;max-width:none;margin:0;padding:0}
+.lnd-page section[id]{scroll-margin-top:64px}
+/* Los titulares llevan la tipografía del tema secreto si la tiene
+   (--display); en los demás, la de la casa. */
+.lnd-h1,.lnd-h2,.lnd-sec-head h2,.lnd-tile h3,.lnd-guide-env h3{font-family:var(--display,var(--sans))}
+
+/* ---------- cabecera ---------- */
+.lnd-head{
+  position:relative;z-index:30;display:flex;align-items:center;gap:12px;
+  height:64px;padding-inline:max(var(--gut),calc((100% - 1120px) / 2));
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.lnd-brand{display:inline-flex;align-items:center;gap:10px;min-height:40px;color:var(--text);text-decoration:none;border-radius:8px}
+.lnd-head .lnd-mark{width:36px;height:36px;flex:none;filter:none}
+html[data-theme] .lnd-head .lnd-name{
+  margin:0;font-size:24px;line-height:1;font-weight:600;letter-spacing:-.02em;
+  color:var(--text);background:none;-webkit-text-fill-color:currentColor;animation:none;
+}
+.lnd-brand .bw-badge{margin-left:4px}
+.lnd-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.lnd-ic{
+  display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:8px;
+  font:500 15px var(--sans);color:var(--text-dim);text-decoration:none;cursor:pointer;
+  background:transparent;border:1px solid transparent;transition:color .15s,background-color .15s,border-color .15s;
+}
+.lnd-ic svg{width:18px;height:18px;flex:none}
+.lnd-ic:hover{color:var(--text);background:color-mix(in srgb,var(--text) 7%,transparent)}
+.lnd-ic-enter{color:var(--text);border-color:var(--border-hi,var(--border))}
+.lnd-ic-enter[hidden]{display:none}
+.lnd-head .hdr-settings{position:relative;margin-left:4px}
+
+/* ---------- barra de secciones (se pega arriba) ---------- */
+.lnd-secnav{display:none}
+@media (min-width:900px){
+  .lnd-secnav{
+    display:block;position:sticky;top:0;z-index:40;height:48px;
+    background:var(--bg);border-bottom:1px solid var(--border);
+  }
+}
+.lnd-secnav-in{display:flex;align-items:center;gap:4px;height:100%}
+.lnd-secnav a{
+  display:inline-flex;align-items:center;height:48px;padding:0 12px;
+  font:500 15px var(--sans);color:var(--text-dim);text-decoration:none;
+  border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
+}
+.lnd-secnav a:hover{color:var(--text)}
+.lnd-secnav a[aria-current]{color:var(--text);border-bottom-color:var(--accent-ink)}
+/* La marca pequeña no ocupa sitio hasta que la cabecera se va: así los
+   enlaces empiezan alineados con el contenido. */
+a.lnd-secnav-brand{gap:8px;max-width:0;padding:0;margin:0 0 0 -12px;overflow:hidden;color:var(--text);font-weight:600;opacity:0;visibility:hidden;white-space:nowrap;transition:opacity .2s,max-width .25s ease,visibility 0s .25s}
+.lnd-secnav-brand svg{width:22px;height:22px}
+.lnd-secnav.is-stuck .lnd-secnav-brand{max-width:200px;margin:0 8px 0 0;padding:0 16px 0 0;opacity:1;visibility:visible;transition:opacity .2s,max-width .25s ease}
+.lnd-secnav-go{margin-left:auto;visibility:hidden}
+.lnd-secnav.show-go .lnd-secnav-go{visibility:visible}
+
+/* ---------- bandas ---------- */
+.lnd-band{padding-block:var(--sec-y)}
+.lnd-band-alt{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.lnd-sec-head{max-width:720px;margin-bottom:48px}
+.lnd-sec-head .bw-eyebrow{margin-bottom:12px}
+.lnd-h2,.lnd-sec-head h2{margin:0;font-size:var(--fs-h2);line-height:1.1;font-weight:600;letter-spacing:-.02em;color:var(--text)}
+.lnd-sub{margin:16px 0 0;max-width:60ch;font-size:var(--fs-lede);line-height:1.55;color:var(--text-dim)}
+
+/* ---------- héroe ---------- */
+.lnd-hero{padding:48px 0 56px}
+.lnd-hero-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:40px}
+@media (min-width:1100px){.lnd-hero-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:56px;align-items:center}}
+.lnd-copy{min-width:0;max-width:640px}
+.lnd-h1{
+  margin:16px 0 20px;max-width:15ch;font-size:var(--fs-hero);line-height:1.04;font-weight:600;
+  letter-spacing:-.025em;color:var(--text);
+}
+.lnd-copy .lnd-sub{margin-top:0;max-width:46ch}
+.lnd-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.lnd-try svg{width:18px;height:18px}
+
+/* La ventana del producto, con la mascota de pie encima. */
+.lnd-stage-wrap{position:relative;min-width:0;padding-top:96px}
+.lnd-hero .lnd-mascot{width:124px;height:124px;top:-18px;right:6%}
+.lnd-win{
+  position:relative;display:grid;grid-template-rows:auto auto auto auto;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+}
+.lnd-win-bar{display:flex;align-items:center;min-width:0;padding:0 6px 0 8px;border-bottom:1px solid var(--border)}
+.lnd-envtabs{display:flex;min-width:0;overflow-x:auto;scrollbar-width:none}
+.lnd-envtabs::-webkit-scrollbar{display:none}
+.lnd-envtabs button,.lnd-show-tabs button{
+  display:inline-flex;align-items:center;gap:8px;flex:none;height:48px;padding:0 14px;margin-bottom:2px;
+  font:500 15px var(--sans);color:var(--text-dim);background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+.lnd-envtabs button:hover,.lnd-show-tabs button:hover{color:var(--text)}
+.lnd-envtabs button[aria-selected="true"],.lnd-show-tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--env)}
+.lnd-pause{
+  display:grid;place-items:center;width:40px;height:40px;margin-left:auto;flex:none;border-radius:8px;padding:0;
+  color:var(--text-dim);background:none;border:1px solid transparent;cursor:pointer;
+}
+.lnd-pause:hover{color:var(--text);border-color:var(--border)}
+.lnd-pause svg{width:16px;height:16px}
+.lnd-pause .i-play,.lnd-pause[aria-pressed="true"] .i-pause{display:none}
+.lnd-pause[aria-pressed="true"] .i-play{display:block}
+.lnd-win-body{
+  position:relative;display:grid;place-items:center;aspect-ratio:16/10;overflow:hidden;
+  background:var(--bg) radial-gradient(color-mix(in srgb,var(--text) 10%,transparent) 1px,transparent 1.5px) 0 0/16px 16px;
+}
+.lnd-win-body .lnd-scenes{width:calc(100% - 40px)}
+/* Los acentos de la escena toman el color del entorno, no el del tema. */
+.lnd-stage .ls-hop-head,.lnd-stage .ls-hop-pulse{stroke:var(--env)}
+.lnd-win-body .lnd-scenes{position:relative;z-index:1}
+.lnd-shots{position:absolute;inset:0;z-index:2;pointer-events:none}
+.lnd-shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
+  transform:scale(var(--z,1));transform-origin:var(--o,50% 50%);transition:opacity .5s ease}
+.lnd-stage-wrap.is-real[data-env="traductor"] .lnd-shot[data-env="traductor"],
+.lnd-stage-wrap.is-real[data-env="digital"] .lnd-shot[data-env="digital"],
+.lnd-stage-wrap.is-real[data-env="simulador"] .lnd-shot[data-env="simulador"],
+.lnd-stage-wrap.is-real[data-env="circuitos"] .lnd-shot[data-env="circuitos"]{opacity:1}
+.lnd-shot-tag{
+  position:absolute;left:12px;bottom:12px;padding:4px 6px;border-radius:4px;
+  font:500 11px/1.3 var(--bw-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--border);
+  opacity:0;transition:opacity .4s ease;
+}
+.lnd-stage-wrap.is-real .lnd-shot-tag{opacity:1}
+
+/* Pasos de la escena, debajo: el actual se marca con el color del entorno. */
+.lnd-steps-bar{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;padding:0;list-style:none;
+  counter-reset:paso;border-top:1px solid var(--border);
+}
+.lnd-steps-bar li{
+  counter-increment:paso;display:flex;align-items:center;gap:6px;min-width:0;min-height:44px;padding:0 12px;
+  font:500 12px var(--bw-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);
+  border-top:2px solid transparent;margin-top:2px;background:none;border-radius:0;box-shadow:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s,border-color .3s;
+}
+.lnd-steps-bar li::before{content:"0" counter(paso);color:var(--text-dim)}
+.lnd-steps-bar li.on{border-top-color:var(--env)}
+.lnd-steps-bar li.now{color:var(--text)}
+[data-env="circuitos"] .lnd-steps-bar span[data-env="circuitos"]{display:inline}
+.lnd-rot{padding:14px 16px 16px;border-top:1px solid var(--border)}
+.lnd-lead-btn{display:grid;margin:0}
+.lnd-lead{
+  grid-area:1/1;min-height:2.9em;font:500 16px/1.45 var(--sans);color:var(--text);
+  opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s .35s;
+}
+.lnd-rot[data-env="traductor"] .lnd-lead[data-env="traductor"],
+.lnd-rot[data-env="digital"] .lnd-lead[data-env="digital"],
+.lnd-rot[data-env="simulador"] .lnd-lead[data-env="simulador"],
+.lnd-rot[data-env="circuitos"] .lnd-lead[data-env="circuitos"]{opacity:1;visibility:visible;transition:opacity .35s ease}
+
+/* ---------- entornos ---------- */
+.lnd-env-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:stretch}
+@media (min-width:640px){.lnd-env-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}}
+@media (min-width:1100px){.lnd-env-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lnd-env{
+  position:relative;display:flex;flex-direction:column;height:100%;min-width:0;overflow:hidden;
+  border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);text-decoration:none;
+  transition:border-color .15s ease,transform .15s ease;
+}
+.lnd-env::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;z-index:1;background:var(--env)}
+.lnd-env:hover{border-color:var(--border-hi,var(--border));transform:translateY(-2px)}
+.lnd-env.is-open{border-color:var(--env)}
+.lnd-env-shot{display:block;aspect-ratio:16/10;border-bottom:1px solid var(--border)}
+.lnd-env-shot img{border:0;border-radius:0;box-shadow:none}
+.lnd-env-txt{display:flex;flex-direction:column;gap:10px;flex:1;padding:20px 20px 0}
+.lnd-env-row{display:flex;align-items:center;justify-content:space-between}
+.lnd-env-row .bw-envtile{width:32px;height:32px}
+.lnd-env-n{font:500 12px var(--bw-mono);color:var(--text-dim)}
+.lnd-env-t{font:600 20px/1.25 var(--sans);letter-spacing:-.01em;color:var(--text)}
+.lnd-env-s{font-size:15px;line-height:1.5;color:var(--text-dim);min-height:4.5em}
+.lnd-env-go{
+  display:flex;align-items:center;justify-content:space-between;min-height:48px;margin-top:16px;padding:0 20px;
+  border-top:1px solid var(--border);font:600 15px var(--sans);color:var(--text);
+}
+.lnd-env-go span:last-child{transition:transform .15s ease}
+.lnd-env:hover .lnd-env-go span:last-child{transform:translateY(3px)}
+
+/* ---------- cómo funciona ---------- */
+.lnd-show-tabs{display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.lnd-show-tabs::-webkit-scrollbar{display:none}
+.lnd-show-tabs button{border-bottom-width:3px}
+.lnd-guide{margin:0;padding:0;background:none;border:0;border-radius:0;box-shadow:none}
+.lnd-guide-env[hidden]{display:none}
+.lnd-guide-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;margin-top:40px}
+@media (min-width:1100px){.lnd-guide-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px;align-items:start}}
+@media (max-width:1099px){.lnd-gshots{order:-1}}
+.lnd-guide-text{min-width:0}
+.lnd-guide-env p.lnd-guide-eb{font:500 12px/1.3 var(--bw-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--env);max-width:none}
+.lnd-guide-env h3{margin:12px 0;font-size:var(--fs-h3);line-height:1.25;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.lnd-guide-env p{margin:0;max-width:56ch;font-size:16px;line-height:1.6;color:var(--text-dim)}
+.lnd-guide-h{margin:28px 0 8px}
+.lnd-gsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.lnd-gsteps button{
+  display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;width:100%;min-height:64px;padding:12px 14px;
+  text-align:left;font:inherit;color:var(--text);background:transparent;border:0;border-left:2px solid transparent;
+  border-radius:0 8px 8px 0;cursor:pointer;transition:background-color .15s,border-color .15s;
+}
+.lnd-gsteps button:hover{background:color-mix(in srgb,var(--text) 5%,transparent)}
+.lnd-gsteps button[aria-pressed="true"]{background:color-mix(in srgb,var(--env) 9%,transparent);border-left-color:var(--env)}
+.lnd-gn{font:500 13px/1.6 var(--bw-mono);color:var(--text-dim)}
+.lnd-gsteps button[aria-pressed="true"] .lnd-gn{color:var(--text)}
+.lnd-gt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lnd-gt b{font-size:16px;font-weight:600}
+.lnd-gt small{font-size:14px;line-height:1.45;color:var(--text-dim)}
+.lnd-gsteps button:not([aria-pressed="true"]) small{display:none}
+.lnd-caps{list-style:none;margin:24px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lnd-caps li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px;align-items:start;font-size:15px;line-height:1.5;color:var(--text)}
+.lnd-caps svg{width:16px;height:16px;margin-top:4px;color:var(--env)}
+.lnd-guide-acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.lnd-gshots{margin:0;min-width:0}
+.lnd-gimgs{position:relative;aspect-ratio:1200/720}
+.lnd-gimgs img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left top;opacity:0;transition:opacity .2s ease}
+.lnd-gimgs img.on{opacity:1}
+.lnd-gimgs img.is-trim{object-position:top;transform:scale(1.045);transform-origin:50% 0}
+.lnd-gcap{display:flex;gap:12px;margin-top:12px;font:500 13px var(--bw-mono);color:var(--text-dim)}
+.lnd-gcap-t{font-family:var(--sans);color:var(--text)}
+.lnd-hot-dot{box-shadow:0 0 0 3px var(--env),0 4px 14px rgba(0,0,0,.45)}
+.lnd-hot::after{border-color:var(--env)}
+
+/* ---------- especificaciones ---------- */
+.lnd-specs-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:40px}
+@media (min-width:1100px){
+  .lnd-specs-grid{grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:56px;align-items:start}
+  .lnd-specs-head{position:sticky;top:72px;margin-bottom:0}
+}
+.lnd-specs-head .bw-link{margin-top:20px}
+.lnd-notes{margin:32px 0 0;font-size:13px;line-height:1.6;color:var(--text-dim)}
+.lnd-specs-body{display:flex;flex-direction:column;gap:40px;min-width:0}
+.lnd-spec-group h3{margin:0 0 8px}
+.lnd-spec-group dl{margin:0}
+.lnd-spec-row{display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:24px;padding:14px 0;border-top:1px solid var(--border)}
+.lnd-spec-group .lnd-spec-row:last-child{border-bottom:1px solid var(--border)}
+.lnd-spec-row dt{font:600 15px/1.5 var(--sans);color:var(--text)}
+.lnd-spec-row dd{margin:0;font-size:15px;line-height:1.55;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.lnd-spec-row sup,.lnd-notes sup{font-size:.7em;line-height:0}
+@media (max-width:639px){.lnd-spec-row{grid-template-columns:minmax(0,1fr);row-gap:4px}}
+
+/* ---------- aprender ---------- */
+.lnd-tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:0;padding:28px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+}
+.lnd-tile .bw-eyebrow{margin-bottom:8px}
+.lnd-tile h3{margin:0;font-size:var(--fs-h3);line-height:1.25;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.lnd-tile > p,.lnd-les-main > p{margin:8px 0 0;font-size:15px;line-height:1.55;color:var(--text-dim);max-width:52ch}
+.lnd-les{display:grid;grid-template-columns:minmax(0,1fr);gap:32px}
+@media (min-width:1100px){.lnd-les{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:start}}
+.lnd-les-main{min-width:0}
+.lnd-flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:640px){.lnd-flow{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.lnd-flow li{display:flex;flex-direction:column;gap:4px;padding-top:12px;border-top:2px solid var(--env);min-width:0}
+.lnd-flow .bw-eyebrow{color:var(--env);margin:0}
+.lnd-flow b{font:600 15px/1.35 var(--sans);color:var(--text)}
+.lnd-flow li > span:last-child{font-size:14px;line-height:1.5;color:var(--text-dim)}
+.lnd-learn-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;margin-top:24px;align-items:stretch}
+@media (min-width:900px){.lnd-learn-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lnd-tile-data{font:500 13px/1.5 var(--bw-mono) !important;color:var(--text-dim)}
+.lnd-tpls-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.lnd-tpls-chips button{
+  display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:8px;cursor:pointer;
+  font:500 14px var(--sans);color:var(--text);background:transparent;border:1px solid var(--border-hi,var(--border));
+}
+.lnd-tpls-chips button:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}
+.lnd-tile-foot{margin-top:auto;padding-top:24px}
+/* La tarjeta de la lección (la pinta js/lessons-ui.js). */
+/* Las lecciones (V6.09): con una sola, una columna era lo correcto; con
+   cinco, cinco tarjetas en fila india hacen una página larguísima. Rejilla
+   que se abre sola: dos columnas en el ancho de la tarjeta y una en el
+   móvil. */
+.bw-les-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px 20px;width:100%;margin-top:20px}
+.bw-les-list[hidden]{display:none}
+.bw-les-card{display:flex;flex-direction:column;gap:4px;padding:16px 0 0;border-top:1px solid var(--border)}
+.bw-les-card.done .bw-les-prog{color:var(--ok)}
+.bw-les-title{margin:0;font:600 16px/1.35 var(--sans);color:var(--text)}
+.bw-les-meta,.bw-les-prog{margin:0;font:500 13px var(--bw-mono);color:var(--text-dim)}
+.bw-les-go{
+  align-self:flex-start;display:inline-flex;align-items:center;min-height:48px;margin-top:12px;padding:0 22px;
+  border-radius:8px;border:0;text-decoration:none;font:600 16px var(--sans);background:var(--cta-bg);color:var(--cta-ink);
+}
+.bw-les-go:hover{filter:brightness(1.08)}
+
+/* ---------- colegios ---------- */
+.lnd-school-grid2{display:grid;grid-template-columns:minmax(0,1fr);gap:40px}
+@media (min-width:1100px){.lnd-school-grid2{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px;align-items:start}}
+.lnd-school-head{min-width:0}
+.lnd-school-head .bw-eyebrow{margin-bottom:12px}
+.lnd-school-head .lnd-sub{max-width:46ch}
+.lnd-school-grid{list-style:none;margin:28px 0 0;padding:0}
+.lnd-school-grid li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:12px;padding:16px 0;border-top:1px solid var(--border)}
+.lnd-school-grid li svg{width:20px;height:20px;margin-top:2px;color:var(--text-dim)}
+.lnd-school-grid li > span{display:flex;flex-direction:column;gap:2px}
+.lnd-school-grid b{font:600 16px/1.4 var(--sans);color:var(--text)}
+.lnd-school-grid li > span > span{font-size:15px;line-height:1.5;color:var(--text-dim)}
+.lnd-school-acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.lnd-school-legal{display:flex;flex-wrap:wrap;gap:4px 24px;margin:16px 0 0}
+.lnd-subjects{min-width:0;padding:8px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.lnd-subjects .bw-eyebrow{padding:16px 0}
+.lnd-subjects ul{list-style:none;margin:0;padding:0}
+.lnd-subjects a{
+  display:grid;grid-template-columns:36px minmax(0,1fr) 16px;align-items:center;gap:16px;min-height:72px;padding:12px 0;
+  border-top:1px solid var(--border);color:var(--text);text-decoration:none;
+}
+.lnd-subjects a > span:nth-child(2){display:flex;flex-direction:column;gap:2px}
+.lnd-subjects b{font:600 16px/1.35 var(--sans)}
+.lnd-subjects a > span:nth-child(2) > span{font-size:14px;line-height:1.45;color:var(--text-dim)}
+.lnd-subjects .lnd-chev{font-size:20px;color:var(--text-dim);transition:transform .15s}
+.lnd-subjects a:hover .lnd-chev{transform:translateX(3px);color:var(--env)}
+
+/* ---------- cierre ---------- */
+.lnd-close{border-top:1px solid var(--border);padding-block:64px}
+.lnd-close-in{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+@media (min-width:900px){.lnd-close-in{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:32px}}
+.lnd-close p{margin:12px 0 0;max-width:52ch;font-size:15px;line-height:1.6;color:var(--text-dim)}
+.lnd-close .bw-link{min-height:0;display:inline;font-size:15px}
+.lnd-close-acts{display:flex;flex-wrap:wrap;gap:12px}
+
+/* ---------- pie ---------- */
+.lnd-foot.lnd-foot-pro{
+  display:block;margin:0;padding:56px 0 24px;text-align:left;font-size:15px;
+  background:var(--bg2);border-top:1px solid var(--border);
+}
+.lnd-foot-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:32px}
+@media (min-width:1100px){.lnd-foot-grid{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
+.lnd-foot-brand{display:flex;align-items:flex-start;gap:12px}
+.lnd-foot-brand svg{width:32px;height:32px;flex:none}
+.lnd-foot-brand div{display:flex;flex-direction:column;gap:4px}
+.lnd-foot-brand b{font:600 18px/1.3 var(--sans);color:var(--text)}
+.lnd-foot-brand span{font-size:14px;color:var(--text-dim)}
+.lnd-foot-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 32px}
+@media (min-width:640px){.lnd-foot-cols{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lnd-foot-cols div{display:flex;flex-direction:column;align-items:flex-start}
+.lnd-foot-cols h3{margin:0 0 8px}
+.lnd-foot.lnd-foot-pro :is(a,button){
+  display:inline-flex;align-items:center;min-height:40px;padding:0;background:none;border:0;cursor:pointer;
+  font:400 15px var(--sans);color:var(--text-dim);text-decoration:none;text-align:left;
+}
+.lnd-foot.lnd-foot-pro :is(a,button):hover{color:var(--text)}
+.lnd-foot-bottom{
+  grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;
+  margin-top:8px;padding-top:16px;border-top:1px solid var(--border);font:500 12px var(--bw-mono);color:var(--text-dim);
+}
+.lnd-foot-lang{display:flex;gap:4px}
+.lnd-foot.lnd-foot-pro .lnd-foot-lang button{padding:0 10px;font:500 13px var(--sans);border-radius:6px}
+.lnd-foot.lnd-foot-pro .lnd-foot-lang button[aria-pressed="true"]{color:var(--text);background:color-mix(in srgb,var(--text) 8%,transparent)}
+
+/* ---------- el menú «Empezar» ---------- */
+.lnd-menu{width:min(400px,calc(100vw - 48px));padding:24px;background:var(--surface);border-right:1px solid var(--border);box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.lnd-menu-head h2{font:500 12px var(--bw-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+.lnd-nav{gap:4px}
+.lnd-nav .lnd-item[data-env]{--c:var(--env);--c-rgb:var(--env-rgb)}
+.lnd-nav .lnd-item{
+  display:grid;grid-template-columns:36px minmax(0,1fr) 16px;align-items:center;gap:12px;min-height:64px;padding:12px;
+  border-radius:8px;text-decoration:none;color:var(--text);
+}
+.lnd-nav .lnd-ico{width:36px;height:36px;display:grid;place-items:center;border-radius:8px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.lnd-nav .lnd-item-tpl .lnd-ico,.lnd-nav .lnd-item-try .lnd-ico{border-color:var(--border);color:var(--text-dim);background:transparent}
+.lnd-item-t{font:600 16px/1.3 var(--sans)}
+.lnd-item-s{font-size:14px;line-height:1.4;color:var(--text-dim)}
+.lnd-nav-sep{width:100%;height:1px;margin:8px 0;border:0;background:var(--border)}
+.lnd-scrim{background:rgba(0,0,0,.5)}
+.lnd-peek{left:calc(min(400px,100vw - 48px) + 34px)}
+.lnd-peek[data-env="traductor"]{--pk:var(--env-trad);--pk-rgb:var(--env-trad-rgb)}
+.lnd-peek[data-env="digital"]{--pk:var(--env-dig);--pk-rgb:var(--env-dig-rgb)}
+.lnd-peek[data-env="simulador"]{--pk:var(--env-sim);--pk-rgb:var(--env-sim-rgb)}
+.lnd-peek[data-env="circuitos"]{--pk:var(--env-circ);--pk-rgb:var(--env-circ-rgb)}
+.lnd-peek[data-env="plantillas"]{--pk:var(--accent-ink);--pk-rgb:var(--accent-rgb)}
+
+/* ---------- selector de plantillas y modales ---------- */
+.tpl-env-traductor{color:var(--env-trad)}
+.tpl-env-digital{color:var(--env-dig)}
+.tpl-env-simulador{color:var(--env-sim)}
+.tpl-env-circuitos{color:var(--env-circ)}
+.lnd-card{border-radius:12px}
+.lnd-brandline svg{width:40px;height:40px;filter:none}
+.lnd-about-dl{margin:16px 0 0}
+.lnd-about-dl .lnd-spec-row{grid-template-columns:minmax(0,180px) minmax(0,1fr);padding:10px 0}
+.lnd-about-acts{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:20px}
+.lnd-card .lnd-about-acts a{border-bottom:0}
+
+/* ---------- pantallas pequeñas ---------- */
+@media (max-width:1099px){
+  .lnd-hero{padding:40px 0 48px}
+  .lnd-copy{max-width:640px}
+  .lnd-stage-wrap{max-width:760px}
+}
+@media (max-width:639px){
+  .lnd-head{height:56px}
+  .lnd-head .lnd-mark{width:30px;height:30px}
+  html[data-theme] .lnd-head .lnd-name{font-size:20px}
+  .lnd-brand .bw-badge{display:none}
+  .lnd-ic-txt{display:none}
+  .lnd-ic{width:40px;padding:0;justify-content:center}
+  .lnd-hero{padding:32px 0 40px}
+  .lnd-ctas .bw-btn{width:100%}
+  .lnd-hero .lnd-mascot{width:96px;height:96px;top:-4px}
+  .lnd-stage-wrap{padding-top:76px}
+  .lnd-steps-bar li{padding:0 8px;font-size:11px}
+  .lnd-tile{padding:20px}
+  .lnd-sec-head{margin-bottom:32px}
+  .lnd-close-acts .bw-btn{width:100%}
+}
+@media (max-width:399px){.lnd-steps-bar li::before{display:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Objetivos táctiles de 40 px como mínimo (los puntos de la guía, el
+   enlace de contacto del cierre) y entradas del menú de la misma altura. */
+.lnd-hot{width:40px;height:40px;margin:-20px 0 0 -20px}
+.lnd-hot-dot{inset:12px}
+.lnd-hot::after{inset:9px}
+.lnd-close .bw-link.lnd-contact{display:inline-flex;min-height:40px;vertical-align:middle}
+.lnd-nav .lnd-item{min-height:88px}
+
+/* ============================================================
+   La marca encima del titular y más vida para la mascota (28 oct)
+   ------------------------------------------------------------
+   En reposo: flota despacio (la sombra se encoge cuando sube), parpadea
+   en binario («0 1» → «1 0» o un apagón de pantalla CRT), la bola de su
+   antena late y los brazos y las piernas se mecen un poco.
+   Al pasar el ratón: saluda con «:)» en la pantalla del pecho y, si se
+   queda, da un consejo. Al pulsarla: chispas de la antena y las manos y
+   una vibración corta.
+   Según la pestaña: el código de colores de una resistencia (Traductor),
+   los ojos contando en binario (Digital), una senoide en el pecho
+   (Simulador) y gafas oscuras (Análisis).
+   Reacciones: cortocircuito (suda, «× ×» y humo negro), éxito (salta,
+   confeti de ceros y unos y «OK!») y cargando (malabares con una
+   resistencia, un condensador y un chip).
+   Las animaciones nuevas usan las propiedades `translate` y `rotate`,
+   que se suman al `transform` de las de siempre sin pisarlas.
+   ============================================================ */
+.lnd-hero-brand{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.lnd-hero-mark{width:56px;height:56px;flex:none}
+.lnd-hero-brand span{font:600 clamp(30px,2.6vw,38px)/1 var(--display,var(--sans));letter-spacing:-.025em;color:var(--text)}
+@media (max-width:639px){.lnd-hero-brand{margin-bottom:20px}.lnd-hero-mark{width:44px;height:44px}}
+
+.lnd-mascot .mc-antenna path{stroke:var(--mc-line)}
+.lnd-mascot .mc-ant-ball{fill:#b197fc;stroke:var(--mc-line);stroke-width:1.2}
+.lnd-mascot .mc-ant-glow{fill:#b197fc;opacity:0}
+.lnd-mascot .mc-ant-glow,.lnd-mascot .mc-ant-ball{transform-box:fill-box;transform-origin:center}
+.lnd-mascot .mc-shades{opacity:0;transition:opacity .25s ease}
+.lnd-mascot .mc-circuit{transition:opacity .25s ease}
+.lnd-mascot .mc-confetti text{fill:var(--mc-eye);font:800 9px var(--bw-mono,monospace)}
+.lnd-mascot :is(.mc-sweat path,.mc-confetti > *,.mc-csparks path,.mc-jg){transform-box:fill-box;transform-origin:center}
+
+/* Al saludar, al celebrar y en el Traductor se encienden los nodos de
+   la barriga; en el Simulador la corriente corre el doble (abajo). */
+.lnd-mascot:is(.ctx-traductor,.hello,.party) :is(.mc-node,.mc-led){fill:var(--mc-limb)}
+.lnd-mascot.ctx-circuitos .mc-shades{opacity:1}
+.lnd-stage-wrap .lnd-mascot.ctx-digital .mc-eyes-a{opacity:1;animation:none}
+.lnd-stage-wrap .lnd-mascot.ctx-digital .mc-eyes-b{opacity:0}
+/* Pánico (cortocircuito): «× ×», sudor y humo negro. */
+.lnd-stage-wrap .lnd-mascot.panic :is(.mc-eyes-a,.mc-eyes-b){opacity:0;animation:none}
+.lnd-mascot.panic .mc-eyes-x,.lnd-mascot.panic .mc-sweat,.lnd-mascot.panic .mc-smoke{opacity:1}
+.lnd-mascot.panic .mc-smoke{fill:#2b2b2e}
+/* Éxito y malabares. */
+.lnd-mascot.party .mc-confetti,.lnd-mascot.juggle .mc-juggle,.lnd-mascot.clicky .mc-csparks{opacity:1}
+.lnd-stage-wrap .lnd-mascot.party :is(.mc-eyes-a){opacity:0;animation:none}
+.lnd-stage-wrap .lnd-mascot.party .mc-eyes-b{opacity:1}
+.lnd-stage-wrap .lnd-mascot.party .mc-arm-l{transform:rotate(80deg)}
+.lnd-stage-wrap .lnd-mascot.party .mc-arm-r{transform:rotate(-80deg)}
+/* La pantalla y las gafas no salen en la guía del menú ni aparcada. */
+.lnd-mascot.docked .mc-shades,.mc-guide :is(.mc-shades,.mc-sweat,.mc-confetti,.mc-juggle,.mc-csparks){display:none}
+
+@media (prefers-reduced-motion:no-preference){
+  /* Reposo: el cuerpo está quieto. Lo único que se mueve solo es la
+     fuente de la barriga —pulsos que salen por sus tres pistas (arriba,
+     al LED y a tierra) y encienden su nodo al llegar— y el gesto de su
+     tema. */
+  .lnd-mascot .mc-pulse{animation:mcPulse 2.4s linear infinite}
+  .lnd-mascot .mc-p2{animation-delay:.8s}
+  .lnd-mascot .mc-p3{animation-delay:1.6s}
+  .lnd-mascot .mc-n1{animation:mcNode 2.4s linear infinite}
+  .lnd-mascot .mc-circuit .mc-led{animation:mcNode 2.4s .8s linear infinite}
+  .lnd-mascot .mc-n3{animation:mcNode 2.4s 1.6s linear infinite}
+  .lnd-mascot.ctx-simulador :is(.mc-pulse,.mc-node,.mc-circuit .mc-led){animation-duration:1.2s}
+  .lnd-mascot:is(.sit,.docked,.nap) :is(.mc-pulse,.mc-node,.mc-circuit .mc-led){animation-play-state:paused}
+  /* Parpadeo CRT: los ojos se aplastan en una raya y vuelven. */
+  .lnd-mascot.crt .mc-eyes{transform-box:fill-box;transform-origin:center;animation:mcCrt .28s ease-in-out}
+  /* Saludo y chispas del clic, con una vibración corta. */
+  .lnd-mascot.hello .mc-arm-r{animation:mcWave .42s ease-in-out 2}
+  .lnd-mascot.clicky .mc-csparks path{animation:mcSpark .5s ease-out}
+  .lnd-mascot.clicky .mc-shell{animation:mcBuzz .3s steps(3)}
+  /* Pánico: sudor que cae y temblor. */
+  .lnd-mascot.panic svg{animation:mcZap .12s steps(2) infinite}
+  .lnd-mascot.panic .mc-sweat path{animation:mcSweat .9s ease-in infinite}
+  .lnd-mascot.panic .mc-sweat path:nth-child(2){animation-delay:.3s}
+  .lnd-mascot.panic .mc-sweat path:nth-child(3){animation-delay:.6s}
+  .lnd-mascot.panic .mc-smoke{animation:mcSmoke 1.1s ease-out infinite}
+  /* Éxito: saltos y confeti. */
+  .lnd-mascot.party svg{animation:mcHop .6s cubic-bezier(.3,.7,.4,1) 3}
+  .lnd-mascot.party .mc-confetti > *{animation:mcConfetti 1.3s ease-out infinite}
+  .lnd-mascot.party .mc-confetti > :nth-child(2n){animation-delay:.25s}
+  .lnd-mascot.party .mc-confetti > :nth-child(3n){animation-delay:.5s}
+  /* Malabares: tres piezas en una órbita sobre las manos. */
+  .lnd-mascot.juggle .mc-jg{animation:mcJuggle 1.5s linear infinite}
+  .lnd-mascot.juggle .mc-jg-2{animation-delay:-.5s}
+  .lnd-mascot.juggle .mc-jg-3{animation-delay:-1s}
+  .lnd-stage-wrap .lnd-mascot.juggle .mc-arm-l{animation:mcFlap .25s ease-in-out infinite alternate}
+  .lnd-stage-wrap .lnd-mascot.juggle .mc-arm-r{animation:mcFlap .25s .12s ease-in-out infinite alternate-reverse}
+}
+@keyframes mcFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
+@keyframes mcFloatShadow{0%,100%{translate:0 0;scale:1;opacity:1}50%{translate:0 5px;scale:.8;opacity:.6}}
+@keyframes mcAntBall{0%,100%{scale:1}50%{scale:1.18}}
+@keyframes mcAntGlow{0%{opacity:.55;scale:.6}100%{opacity:0;scale:1.6}}
+@keyframes mcSwayL{0%,100%{rotate:0deg}50%{rotate:5deg}}
+@keyframes mcSwayR{0%,100%{rotate:0deg}50%{rotate:-5deg}}
+@keyframes mcSwayLeg{0%,100%{rotate:-3deg}50%{rotate:3deg}}
+@keyframes mcCrt{0%,100%{scale:1 1;filter:none}45%{scale:1.3 .08;filter:brightness(2)}}
+@keyframes mcBuzz{0%,100%{translate:0 0}33%{translate:-1.5px 0}66%{translate:1.5px 0}}
+@keyframes mcSweat{0%{opacity:0;translate:0 -2px}20%{opacity:1}100%{opacity:0;translate:0 14px}}
+@keyframes mcConfetti{0%{opacity:0;translate:0 6px;rotate:0deg}25%{opacity:1}100%{opacity:0;translate:0 -18px;rotate:120deg}}
+@keyframes mcJuggle{
+  0%{translate:16px 82px}12.5%{translate:22px 40px}25%{translate:38px 12px}37.5%{translate:60px 2px}
+  50%{translate:82px 12px}62.5%{translate:98px 40px}75%{translate:104px 82px}87.5%{translate:60px 96px}100%{translate:16px 82px}
+}
+
+/* ---------- arreglos de la revisión (28 oct) ---------- */
+/* El mar binario del buceo, por encima de la captura real. */
+/* Aparcada, sigue parpadeando (el resto de animaciones sí se paran). */
+html.lnd-hero-off .lnd-mascot.docked .mc-eyes-a{animation-play-state:running}
+/* Sólo la captura del paso elegido existe para los lectores de pantalla. */
+.lnd-gimgs img{visibility:hidden;transition:opacity .2s ease,visibility 0s .2s}
+.lnd-gimgs img.on{visibility:visible;transition:opacity .2s ease}
+/* En el móvil caben las cuatro pestañas de la ventana. */
+@media (max-width:480px){
+  .lnd-envtabs{flex:1}
+  .lnd-envtabs button{flex:1 1 0;min-width:0;justify-content:center;padding:0 4px;gap:6px;font-size:13px}
+  .lnd-envtabs .bw-dot{display:none}
+  .lnd-show-tabs button{padding:0 10px;font-size:14px}
+}
+/* La captura del recorrido acompaña al leer los pasos. */
+@media (min-width:1100px){.lnd-gshots{position:sticky;top:72px}}
+/* Sin huecos grandes: la ruta de la lección centrada y el mapa de
+   asignaturas pegado mientras se lee la columna de al lado. */
+@media (min-width:1100px){
+  .lnd-les{align-items:center}
+  .lnd-subjects{position:sticky;top:72px}
+  .lnd-env-t{min-height:2.5em}
+}
+/* «Contacto» dentro de la frase, en su línea base (40 px de alto con relleno). */
+.lnd-close .bw-link.lnd-contact{display:inline;min-height:0;padding-block:10px;margin-block:-10px;vertical-align:baseline}
+/* Las notas de la ficha: arriba en escritorio, debajo de la ficha en el móvil. */
+.lnd-notes-after{display:none}
+@media (max-width:1099px){.lnd-specs-head .lnd-notes{display:none}.lnd-notes-after{display:block}}
+/* En el móvil, la mascota aparcada es más pequeña y deja ver el texto. */
+@media (max-width:620px){.lnd-stage-wrap .lnd-mascot.docked{width:46px;height:46px;opacity:.85}}
+.lnd-tile-data{text-wrap:balance}
+
+/* A 320 px la cabecera no cabe: marca (127) + tres iconos (128) + tuerca (40),
+   más dos huecos de 12 y 24 de canal, son 343 en una ventana de 320, así que la
+   tuerca se salía 19 px y la página entera ganaba scroll horizontal. Se aprieta
+   el canal, el hueco y el nombre; los iconos se quedan en 38 px, que es el
+   mínimo para el dedo. */
+@media (max-width:360px){
+  .lnd-head{padding:10px 8px;gap:6px}
+  html[data-theme] .lnd-head .lnd-name{font-size:16px}
+}

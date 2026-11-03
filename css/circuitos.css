@@ -1,0 +1,228 @@
+/* ============================================================
+   breadwire · Análisis de circuitos (entorno 4)
+   ------------------------------------------------------------
+   Se apoya en css/sim.css (cabecera, barra, paleta, lienzo y panel
+   son los del Simulador). Aquí sólo va lo propio: el conmutador
+   CC/CA, la frecuencia, las lecturas en rectangular y polar, el
+   diagrama fasorial y la calculadora. Prefijo: ca-.
+   ============================================================ */
+
+/* El panel lleva lecturas en dos formas: un poco más ancho. */
+.ca-page .sim-body{grid-template-columns:212px minmax(0,1fr) 300px}
+
+/* ---------- Conmutadores segmentados ---------- */
+.ca-seg{display:inline-flex;padding:2px;gap:2px;border-radius:10px;background:var(--glass-control);border:1px solid var(--glass-border)}
+.ca-seg button{
+  padding:6px 12px;border-radius:8px;border:0;cursor:pointer;
+  font:600 12.5px var(--sans);color:var(--text-dim);background:transparent;
+  transition:color .15s,background .15s;
+}
+.ca-seg button:hover{color:var(--text)}
+.ca-seg button.on{color:var(--on-accent,#fff);background:var(--accent)}
+.ca-seg button:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+
+/* ---------- Frecuencia ---------- */
+.ca-freq{
+  display:inline-flex;align-items:center;gap:6px;margin-left:6px;
+  font:600 12px var(--mono);color:var(--text-mute);transition:opacity .2s;
+}
+.ca-freq input{
+  width:78px;padding:6px 8px;border-radius:8px;
+  font:600 13px var(--mono);color:var(--text);
+  background:var(--canvas-paper);border:1px solid var(--border);outline:none;
+}
+.ca-freq input:focus{border-color:rgba(var(--accent-rgb),.55)}
+/* El anillo tiene que verse en el propio campo: la regla general de
+   `theme.css` para `input[type=text]:focus` no llega aquí —hay otra que fija
+   el borde con más peso— y el campo se quedaba sin ninguna señal al tabular.
+   `:focus-visible` es lo que distingue teclado de ratón. */
+html .ca-freq input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ca-freq input.bad{border-color:var(--err)}
+.ca-freq em{font-style:normal;font-weight:500;color:var(--text-mute);white-space:nowrap}
+.ca-freq.off{opacity:.45}
+
+/* ---------- Lecturas del panel ---------- */
+.ca-panel{overflow-y:auto}
+/* En el Simulador las secciones encogen; aquí hay más lecturas y se
+   montaban unas sobre otras: cada una ocupa lo suyo y el panel baja. */
+.ca-panel section{flex:none}
+.ca-panel section.grow{flex:1 0 auto}
+.ca-panel #panelNodes{overflow:visible;flex:none}
+.ca-pad{padding:2px 14px 12px}
+.ca-read{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ca-read:empty{display:none}
+.ca-row{
+  display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:baseline;
+  padding:6px 10px;border-radius:8px;background:var(--canvas-paper);border:1px solid var(--border);
+}
+.ca-row span{font:600 11px var(--mono);letter-spacing:.06em;color:var(--text-mute);white-space:nowrap}
+/* V5.09 · el instante del valor instantáneo: un campo estrecho, que quepa
+   dentro de la fila sin romperla. */
+.ca-supt{width:5.2em;margin:0 .2em;padding:1px 4px;font:600 11px var(--mono);
+  color:var(--text);background:var(--surface-2);border:1px solid var(--line);border-radius:5px}
+/* El valor de cada fila se cortaba con puntos suspensivos: «0.873 en atraso
+   (indu…». Se deja envolver; la fila crece y el número se lee entero. */
+.ca-row b{font:600 12.5px var(--mono);color:var(--text);text-align:right;overflow-wrap:anywhere}
+.ca-row i{grid-column:2;font:500 11.5px var(--mono);font-style:normal;color:var(--accent-ink);text-align:right;white-space:nowrap}
+.ca-row.pow b{color:var(--text)}
+.ca-pad .ca-row+.ca-row{margin-top:6px}
+.ca-sub{margin:0 0 8px;font:600 12px var(--sans);color:var(--text-dim)}
+.ca-balance{margin:8px 0 0;font-size:12px;line-height:1.45}
+.ca-balance.ok{color:var(--ok)}
+.ca-balance.bad{color:var(--err)}
+.ca-thev-btn{margin-top:10px;width:100%;justify-content:center}
+.ca-x{
+  margin-left:auto;width:24px;height:24px;border-radius:6px;border:0;cursor:pointer;
+  color:var(--text-mute);background:transparent;font-size:12px;
+}
+.ca-x:hover{color:var(--text);background:var(--glass-control-hi)}
+#panelNodes li[data-node]:not([data-node="0"]){cursor:pointer;transition:background .15s}
+#panelNodes li[data-node]:not([data-node="0"]):hover{background:rgba(var(--accent-rgb),.08)}
+#panelNodes li.on{background:rgba(var(--accent-rgb),.14)!important;outline:1px solid rgba(var(--accent-rgb),.45)}
+#panelNodes li b{margin-left:auto;font:600 12px var(--mono)}
+.ca-panel section[hidden]{display:none}
+
+/* ---------- Vistas con desplazamiento ---------- */
+.ca-scroll.on{overflow:auto;padding:14px}
+.ca-msg{
+  margin:40px auto;max-width:460px;text-align:center;padding:18px;border-radius:12px;
+  color:var(--text-dim);background:var(--glass-2);border:1px solid var(--glass-border);
+}
+.ca-note{margin:6px 0 0;font-size:12.5px;line-height:1.5;color:var(--text-mute)}
+
+/* ---------- Diagrama fasorial ---------- */
+.ca-fas-body[hidden]{display:none}
+.ca-fas-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.ca-fas-top .ca-note{margin:0;flex:1;min-width:220px}
+.ca-fas-grid{display:grid;grid-template-columns:minmax(260px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.ca-fas-svg{
+  width:100%;height:auto;display:block;border-radius:12px;
+  background:var(--canvas-paper);border:1px solid var(--border);
+}
+.ca-grid{fill:none;stroke:var(--canvas-grid);stroke-width:1}
+.ca-axis{stroke:var(--text-mute);stroke-width:1;opacity:.6;fill:none}
+.ca-ax-t{fill:var(--text-mute);font:600 11px var(--mono)}
+.ca-ax-s{fill:var(--text-mute);font:500 10px var(--mono)}
+.ca-vec path{stroke:var(--c);stroke-width:2.6;stroke-linecap:round;fill:none}
+.ca-vec.src path{stroke-width:3.4}
+.ca-vec .hd{fill:var(--c);stroke:none}
+.ca-vec text{fill:var(--c);font:700 12px var(--mono);text-anchor:middle}
+/* V5.17 · el cursor del Bode: una vertical punteada que se puede mover. */
+.ca-cursor{stroke:var(--accent,#5b8cff);stroke-width:1.4;stroke-dasharray:2 4;opacity:.9}
+/* V5.16 · el fasor de la pieza elegida se destaca, y su ángulo lleva arco. */
+.ca-vec.sel path{stroke-width:4.2}
+.ca-vec.sel text{font-size:13px}
+.ca-arc{stroke:var(--c);stroke-width:1.6;fill:none;stroke-dasharray:3 3;opacity:.85}
+@media (prefers-reduced-motion:no-preference){
+  .ca-vec{animation:caGrow .5s cubic-bezier(.22,.61,.36,1) both;transform-origin:200px 200px}
+}
+@keyframes caGrow{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+.ca-legend{display:flex;flex-direction:column;gap:6px}
+.ca-leg{
+  display:grid;grid-template-columns:auto auto auto minmax(0,1fr);align-items:center;gap:8px;
+  padding:6px 10px;border-radius:10px;cursor:pointer;
+  background:var(--glass-control);border:1px solid var(--glass-border);transition:opacity .2s;
+}
+.ca-leg.off{opacity:.45}
+.ca-leg input{accent-color:var(--accent);margin:0}
+.ca-leg i{width:12px;height:12px;border-radius:4px}
+.ca-leg b{font:700 12.5px var(--mono);color:var(--text)}
+.ca-leg span{font:500 12px var(--mono);color:var(--text-dim);text-align:right;overflow-wrap:anywhere}
+.ca-wave{margin:16px 0 0;padding:10px;border-radius:12px;background:var(--canvas-paper);border:1px solid var(--border)}
+.ca-wave svg{width:100%;height:170px;display:block}
+.ca-wv{fill:none;stroke:var(--accent);stroke-width:2.4}
+.ca-wi{fill:none;stroke:var(--info,#5b8cff);stroke-width:2;stroke-dasharray:6 4}
+.ca-wave figcaption{margin-top:6px;font:500 12px var(--mono);color:var(--text-dim);line-height:1.6}
+.ca-wave figcaption .v{color:var(--accent-ink)}
+.ca-wave figcaption .i{color:var(--info,#5b8cff)}
+
+/* ---------- Calculadora ---------- */
+.ca-calc{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start;max-width:1100px}
+.ca-card{padding:16px 18px;border-radius:14px;background:var(--glass-2);border:1px solid var(--glass-border);box-shadow:var(--glass-specular)}
+.ca-card h2{margin:0;font:600 16px var(--sans);color:var(--text)}
+.ca-calc-row{display:flex;gap:8px;margin-top:12px}
+.ca-calc-in{
+  flex:1;min-width:0;padding:10px 12px;border-radius:10px;
+  font:600 16px var(--mono);color:var(--text);
+  background:var(--canvas-paper);border:1px solid var(--border);outline:none;
+}
+.ca-calc-in:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.12)}
+.ca-go{
+  width:52px;border-radius:10px;border:0;cursor:pointer;
+  font:700 20px var(--mono);color:var(--on-accent,#fff);background:var(--accent);
+  transition:transform .15s,filter .2s;
+}
+.ca-go:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.ca-ins{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ca-ins button,.ca-chips button{
+  padding:4px 10px;border-radius:8px;cursor:pointer;
+  font:600 12px var(--mono);color:var(--text-dim);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+}
+.ca-ins button:hover,.ca-chips button:hover{color:var(--text);border-color:rgba(var(--accent-rgb),.5)}
+.ca-calc-out{margin-top:12px;min-height:20px}
+.ca-calc-out.ok{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ca-calc-out.ok div{padding:10px 12px;border-radius:10px;background:var(--canvas-paper);border:1px solid var(--border)}
+.ca-calc-out.ok span{display:block;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-mute)}
+.ca-calc-out.ok b{display:block;margin-top:4px;font:700 17px var(--mono);color:var(--text);word-break:break-all}
+.ca-calc-out.ok div+div b{color:var(--accent-ink)}
+.ca-calc-out.ok p{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--text-dim)}
+.ca-calc-out.err{color:var(--err);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.ca-calc-out.ok div{animation:caPop .3s cubic-bezier(.34,1.56,.64,1) both}}
+@keyframes caPop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.ca-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:14px}
+.ca-chips span{font-size:12px;color:var(--text-mute)}
+.ca-hist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.ca-hist button{
+  display:flex;justify-content:space-between;gap:12px;width:100%;padding:6px 10px;border-radius:8px;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--text-dim);text-align:left;
+}
+.ca-hist button:hover{background:var(--glass-control);border-color:var(--glass-border)}
+.ca-hist code{font:500 12.5px var(--mono);overflow-wrap:anywhere}
+.ca-hist b{font:600 12.5px var(--mono);color:var(--text);white-space:nowrap}
+.ca-zrow{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;margin-top:12px}
+.ca-zrow input[type="text"]{
+  width:100%;box-sizing:border-box;padding:6px 10px;font:500 13px var(--mono);color:var(--text);
+  background:var(--canvas-paper);border:1px solid var(--border);border-radius:8px;outline:none;
+}
+.ca-zout{margin:12px 0 0;display:flex;flex-direction:column;gap:2px}
+.ca-zout b{font:700 18px var(--mono);color:var(--text)}
+.ca-zout i{font:500 13px var(--mono);font-style:normal;color:var(--accent-ink)}
+
+@media (max-width:1100px){
+  .ca-calc,.ca-fas-grid{grid-template-columns:minmax(0,1fr)}
+}
+/* Mismos cortes que el Simulador (la regla de arriba pesa más que la suya). */
+@media (max-width:1080px){.ca-page .sim-body{grid-template-columns:180px minmax(0,1fr) 270px}}
+@media (max-width:860px){
+  .ca-page .sim-body{grid-template-columns:1fr}
+  .ca-scroll.on{padding:10px}
+  .sim-tools{flex-wrap:wrap}
+}
+
+/* ---------- Diagrama de Bode ---------- */
+.ca-bode-top{display:grid;grid-template-columns:minmax(160px,1.4fr) 110px 110px minmax(0,2fr);gap:10px;align-items:end;margin-bottom:12px}
+.ca-bode-top .ca-note{margin:0 0 4px}
+.ca-bode-top input[type="text"]{
+  width:100%;box-sizing:border-box;padding:6px 10px;font:500 13px var(--mono);color:var(--text);
+  background:var(--canvas-paper);border:1px solid var(--border);border-radius:8px;outline:none;
+}
+.ca-bode-top input.bad{border-color:var(--err)}
+.ca-bode-body[hidden]{display:none}
+.ca-plot{margin:0 0 12px;padding:8px 10px 6px;border-radius:12px;background:var(--canvas-paper);border:1px solid var(--border)}
+.ca-plot figcaption{font:700 11px var(--mono);letter-spacing:.06em;color:var(--text-mute)}
+.ca-plot svg{width:100%;height:190px;display:block}
+.ca-bg{stroke:var(--canvas-grid);stroke-width:1}
+.ca-bg.dec{stroke:var(--text-mute);opacity:.35}
+.ca-tick{fill:var(--text-mute);font:500 10px var(--mono)}
+.ca-curve{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ca-curve.ph{stroke:var(--info,#5b8cff)}
+.ca-fc{stroke:var(--warn);stroke-width:1.4;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.ca-fnow{stroke:var(--ok);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.ca-fc-t{fill:var(--warn);font:700 10.5px var(--mono)}
+.ca-fnow-t{fill:var(--ok);font:700 10.5px var(--mono)}
+.ca-bode-read{display:flex;flex-wrap:wrap;gap:8px}
+.ca-bode-read div{padding:8px 12px;border-radius:10px;background:var(--glass-2);border:1px solid var(--glass-border)}
+.ca-bode-read span{display:block;font:700 10px var(--mono);letter-spacing:.08em;color:var(--text-mute);text-transform:uppercase}
+.ca-bode-read b{font:700 14px var(--mono);color:var(--text)}
+@media (max-width:860px){.ca-bode-top{grid-template-columns:1fr 1fr}}

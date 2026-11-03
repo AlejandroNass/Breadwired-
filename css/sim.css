@@ -1,0 +1,597 @@
+/* ============================================================
+   Simulador de circuitos (beta) · estilos
+   ------------------------------------------------------------
+   Hoja PROPIA del simulador. No toca css/editor.css ni
+   css/protoboard.css: el traductor de esquemático sigue con su
+   aspecto de siempre.
+
+   Lo único que hereda es css/theme.css (colores, vidrio, tipografía),
+   así que el simulador cambia de tema y de acento igual que el resto
+   de la aplicación, sin duplicar valores.
+
+   Reparto de la pantalla:
+     cabecera
+     barra de herramientas (pestañas de vista + herramientas)
+     ┌ paleta ─ lienzo ─ panel de medidas ┐
+     barra de estado
+   ============================================================ */
+
+*{box-sizing:border-box}
+
+html,body{height:100%}
+body{
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  background:var(--bg);
+  background-image:var(--body-glow);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--sans);
+  overflow:hidden;
+}
+
+/* ---------- Cabecera ---------- */
+.sim-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:10px 16px;
+  background:var(--glass-2);
+  backdrop-filter:blur(var(--blur-2));
+  -webkit-backdrop-filter:blur(var(--blur-2));
+  border-bottom:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular);
+  position:relative;
+  z-index:40;
+  flex:none;
+}
+.sim-head::after{
+  content:'';
+  position:absolute;
+  left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.5),transparent);
+}
+.sim-brand{
+  display:flex;align-items:center;gap:10px;
+  color:inherit;text-decoration:none;
+}
+.sim-brand .mark{
+  width:26px;height:26px;flex:none;
+  filter:drop-shadow(0 0 8px rgba(var(--accent-rgb),calc(.6 * var(--glow,1))));
+}
+.sim-brand h1{
+  font-size:18px;font-weight:600;margin:0;letter-spacing:.02em;
+  background:linear-gradient(90deg,var(--head-grad-a),var(--head-grad-b));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* Etiqueta BETA: deja claro de qué se está probando. */
+.sim-beta{
+  font:600 11px var(--mono);
+  letter-spacing:.14em;
+  padding:4px 8px 2px;
+  border-radius:6px;
+  color:var(--warn);
+  border:1px solid rgba(var(--warn-rgb),.45);
+  background:rgba(var(--warn-rgb),.12);
+  text-transform:uppercase;
+}
+
+.sim-head nav{margin-left:auto;display:flex;gap:4px}
+.sim-head nav a{
+  color:var(--text-dim);text-decoration:none;padding:6px 14px;border-radius:8px;
+  font-size:13px;font-weight:500;transition:all .2s;
+}
+.sim-head nav a:hover{color:var(--accent-ink);background:rgba(var(--accent-rgb),.06)}
+.sim-head nav a[aria-current]{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),calc(.35 * var(--glow,1))), 0 0 20px rgba(var(--accent-rgb),calc(.15 * var(--glow,1)));
+}
+
+/* ---------- Barra de herramientas ---------- */
+.sim-tools{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  padding:8px 12px;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-bottom:1px solid var(--glass-border);
+  font-size:13px;
+  flex:none;
+  position:relative;
+  z-index:30;
+}
+.sim-sep{width:1px;height:22px;background:var(--border);margin:0 6px}
+
+.sim-tool{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 12px;background:transparent;border:1px solid transparent;
+  border-radius:8px;cursor:pointer;color:var(--text-dim);
+  font:500 13px var(--sans);transition:all .18s ease;
+}
+.sim-tool:hover{
+  background:rgba(var(--accent-rgb),.06);color:var(--accent-ink);
+  border-color:rgba(var(--accent-rgb),.2);
+}
+/* La acción principal de un estado vacío —el «Añadir un Arduino Uno» del
+   IDE—. El HTML le pone `accent` desde siempre y **la regla no existía**: se
+   veía como texto suelto, sin borde ni fondo, y no parecía un botón. Mismo
+   acento que `.sd-btn.accent`, que es el patrón de la casa. */
+.sim-tool.accent{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.5);
+  background:rgba(var(--accent-rgb),.1);
+}
+.sim-tool.accent:hover{border-color:var(--accent);background:rgba(var(--accent-rgb),.18)}
+.sim-tool.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.4);
+  box-shadow:0 0 16px rgba(var(--accent-rgb),calc(.2 * var(--glow,1))), inset 0 1px 0 rgba(var(--hair-rgb),.08);
+}
+.sim-tool kbd{
+  font:500 11px var(--mono);padding:0 4px;border:1px solid currentColor;
+  border-radius:4px;opacity:.5;
+}
+/* Deshacer y Rehacer se apagan cuando la pila está vacía: un botón que
+   no hace nada es peor que un botón gris. */
+.sim-tool:disabled{opacity:.34;cursor:default;pointer-events:none}
+.sim-tool .ico{width:15px;height:15px;flex:none}
+
+/* Pestañas de vista: esquemático / 2D / 3D. */
+.sim-tabs{display:inline-flex;padding:2px;gap:2px;border-radius:10px;background:var(--glass-control);border:1px solid var(--glass-border)}
+/* Estrecho: las pestañas de vista (Esquema · Tabla · Ecuación · Arduino…)
+   suman más que el ancho de un móvil. Se dejan envolver en vez de empujar
+   la barra entera: sin esto el grupo medía 430 px en una pantalla de 390 y
+   arrastraba el ancho de la página (scroll horizontal). */
+@media (max-width:700px){
+  .sim-tabs{flex-wrap:wrap;max-width:100%}
+}
+.sim-tab{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 14px;border:0;border-radius:8px;background:transparent;
+  color:var(--text-dim);cursor:pointer;font:500 13px var(--sans);transition:all .18s ease;
+}
+.sim-tab:hover{color:var(--text)}
+.sim-tab.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.2),rgba(var(--accent-rgb),.07));
+  color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),calc(.3 * var(--glow,1)));
+}
+.sim-tab .ico{width:15px;height:15px;flex:none}
+
+/* Selector de ejemplos: se va al extremo derecho de la barra. */
+.sim-pick{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-left:auto;
+  color:var(--text-mute);font-size:12.5px;
+}
+.sim-pick select{
+  font:500 12.5px var(--sans);
+  color:var(--text);
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  border-radius:8px;padding:6px 10px;cursor:pointer;outline:none;
+  max-width:230px;
+}
+.sim-pick select:hover{border-color:var(--glass-border-hi)}
+.sim-pick select:focus{border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 3px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)))}
+
+/* ---------- Cuerpo ---------- */
+.sim-body{
+  flex:1;min-height:0;
+  display:grid;
+  grid-template-columns:212px minmax(0,1fr) 286px;
+}
+
+/* ---------- Paleta ---------- */
+.sim-pal{
+  overflow-y:auto;
+  padding:10px 10px 22px;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-right:1px solid var(--glass-border);
+}
+.pal-h{
+  font:600 11px var(--mono);
+  letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-mute);
+  margin:14px 4px 8px;
+}
+.pal-h:first-child{margin-top:2px}
+
+.pal-item{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:8px 8px;margin-bottom:6px;
+  background:transparent;border:1px solid transparent;border-radius:10px;
+  cursor:pointer;text-align:left;color:var(--text-dim);
+  transition:all .16s ease;
+}
+.pal-item:hover{
+  background:rgba(var(--accent-rgb),.06);
+  border-color:rgba(var(--accent-rgb),.18);
+}
+.pal-item.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.06));
+  border-color:rgba(var(--accent-rgb),.42);
+  box-shadow:0 0 14px rgba(var(--accent-rgb),calc(.16 * var(--glow,1)));
+}
+.pal-ico{
+  width:46px;height:34px;flex:none;
+  display:grid;place-items:center;
+  border-radius:8px;
+  background:var(--canvas-paper);
+  border:1px solid var(--border);
+}
+.pal-ico svg{width:40px;height:30px;display:block}
+.pal-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+/* La paleta tenía los nombres y las descripciones en una línea con puntos
+   suspensivos: «Se opone a los cambios de corrien…». En español se cortaban
+   siete, en inglés siete y en japonés cuatro —el mismo texto mide distinto
+   en cada idioma—. Ahora la fila crece y el texto se lee entero; la paleta
+   es una lista con desplazamiento, así que una fila más alta no rompe nada. */
+.pal-txt b{font:600 12.5px var(--sans);color:var(--text);overflow-wrap:anywhere}
+.pal-txt i{font:400 11px var(--sans);font-style:normal;color:var(--text-mute);overflow-wrap:anywhere}
+.pal-item.on .pal-txt b{color:var(--accent-ink)}
+
+/* ---------- Lienzo ---------- */
+.sim-stage{
+  position:relative;min-width:0;min-height:0;
+  display:flex;padding:6px;
+  background:var(--stage-bg);
+  overflow:hidden;
+}
+.sim-view{display:none;flex:1;min-width:0;min-height:0}
+.sim-view.on{display:block}
+
+#svgSch,#svg2d{
+  width:100%;height:100%;display:block;
+  background:var(--canvas-paper);
+  border:1px solid var(--border);border-radius:10px;
+  touch-action:none;
+}
+#svg2d{background:#07231a}
+#three3d{
+  width:100%;height:100%;display:block;
+  border:1px solid var(--border);border-radius:10px;
+  /* El fondo de escena del tema (antes un azul fijo que no casaba con
+     los temas cálidos). */
+  background:var(--stage-bg,radial-gradient(ellipse at 50% 0%, #16202c 0%, #070a0e 70%));
+  cursor:grab;
+}
+#three3d:active{cursor:grabbing}
+
+/* Aviso dentro del lienzo cuando la vista aún no tiene nada. */
+.sim-empty{
+  position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--text-mute);font-size:13.5px;pointer-events:none;
+}
+.empty2d{font:500 15px var(--sans);fill:#6f9184}
+.empty-hint{fill:var(--text-mute);font:500 15px var(--sans);pointer-events:none}
+
+/* ---------- Panel derecho ---------- */
+.sim-panel{
+  display:flex;flex-direction:column;min-height:0;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-left:1px solid var(--glass-border);
+}
+.sim-panel section{display:flex;flex-direction:column;min-height:0}
+.sim-panel section.grow{flex:1}
+.sim-panel section+section{border-top:1px solid var(--glass-border)}
+.sim-panel .sec-h{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px 8px;
+  font:600 11px var(--mono);
+  letter-spacing:.13em;text-transform:uppercase;color:var(--text-mute);
+  flex:none;
+}
+.sim-panel .sec-h b{margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text-dim)}
+
+#panelElem{padding:2px 14px 12px;flex:none}
+
+.sim-hint{
+  margin:6px 0;color:var(--text-mute);font-size:12.5px;line-height:1.5;
+}
+
+.elem-head{
+  display:flex;align-items:baseline;gap:8px;
+  padding:4px 0 8px;
+}
+.elem-head b{
+  font:600 15px var(--mono);color:var(--accent-ink);
+  text-shadow:0 0 10px rgba(var(--accent-rgb),calc(.35 * var(--glow,1)));
+}
+.elem-head span{font-size:12px;color:var(--text-dim)}
+
+.elem-fields{display:flex;flex-direction:column;gap:8px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld>span{font-size:11.5px;color:var(--text-mute)}
+.fld input[type="number"],
+.fld select{
+  width:100%;padding:6px 10px;
+  font:500 13px var(--mono);
+  color:var(--text);
+  background:var(--canvas-paper);
+  border:1px solid var(--border);border-radius:8px;outline:none;
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+.fld input[type="number"]:hover,.fld select:hover{border-color:var(--border-hi)}
+.fld input[type="number"]:focus,.fld select:focus{
+  border-color:rgba(var(--accent-rgb),.55);
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)));
+}
+.fld-row{flex-direction:row;align-items:center;justify-content:space-between;padding:2px 0}
+.fld-row input[type="checkbox"]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+
+.elem-read{display:flex;gap:6px;margin-top:10px}
+.elem-read:empty{display:none}
+
+/* ---------- ficha de la pieza (plan 06 · N-08) ----------
+   Los límites de la hoja de datos, debajo de las medidas, y el aviso cuando
+   lo medido se pasa de lo que la pieza aguanta. */
+.elem-sheet{
+  margin-top:12px;padding-top:10px;border-top:1px solid var(--glass-border);
+  display:flex;flex-direction:column;gap:4px;
+}
+.elem-sheet b{font:600 12px var(--sans);color:var(--text)}
+.elem-sheet-lim{font:500 11px var(--mono);color:var(--text-mute)}
+.elem-sheet p{margin:2px 0 0;font:500 11.5px var(--sans);color:var(--text-dim);line-height:1.45}
+.elem-warn:empty{display:none}
+.elem-warn{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.elem-warn p{
+  margin:0;padding:6px 8px;border-radius:8px;
+  font:500 11.5px var(--sans);line-height:1.4;
+}
+.elem-warn-warn{color:var(--warn,#c98a00);background:rgba(201,138,0,.12);border:1px solid rgba(201,138,0,.35)}
+.elem-warn-error{color:var(--err);background:rgba(var(--err-rgb),.12);border:1px solid rgba(var(--err-rgb),.4)}
+.rd{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;gap:2px;
+  padding:6px 8px;border-radius:8px;
+  background:var(--canvas-paper);
+  border:1px solid var(--border);
+}
+.rd span{font:600 9.5px var(--mono);letter-spacing:.1em;color:var(--text-mute)}
+/* Igual en el renglón de lectura: «0.873 en atraso (inductivo)» no cabía
+   en 181 px y se quedaba en «0.873 en atraso (indu…». */
+.rd b{font:600 12.5px var(--mono);color:var(--text);overflow-wrap:anywhere}
+
+/* Lista de nodos con su tensión. */
+#panelNodes{
+  list-style:none;margin:0;padding:0 14px 14px;
+  overflow-y:auto;min-height:0;flex:1;
+}
+#panelNodes li{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;border-radius:8px;
+  font-size:12.5px;
+}
+#panelNodes li:nth-child(odd){background:rgba(var(--hair-rgb),.03)}
+#panelNodes li.muted{color:var(--text-mute);font-size:12px;background:none;padding-left:0}
+#panelNodes .ndot{width:9px;height:9px;border-radius:4px;flex:none;box-shadow:0 0 7px currentColor}
+#panelNodes .nname{font:500 12px var(--mono);color:var(--text-dim);min-width:34px}
+#panelNodes b{
+  margin-left:auto;font:600 12.5px var(--mono);color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Barra de estado ---------- */
+.sim-status{
+  display:flex;align-items:center;gap:14px;
+  padding:6px 14px;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-top:1px solid var(--glass-border);
+  font-size:12.5px;color:var(--text-dim);
+  flex:none;
+}
+#status{display:flex;align-items:center;gap:8px}
+#status:empty::before{content:'—';opacity:.4}
+#status.ok{color:var(--ok)}
+#status.warn{color:var(--warn)}
+#status.err{color:var(--err)}
+#status.ok::before,
+#status.warn::before,
+#status.err::before{
+  content:'';width:7px;height:7px;border-radius:50%;
+  background:currentColor;box-shadow:0 0 8px currentColor;flex:none;
+}
+.sim-status .spacer{margin-left:auto}
+.sim-status .keys{
+  font:500 11px var(--mono);color:var(--text-mute);
+  display:flex;gap:10px;flex-wrap:wrap;
+}
+.sim-status .keys kbd{
+  font:500 11px var(--mono);padding:0 4px;border:1px solid var(--border-hi);
+  border-radius:4px;color:var(--text-dim);margin-right:4px;
+}
+
+/* ============================================================
+   Dibujo del esquemático (SVG)
+   ============================================================ */
+.sheet{stroke:none}
+
+.wire-line{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+/* La corriente (plan 08 · C-10): puntos claros que avanzan por el cable,
+   más deprisa cuanta más corriente (`--flow-dur` lo pone schematic.js).
+   No capturan clics: el cable de debajo sigue siendo el que se pulsa.
+   Con movimiento reducido se quedan quietos: se ve el sentido, sin
+   moverse. */
+.wire-flow{
+  fill:none;pointer-events:none;
+  stroke:#fff6c2;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:0 14;opacity:.9;
+  filter:drop-shadow(0 0 3px rgba(255,240,170,.8));
+}
+@media (prefers-reduced-motion:no-preference){
+  .wire-flow{animation:simFlow var(--flow-dur,1.5s) linear infinite}
+}
+@keyframes simFlow{to{stroke-dashoffset:-14}}
+html[data-theme="light"] .wire-flow,html[data-theme="ivory"] .wire-flow,html[data-theme="sepia"] .wire-flow,html[data-theme="deepseek"] .wire-flow,html[data-theme="custom-light"] .wire-flow,html[data-theme="workbuddy"] .wire-flow{
+  stroke:#b45309;filter:none;
+}
+.wire-hit{fill:none;stroke:transparent;stroke-width:14;stroke-linecap:round;cursor:pointer}
+.wire-node{fill:var(--canvas-paper);stroke:var(--wire-ink);stroke-width:1.4}
+.wire.sel .wire-line{stroke-width:4.2;filter:drop-shadow(0 0 6px rgba(var(--accent-rgb),calc(.7 * var(--glow,1))))}
+.wire.sel .wire-node{stroke:var(--accent)}
+.wire-preview{
+  fill:none;stroke:var(--accent);stroke-width:2.2;
+  stroke-dasharray:7 5;stroke-linecap:round;
+  opacity:.85;pointer-events:none;
+}
+
+.comp{cursor:grab}
+.comp .hit{fill:transparent}
+:where(.comp,.pal-ico) .lead{fill:none;stroke:var(--canvas-ink);stroke-width:2.2;stroke-linecap:round}
+:where(.comp,.pal-ico) .body{fill:none;stroke:var(--canvas-ink);stroke-width:2.2;stroke-linejoin:round}
+:where(.comp,.pal-ico) .body-fill{fill:var(--canvas-ink);stroke:var(--canvas-ink);stroke-width:2.2;stroke-linejoin:round}
+:where(.comp,.pal-ico) .body-line{fill:none;stroke:var(--canvas-ink);stroke-width:2.6;stroke-linecap:round}
+:where(.comp,.pal-ico) .body-line.thin{stroke-width:1.7}
+:where(.comp,.pal-ico) .sym-mark{fill:none;stroke:var(--accent-ink);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+:where(.comp,.pal-ico) .sym-mark.thin{stroke-width:1.3}
+:where(.comp,.pal-ico) .sym-letter{fill:var(--canvas-ink);stroke:none;font:700 15px var(--mono)}
+:where(.comp,.pal-ico) .pin-dot{fill:var(--canvas-ink);stroke:none}
+.comp .pin{fill:var(--canvas-paper);stroke:var(--canvas-ink);stroke-width:1.5;pointer-events:none}
+
+.comp.sel .lead,
+.comp.sel .body,
+.comp.sel .body-fill,
+.comp.sel .body-line{stroke:var(--accent)}
+.comp.sel .body-fill{fill:var(--accent)}
+.comp.sel .hit{fill:rgba(var(--accent-rgb),.05);stroke:var(--accent);stroke-width:1;stroke-dasharray:4 3}
+.comp.sel .lead,
+.comp.sel .body{filter:drop-shadow(0 0 5px rgba(var(--accent-rgb),calc(.55 * var(--glow,1))))}
+
+.comp .ref,.comp .val,.comp .meas{
+  paint-order:stroke;stroke:var(--canvas-paper);stroke-width:3px;
+  stroke-linejoin:round;stroke-linecap:round;
+}
+.comp .ref{font:500 12px var(--mono);fill:var(--canvas-ink);text-anchor:middle}
+.comp .val{font:500 11px var(--mono);fill:var(--canvas-ink2);text-anchor:middle}
+.comp .meas{font:500 10.5px var(--mono);fill:var(--accent-ink);text-anchor:middle;opacity:.9}
+
+.led-light{pointer-events:none}
+
+/* ---------- Vista 2D ---------- */
+.ld{fill:none;stroke:#9fb3ab;stroke-width:2.4;stroke-linecap:round}
+.t2d-ref,.t2d-val,.t2d-meas,.t2d-v{
+  paint-order:stroke;stroke:#0b3b2c;stroke-width:3px;stroke-linejoin:round;
+}
+.t2d-ref{font:600 11px var(--mono);fill:#d7ece2;text-anchor:middle}
+.t2d-val{font:500 10.5px var(--mono);fill:#9dbfb1;text-anchor:middle}
+.t2d-meas{font:500 10px var(--mono);fill:#7fe3c4;text-anchor:middle}
+.t2d-tag{font:600 9.5px var(--mono);fill:#cbd5e1}
+.t2d-v{font:600 13px var(--mono);fill:#e2e8f0;text-anchor:middle}
+.t2d-plus{font:600 12px var(--sans);fill:#cbd5e1}
+
+/* ---------- Temas claros: el lienzo del esquema se oscurece un poco
+   para que el símbolo (que sigue el color de la tinta) no se pierda. --- */
+html[data-theme="light"] #svg2d,
+html[data-theme="sepia"] #svg2d,html[data-theme="ivory"] #svg2d,html[data-theme="deepseek"] #svg2d,html[data-theme="custom-light"] #svg2d,html[data-theme="workbuddy"] #svg2d{background:#0b3b2c}
+
+/* ---------- Pantallas estrechas ---------- */
+@media (max-width:1080px){
+  .sim-body{grid-template-columns:180px minmax(0,1fr) 250px}
+  .pal-txt i{display:none}
+}
+@media (max-width:860px){
+  body{overflow:auto}
+  .sim-body{grid-template-columns:1fr;grid-auto-rows:min-content}
+  .sim-pal{
+    display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
+    border-right:0;border-bottom:1px solid var(--glass-border);
+    padding:8px;
+  }
+  .pal-h{display:none}
+  .pal-item{width:auto;flex:none;margin:0}
+  .pal-txt i{display:none}
+  .sim-stage{height:62vh}
+  .sim-panel{border-left:0;border-top:1px solid var(--glass-border)}
+  #panelNodes{max-height:150px}
+}
+
+/* ============================================================
+   Osciloscopio (plan 03 §R3) · js/sim/scope.js
+   Panel acoplado abajo del lienzo; la pantalla es oscura en todos los
+   temas, como la de un osciloscopio de verdad, y los canales llevan
+   los colores de siempre (CH1 amarillo, CH2 cian).
+   ============================================================ */
+.osc{
+  position:absolute;left:12px;right:12px;bottom:12px;z-index:20;
+  height:min(46%,360px);min-height:220px;
+  display:flex;flex-direction:column;
+  background:var(--glass-3);border:1px solid var(--glass-border-hi);border-radius:14px;
+  box-shadow:var(--glass-shadow),var(--glass-specular);
+  overflow:hidden;
+}
+.osc[hidden]{display:none}
+.osc.osc-in{animation:osc-in var(--dur-3,.32s) var(--ease-out,ease) both}
+@keyframes osc-in{from{opacity:0;transform:translateY(12px)}}
+.osc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px 8px 14px;border-bottom:1px solid var(--glass-border)}
+.osc-head h2{margin:0 6px 0 0;font:600 13.5px var(--sans);text-transform:none;letter-spacing:0;color:var(--text)}
+html[data-theme="ivory"] .osc-head h2{font:500 15px var(--serif)}
+.osc-ch{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--mono);color:var(--text-mute)}
+.osc-ch.ch1 span{color:#c99a06}
+.osc-ch.ch2 span{color:#0891b2}
+.osc-ch select{height:26px;border-radius:8px;border:1px solid var(--glass-border-hi);background:var(--glass-control);color:var(--text);font:500 11.5px var(--mono);padding:0 4px}
+.osc-x{margin-left:auto;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--text-mute);font-size:18px;cursor:pointer}
+.osc-x:hover{background:var(--glass-control-hi);color:var(--text)}
+.osc-body{flex:1;display:flex;min-height:0}
+.osc-screen{flex:1;min-width:0;width:100%;height:100%;display:block;background:#0b0f0d}
+.osc-read{width:168px;flex:none;padding:10px 12px;display:flex;flex-direction:column;gap:12px;border-left:1px solid var(--glass-border);overflow:auto}
+.osc-r{display:flex;flex-direction:column;gap:2px;font:500 11.5px var(--mono);color:var(--text-dim)}
+.osc-r b{font-weight:700;color:var(--text)}
+.osc-r.ch1 b{color:#c99a06}
+.osc-r.ch2 b{color:#0891b2}
+@media (max-width:760px){.osc-read{display:none}}
+
+.sim-stage.has-osc .sim-view.on{padding-bottom:calc(var(--osc-h,300px) + 12px)}
+
+/* Lectura grande del polímetro en el panel de propiedades. */
+.rd.big{flex:1}
+.rd.big b{font-size:17px}
+
+/* Corriente en la vista 2D (C-10): la placa es verde oscura en todos los
+   temas, así que los puntos van siempre en claro y algo más gruesos. */
+#svg2d .wire-flow{stroke:#fff6c2;stroke-width:3.2;filter:none}
+
+
+/* ============================================================
+   Pieza que se pasa de su hoja de datos (plan 09 · IF-08)
+   ------------------------------------------------------------
+   Lo decide `js/sim/limits.js` y lo pintan las dos vistas igual: anillo
+   rojo y humo si se pasa del máximo absoluto, ámbar si sólo pasa de lo
+   recomendado. El rojo no es decoración: es el único aviso que se ve sin
+   tener que seleccionar la pieza y leer el panel.
+   ============================================================ */
+#svgSch .comp .over-ring,
+#svg2d .item2d .over-ring2d{
+  fill:none;stroke:var(--err);stroke-width:1.8;opacity:.95;
+  stroke-dasharray:none;
+}
+#svgSch .comp.over-warn .over-ring,
+#svg2d .item2d.over-warn .over-ring2d{
+  stroke:var(--warn);stroke-width:1.5;stroke-dasharray:4 3;opacity:.9;
+}
+/* El humo: tres bocanadas que suben y se apagan. Va fuera del grupo de la
+   pieza, así que no hereda su rotación. */
+.sim-smoke .puff{
+  fill:#b9b2aa;opacity:0;
+  animation:simPuff 2.4s ease-out infinite;
+}
+.sim-smoke .p2{animation-delay:.8s}
+.sim-smoke .p3{animation-delay:1.6s}
+@keyframes simPuff{
+  0%{opacity:0;transform:translateY(0) scale(.6)}
+  18%{opacity:.55}
+  100%{opacity:0;transform:translateY(-16px) scale(1.9)}
+}
+/* Sin movimiento, el humo se queda quieto y visible: sigue diciendo que la
+   pieza se está quemando. */
+@media (prefers-reduced-motion: reduce){
+  .sim-smoke .puff{animation:none;opacity:.5}
+}

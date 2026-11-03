@@ -1,0 +1,1948 @@
+/* ============================================================
+   breadwire · tema compartido
+   ------------------------------------------------------------
+   Fuente única de las variables de color para las tres vistas
+   (Esquema, Protoboard 2D y Protoboard 3D).
+
+   Lenguaje de diseño: vidrio + pan + electrónica.
+   · Sustrato cálido (charcoal tostado) en vez del azul-negro: es
+     la "miga" sobre la que se apoya todo.
+   · Escala de vidrio en tres alturas (--glass-1 panel, --glass-2
+     barra, --glass-3 flotante) con borde especular interior, que
+     es lo que hace que el vidrio parezca vidrio.
+   · Metales (cobre y soldadura) y máscara de soldadura como
+     acentos de la parte electrónica.
+   · El acento (--accent / --accent-rgb) lo aplica js/theme.js en
+     línea sobre <html>; el resto de las vistas usan las variables.
+
+   Los nombres de variable no cambian: editor.css y protoboard.css
+   los consumen tal cual. Aquí solo cambian los valores y se añaden
+   los tokens de vidrio.
+   ============================================================ */
+/* Mientras la interfaz no está traducida se oculta el contenido, para
+   que no se vea primero en español y luego en inglés. La clase la pone
+   el <script> en línea del <head> (sólo cuando el idioma guardado no es
+   español) y la retira `initI18n()`; el fondo del <body> sigue a la
+   vista, así que lo que se ve mientras tanto es el sustrato, no un
+   destello blanco. */
+html.i18n-pending body > *{visibility:hidden}
+
+/* `overflow-x:clip` en la raíz: la app es una herramienta de pantalla
+   completa y nunca necesita desplazamiento horizontal de página, pero
+   mientras carga (antes de que el CSS y las fuentes se asienten) algún
+   elemento es más ancho que la pantalla un instante. Chrome entonces
+   **ensancha el viewport de maquetación** y ya no lo vuelve a estrechar:
+   en un móvil de 390 px la página se quedaba en 402 para siempre, con
+   scroll horizontal, aunque a los 100 ms no sobrara nada. `clip` (y no
+   `hidden`) no crea contenedor de desplazamiento, así que `position:sticky`
+   sigue funcionando igual. */
+html{overflow-x:clip}
+
+:root{
+  /* «breadwire» (predeterminado, 26 oct): el azul de un plano técnico
+     con el amarillo de las marcas de cota. Azul en las superficies,
+     amarillo como único acento; el texto sobre el acento va en azul
+     marino (--on-accent), porque el blanco sobre amarillo no se lee. */
+  --bg:#0b1a33; --bg2:#0f2140; --surface:#13284d;
+  --border:#1f3a66; --border-hi:#2d4f85;
+  --text:#eef3ff; --text-dim:#aebddb; --text-mute:#8798bd;
+  --accent:#ffc83d; --accent-rgb:255,200,61; --accent-2-rgb:77,141,255;
+  --on-accent:#0b1a33;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --warn:#ff9f43; --warn-rgb:255,159,67;
+  --err:#ff6b6b; --err-rgb:255,107,107;
+  --info:#6ea8ff; --float:#2b4675;
+  --canvas-bg:#0a1730; --canvas-grid:#1a2f55;
+  --canvas-ink:#eef3ff; --canvas-ink2:#aebddb; --canvas-paper:#0a1730;
+  --wire-ink:#9fb3d6;
+  --panel-rgb:11,26,51;
+  --panel2-rgb:15,33,64;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #16305c 0%, #071226 100%);
+  --body-glow:radial-gradient(ellipse 70% 50% at 50% -20%, rgba(77,141,255,.22), transparent 60%),radial-gradient(ellipse 50% 40% at 100% 100%, rgba(var(--accent-rgb),.07), transparent 60%);
+  --code-bg:#071226; --code-fg:#ffe08a;
+  --head-grad-a:#eef3ff; --head-grad-b:var(--accent);
+  --shadow:rgba(2,8,20,.55);
+  --accent-ink:var(--accent);
+  --sans:'Familjen Grotesk','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','DM Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* Títulos con serifa, como Claude. Pila del sistema: no se descarga
+     nada (Iowan/Palatino en Mac y Windows, Georgia como red). */
+  --glow:.28;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,'Times New Roman',serif;
+
+  /* ---------- Escala de superficies ----------
+     Tres alturas: panel, barra y flotante. En «Arcilla» son casi
+     opacas: el vidrio translúcido es bonito pero resta legibilidad. */
+  --glass-1:rgba(15,33,64,.92);
+  --glass-2:rgba(19,40,77,.94);
+  --glass-3:rgba(24,48,90,.97);
+  --glass-border:rgba(255,255,255,.08);
+  --glass-border-hi:rgba(255,255,255,.14);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.04);
+  --glass-shadow:0 10px 30px rgba(0,0,0,.35);
+  --blur-1:8px; --blur-2:14px; --blur-3:24px;
+  --glass-control:rgba(255,255,255,.045);
+  --glass-control-hi:rgba(255,255,255,.085);
+  --glass-solid:rgba(19,40,77,.98);
+  /* Alias de la altura «barra». login/projects/legal lo pedían y no
+     existía: sus tarjetas salían sin fondo. Se resuelve contra el
+     `--glass-2` de cada tema. */
+  --glass:var(--glass-2);
+
+  /* ---------- Metales y pan ---------- */
+  --metal-copper:#b87333;
+  --metal-solder:#d4af37;
+  --bread-miga:#f2e8d5;
+  --bread-crust:#c08a4e;
+  --mask-green:#0f6e56;
+
+  --notice-hi:#f0c27a;
+  --notice-sub:#d4a35a;
+}
+
+/* ---------- «Tostado»: el predeterminado de antes ----------
+   Se conserva como tema propio para quien lo prefiera. */
+html[data-theme="toast"]
+{
+  --glow:1;
+  --bg:#0c0a09; --bg2:#141110; --surface:#1a1614;
+  --border:#2b2421; --border-hi:#3d342e;
+  --text:#efe9e0; --text-dim:#ffffff; --text-mute:#fffffc;
+  --accent:#00ffff; --accent-rgb:0,224,255; --accent-2-rgb:184,115,51;
+  --ok:#45ffcc; --ok-rgb:52,211,153;
+  --warn:#ffec63; --warn-rgb:255,184,77;
+  --err:#ff5566; --err-rgb:255,85,102;
+  --info:#5b8cff; --float:#4a423b;
+  --canvas-bg:#0a0807; --canvas-grid:#241f1c;
+  --canvas-ink:#efe9e0; --canvas-ink2:#a79c90; --canvas-paper:#0a0807;
+  --wire-ink:#9a8f84;
+  /* Superficies translúcidas (cabecera, barras, paneles flotantes) */
+  --panel-rgb:14,12,10;
+  --panel2-rgb:22,18,16;
+  /* Tintes mínimos sobre superficies oscuras (se invierten en claro) */
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #14100d 0%, #070605 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.08), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(192,138,78,.07), transparent 60%);
+  --code-bg:#080706; --code-fg:#9fd4e6;
+  --head-grad-a:#efe9e0; --head-grad-b:var(--accent);
+  --shadow:rgba(0,0,0,.6);
+  /* Acento para texto. Sobre sustrato oscuro el acento puro ya contrasta;
+     js/theme.js lo oscurece en el tema claro, donde el cian se queda en
+     1.5:1 y es ilegible. Aquí va el valor de respaldo sin JS. */
+  --accent-ink:var(--accent);
+  --sans:'Familjen Grotesk','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','DM Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* ---------- Escala de vidrio ----------
+     Tres alturas: panel (superficies grandes), barra (chrome) y
+     flotante (widgets sobre el lienzo). El borde especular es el
+     brillo interior de 1px del canto superior. */
+  --glass-1:rgba(14,12,10,.55);
+  --glass-2:rgba(20,17,15,.62);
+  --glass-3:rgba(28,23,20,.74);
+  --glass-border:rgba(255,255,255,.10);
+  --glass-border-hi:rgba(255,255,255,.18);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.10);
+  --glass-shadow:0 18px 44px rgba(0,0,0,.55);
+  --blur-1:8px; --blur-2:14px; --blur-3:24px;
+  /* Controles (botones, campos, chips) y vidrio opaco para texto
+     pequeño o para cuando el blur se apaga. */
+  --glass-control:rgba(255,255,255,.05);
+  --glass-control-hi:rgba(255,255,255,.09);
+  --glass-solid:rgba(20,17,15,.97);
+
+  /* ---------- Metales y pan ---------- */
+  --metal-copper:#b87333;
+  --metal-solder:#d4af37;
+  --bread-miga:#f2e8d5;
+  --bread-crust:#c08a4e;
+  --mask-green:#0f6e56;
+
+  /* ---------- Aviso flotante (.notice) ----------
+     Dos tonos derivados del ámbar de aviso. En los temas oscuros son
+     ámbar claros (contraste alto sobre el vidrio oscuro); en los claros
+     se oscurecen, porque un ámbar claro sobre vidrio blanco queda por
+     debajo de AA y el texto no se lee. */
+  --notice-hi:#ffcb6b;
+  --notice-sub:#d9a44d;
+}
+
+
+/* ---------- Tema claro ---------- */
+html[data-theme="light"]{
+  --glow:1;
+  --bg:#efe9df; --bg2:#e7e0d4; --surface:#ffffff;
+  --border:#d9d0c2; --border-hi:#c2b6a4;
+  --text:#1c1713; --text-dim:#57504a; --text-mute:#776d64;
+  --ok:#08694e; --ok-rgb:8,105,78;
+  --warn:#8f5c06; --warn-rgb:143,92,6;
+  --err:#cc2439; --err-rgb:204,36,57;
+  --info:#3b6fe0; --float:#94a3b8;
+  --canvas-bg:#ffffff; --canvas-grid:#e2dacb;
+  --canvas-ink:#1c1713; --canvas-ink2:#57504a; --canvas-paper:#ffffff;
+  --wire-ink:#6b615a;
+  --panel-rgb:255,255,255;
+  --panel2-rgb:252,250,246;
+  --hair-rgb:28,23,19;
+  --stage-bg:radial-gradient(ellipse at center, #fffdf9 0%, #e9e2d5 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(192,138,78,.10), transparent 60%);
+  --code-bg:#f5f1e8; --code-fg:#1d3557;
+  --head-grad-a:#1c1713; --head-grad-b:var(--accent);
+  --shadow:rgba(60,48,36,.2);
+  --accent-ink:#0a6c7d;
+
+  /* Sobre fondo claro el vidrio es blanco lechoso, no oscuro. */
+  --glass-1:rgba(255,255,255,.62);
+  --glass-2:rgba(255,255,255,.72);
+  --glass-3:rgba(255,255,255,.84);
+  --glass-border:rgba(255,255,255,.75);
+  --glass-border-hi:rgba(255,255,255,.95);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.95);
+  --glass-shadow:0 18px 44px rgba(70,56,42,.18);
+  --glass-control:rgba(255,255,255,.72);
+  --glass-control-hi:rgba(255,255,255,.92);
+  --glass-solid:rgba(255,255,255,.97);
+
+  /* Aviso flotante: el ámbar claro del tema oscuro es ilegible sobre
+     vidrio blanco; se usa el mismo ámbar oscuro que el token de aviso. */
+  --notice-hi:#8f5c06;
+  --notice-sub:#7a4f05;
+}
+
+
+/* ---------- «Marfil»: el claro estilo Claude ----------
+   Papel marfil, tinta casi negra, bordes finos oscuros (no blancos: en
+   claro un canto blanco no se ve) y sombras muy suaves. */
+html[data-theme="ivory"]{
+  --glow:.22;
+  --on-accent:#ffffff;
+  --bg:#f5f4ef; --bg2:#ecebe4; --surface:#ffffff;
+  --border:#e1ded4; --border-hi:#cdc9bc;
+  --text:#1f1e1d; --text-dim:#5d5a53; --text-mute:#726f68;
+  --ok:#2e794d; --ok-rgb:47,125,79;
+  --warn:#93600a; --warn-rgb:147,96,10;
+  --err:#b8322b; --err-rgb:184,50,43;
+  --info:#3b62c4; --float:#a8a49a;
+  --canvas-bg:#fdfcf9; --canvas-grid:#e8e5dc;
+  --canvas-ink:#1f1e1d; --canvas-ink2:#5d5a53; --canvas-paper:#fdfcf9;
+  --wire-ink:#6e6a62;
+  --panel-rgb:255,255,255;
+  --panel2-rgb:250,249,245;
+  --hair-rgb:31,30,29;
+  --stage-bg:radial-gradient(ellipse at center, #fdfcf9 0%, #ebe9e1 100%);
+  --body-glow:none;
+  --code-bg:#f0eee6; --code-fg:#5b3a29;
+  --head-grad-a:#1f1e1d; --head-grad-b:var(--accent);
+  --shadow:rgba(60,50,40,.12);
+  --accent-ink:#a9502f;
+  --glass-1:rgba(255,255,255,.94);
+  --glass-2:rgba(255,255,255,.96);
+  --glass-3:rgba(255,255,255,.98);
+  --glass-border:rgba(31,30,29,.09);
+  --glass-border-hi:rgba(31,30,29,.16);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.7);
+  --glass-shadow:0 8px 24px rgba(60,50,40,.09);
+  --glass-control:rgba(31,30,29,.035);
+  --glass-control-hi:rgba(31,30,29,.07);
+  --glass-solid:rgba(255,255,255,.98);
+  --notice-hi:#93600a;
+  --notice-sub:#7a4f05;
+}
+
+/* ---------- Tema oscuro (profundo y frío) ----------
+   «Predeterminado» es un charcoal CÁLIDO (la miga tostada); «Oscuro» es
+   su opuesto: negro azulado, vidrio frío y algo más de contraste. Antes
+   los dos compartían la misma paleta y solo se distinguían por el
+   acento; ahora cada uno tiene la suya. */
+html[data-theme="dark"]{
+  --glow:1;
+  --bg:#070809; --bg2:#0e1012; --surface:#131619;
+  --border:#23272c; --border-hi:#343a41;
+  --text:#eef2f6; --text-dim:#9aa4b0; --text-mute:#7c8794;
+  --ok:#34d399; --ok-rgb:52,211,153;
+  --warn:#ffb84d; --warn-rgb:255,184,77;
+  --err:#ff5566; --err-rgb:255,85,102;
+  --info:#5b8cff; --float:#3c434b;
+  --canvas-bg:#050607; --canvas-grid:#1b1f24;
+  --canvas-ink:#eef2f6; --canvas-ink2:#9aa4b0; --canvas-paper:#050607;
+  --wire-ink:#8d97a3;
+  --panel-rgb:9,10,12;
+  --panel2-rgb:16,19,22;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #101418 0%, #040506 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(96,132,196,.08), transparent 60%);
+  --code-bg:#040506; --code-fg:#9fd4e6;
+  --head-grad-a:#eef2f6; --head-grad-b:var(--accent);
+  --shadow:rgba(0,0,0,.7);
+  --accent-ink:var(--accent);
+  --glass-1:rgba(9,10,12,.55);
+  --glass-2:rgba(16,19,22,.62);
+  --glass-3:rgba(22,26,30,.76);
+  --glass-border:rgba(255,255,255,.10);
+  --glass-border-hi:rgba(255,255,255,.19);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.10);
+  --glass-shadow:0 18px 44px rgba(0,0,0,.66);
+  --glass-control:rgba(255,255,255,.05);
+  --glass-control-hi:rgba(255,255,255,.10);
+  --glass-solid:rgba(16,19,22,.97);
+}
+
+/* ---------- Tema medianoche (azul profundo) ---------- */
+html[data-theme="midnight"]{
+  --glow:1;
+  --bg:#080b1a; --bg2:#0d1230; --surface:#111838;
+  --border:#232c56; --border-hi:#35407a;
+  --text:#e6ebff; --text-dim:#98a3d0; --text-mute:#8e86b1;
+  --ok:#3ddc97; --ok-rgb:61,220,151;
+  --warn:#ffc266; --warn-rgb:255,194,102;
+  --err:#ff6b8a; --err-rgb:255,107,138;
+  --info:#b294ff; --float:#2b3566;
+  --canvas-bg:#060919; --canvas-grid:#161d3d;
+  --canvas-ink:#e6ebff; --canvas-ink2:#98a3d0; --canvas-paper:#060919;
+  --wire-ink:#8d97c9;
+  --panel-rgb:8,11,26;
+  --panel2-rgb:14,19,44;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #121a3e 0%, #04060f 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.12), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(122,162,255,.10), transparent 60%);
+  --code-bg:#04060f; --code-fg:#9fd4e6;
+  --head-grad-a:#e6ebff; --head-grad-b:var(--accent);
+  --shadow:rgba(2,4,14,.72);
+  --accent-ink:var(--accent);
+  --glass-1:rgba(8,11,26,.55);
+  --glass-2:rgba(14,19,44,.62);
+  --glass-3:rgba(19,25,56,.76);
+  --glass-border:rgba(255,255,255,.11);
+  --glass-border-hi:rgba(255,255,255,.20);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.11);
+  --glass-shadow:0 18px 44px rgba(2,4,16,.7);
+  --glass-control:rgba(255,255,255,.06);
+  --glass-control-hi:rgba(255,255,255,.11);
+  --glass-solid:rgba(14,19,44,.97);
+}
+
+/* ---------- Tema neón (negro puro, alto contraste) ---------- */
+html[data-theme="neon"]{
+  --glow:1;
+  --bg:#040406; --bg2:#0a0a10; --surface:#0e0e16;
+  --border:#26263a; --border-hi:#3f3f5e;
+  --text:#f4f4ff; --text-dim:#a4a4c4; --text-mute:#8484a2;
+  --ok:#2ffcb4; --ok-rgb:47,252,180;
+  --warn:#ffd24d; --warn-rgb:255,210,77;
+  --err:#ff4d6d; --err-rgb:255,77,109;
+  --info:#7c9cff; --float:#2f2f4a;
+  --canvas-bg:#030304; --canvas-grid:#1a1a2c;
+  --canvas-ink:#f4f4ff; --canvas-ink2:#a4a4c4; --canvas-paper:#030304;
+  --wire-ink:#9a9ab8;
+  --panel-rgb:5,5,8;
+  --panel2-rgb:11,11,18;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #14142e 0%, #020203 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.16), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255,77,109,.08), transparent 60%);
+  --code-bg:#020203; --code-fg:#8ff0ff;
+  --head-grad-a:#f4f4ff; --head-grad-b:var(--accent);
+  --shadow:rgba(0,0,0,.82);
+  --accent-ink:var(--accent);
+  --glass-1:rgba(5,5,8,.6);
+  --glass-2:rgba(11,11,18,.66);
+  --glass-3:rgba(16,16,26,.8);
+  --glass-border:rgba(255,255,255,.12);
+  --glass-border-hi:rgba(255,255,255,.24);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.12);
+  --glass-shadow:0 18px 44px rgba(0,0,0,.8);
+  --glass-control:rgba(255,255,255,.06);
+  --glass-control-hi:rgba(255,255,255,.12);
+  --glass-solid:rgba(11,11,18,.97);
+}
+
+/* ---------- Tema sepia (papel cálido) ----------
+   El otro tema claro. Donde «Claro» es papel blanco frío, «Sepia» es
+   papel viejo: más amarillo, menos deslumbramiento, pensado para sesiones
+   largas de montaje. */
+html[data-theme="sepia"]{
+  --glow:1;
+  --bg:#f4ead6; --bg2:#eee0c6; --surface:#fbf5e9;
+  --border:#dccdb0; --border-hi:#c6b291;
+  --text:#2a2114; --text-dim:#6b5c44; --text-mute:#7c6e56;
+  --ok:#076146; --ok-rgb:7,97,70;
+  --warn:#7d4f05; --warn-rgb:125,79,5;
+  --err:#c02b3c; --err-rgb:192,43,60;
+  --info:#3b6fe0; --float:#a08e6e;
+  --canvas-bg:#fbf5e9; --canvas-grid:#e6d8bd;
+  --canvas-ink:#2a2114; --canvas-ink2:#6b5c44; --canvas-paper:#fbf5e9;
+  --wire-ink:#7a6a50;
+  --panel-rgb:251,245,233;
+  --panel2-rgb:246,238,222;
+  --hair-rgb:42,33,20;
+  --stage-bg:radial-gradient(ellipse at center, #fdf9ef 0%, #e8dabd 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(192,138,78,.14), transparent 60%);
+  --code-bg:#f6eeda; --code-fg:#1d3557;
+  --head-grad-a:#2a2114; --head-grad-b:var(--accent);
+  --shadow:rgba(78,62,40,.22);
+  --accent-ink:#0a6c7d;
+  --glass-1:rgba(251,245,233,.66);
+  --glass-2:rgba(251,245,233,.76);
+  --glass-3:rgba(252,247,236,.87);
+  --glass-border:rgba(255,255,255,.7);
+  --glass-border-hi:rgba(255,255,255,.92);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.92);
+  --glass-shadow:0 18px 44px rgba(88,70,44,.2);
+  --glass-control:rgba(255,255,255,.7);
+  --glass-control-hi:rgba(255,255,255,.9);
+  --glass-solid:rgba(252,247,236,.97);
+
+  /* Aviso flotante: ámbar oscuro para que se lea sobre el papel claro. */
+  --notice-hi:#8f5c06;
+  --notice-sub:#784d04;
+}
+
+/* ============================================================
+   Temas nuevos y renovados (26 oct)
+   ------------------------------------------------------------
+   Regla: ningún tema se parece a otro. Cada uno cambia fondo,
+   superficies, metal y acento a la vez (el acento lo pone js/theme.js
+   desde THEME_ACCENT; aquí sólo hace falta para el arranque sin JS).
+   ============================================================ */
+
+/* ---------- «Noche azul»: azul marino de verdad ----------
+   Antes era casi negro y se confundía con Medianoche y Neón. */
+html[data-theme="dark"]{
+  --bg:#05080f; --bg2:#090e18; --surface:#0e1522;
+  --border:#1a2434; --border-hi:#2a3850;
+  --text:#e8f1fa; --text-dim:#9cb0c6; --text-mute:#7a8ea6;
+  --info:#7dd3fc; --float:#22304a;
+  --canvas-bg:#04070d; --canvas-grid:#121b2b;
+  --canvas-ink:#e8f1fa; --canvas-ink2:#9cb0c6; --canvas-paper:#04070d;
+  --wire-ink:#8ea4bf;
+  --panel-rgb:5,8,15; --panel2-rgb:9,14,24;
+  --stage-bg:radial-gradient(ellipse at center, #0f1a2c 0%, #020408 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%),radial-gradient(ellipse 50% 40% at 0% 100%, rgba(125,211,252,.06), transparent 60%);
+  --glass-1:rgba(5,8,15,.62); --glass-2:rgba(9,14,24,.7); --glass-3:rgba(14,21,34,.82);
+  --glass-solid:rgba(9,14,24,.97);
+  --metal-copper:#9fc6e0; --metal-solder:#d6e8f5;
+  --on-accent:#05202e;
+}
+
+/* ---------- «Medianoche»: negro total y violeta ----------
+   Pensado para pantallas OLED: el fondo es negro de verdad. */
+html[data-theme="midnight"]{
+  --bg:#000000; --bg2:#07060b; --surface:#0d0b14;
+  --border:#1d1a29; --border-hi:#2e2944;
+  --text:#f1edff; --text-dim:#a7a0c4; --text-mute:#857ea6;
+  --ok:#5eead4; --ok-rgb:94,234,212;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --err:#fb7185; --err-rgb:251,113,133;
+  --info:#a78bfa; --float:#2a2540;
+  --canvas-bg:#000000; --canvas-grid:#16131f;
+  --canvas-ink:#f1edff; --canvas-ink2:#a7a0c4; --canvas-paper:#000000;
+  --wire-ink:#9b93bd;
+  --panel-rgb:0,0,0; --panel2-rgb:9,8,14;
+  --stage-bg:radial-gradient(ellipse at center, #120e20 0%, #000000 100%);
+  --body-glow:radial-gradient(ellipse 70% 55% at 50% -20%, rgba(var(--accent-rgb),.12), transparent 60%);
+  --code-bg:#000000; --code-fg:#c4b5fd;
+  --glass-1:rgba(0,0,0,.6); --glass-2:rgba(9,8,14,.7); --glass-3:rgba(16,14,24,.82);
+  --glass-solid:rgba(9,8,14,.97);
+  --metal-copper:#b9a7e8; --metal-solder:#d9cdfa;
+}
+
+/* ---------- «Neón»: alto contraste con un segundo tono magenta ---------- */
+html[data-theme="neon"]{
+  --accent-2-rgb:255,61,180;
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.16), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255,61,180,.12), transparent 60%);
+}
+
+/* ---------- «Placa»: máscara de soldadura verde y cobre ----------
+   El tema de la casa para quien monta: el fondo es una PCB. */
+html[data-theme="pcb"]{
+  --glow:1;
+  --bg:#06231a; --bg2:#0a2c21; --surface:#0d3326;
+  --border:#1b4a39; --border-hi:#2a614c;
+  --text:#ecf5ee; --text-dim:#a6c4b2; --text-mute:#86a895;
+  --accent:#e0b04a; --accent-rgb:224,176,74; --accent-2-rgb:200,120,60;
+  --ok:#7ee0a1; --ok-rgb:126,224,161;
+  --warn:#f2c14e; --warn-rgb:242,193,78;
+  --err:#ff6b5e; --err-rgb:255,107,94;
+  --info:#78c4e8; --float:#24503f;
+  --canvas-bg:#051c15; --canvas-grid:#0f3729;
+  --canvas-ink:#ecf5ee; --canvas-ink2:#a6c4b2; --canvas-paper:#051c15;
+  --wire-ink:#9cc0aa;
+  --panel-rgb:6,30,22; --panel2-rgb:10,40,30;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #0f3a2b 0%, #03140e 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%),radial-gradient(ellipse 60% 50% at 100% 100%, rgba(126,224,161,.08), transparent 60%);
+  --code-bg:#031510; --code-fg:#f2d48a;
+  --head-grad-a:#ecf5ee; --head-grad-b:var(--accent);
+  --shadow:rgba(0,10,6,.7);
+  --accent-ink:var(--accent);
+  --glass-1:rgba(6,30,22,.6); --glass-2:rgba(10,40,30,.7); --glass-3:rgba(14,50,38,.82);
+  --glass-border:rgba(255,255,255,.10); --glass-border-hi:rgba(255,255,255,.18);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.08);
+  --glass-shadow:0 18px 44px rgba(0,12,8,.6);
+  --glass-control:rgba(255,255,255,.05); --glass-control-hi:rgba(255,255,255,.10);
+  --glass-solid:rgba(10,40,30,.97);
+  --metal-copper:#d08a3c; --metal-solder:#e9c46a;
+  --mask-green:#0f6e56;
+  --notice-hi:#f2d48a; --notice-sub:#d9b25e;
+}
+
+/* ---------- «Papel»: blanco limpio y tinta roja ----------
+   Antes era beige y se parecía a Sepia; ahora es papel de imprenta. */
+html[data-theme="light"]{
+  --bg:#f6f6f4; --bg2:#eeeeeb; --surface:#ffffff;
+  --border:#dcdcd7; --border-hi:#c4c4bd;
+  --text:#18181a; --text-dim:#55555c; --text-mute:#696970;
+  --canvas-bg:#ffffff; --canvas-grid:#e6e6e2;
+  --canvas-ink:#18181a; --canvas-ink2:#55555c; --canvas-paper:#ffffff;
+  --wire-ink:#66666e;
+  --hair-rgb:24,24,26;
+  --stage-bg:radial-gradient(ellipse at center, #ffffff 0%, #e9e9e5 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.06), transparent 60%);
+  --code-bg:#f3f3f0; --code-fg:#7a1f22;
+  --head-grad-a:#18181a;
+  --accent-ink:#b4232a;
+  --glass-border:rgba(24,24,26,.08); --glass-border-hi:rgba(24,24,26,.16);
+  --glass-shadow:0 12px 30px rgba(20,20,24,.10);
+  --glass-control:rgba(24,24,26,.035); --glass-control-hi:rgba(24,24,26,.07);
+}
+
+/* ---------- «Color propio»: fondos neutros para el color elegido ----------
+   Grafito sin tinte y blanco sin tinte: el color lo pone quien elige. */
+html[data-theme="custom"]{
+  --glow:.6;
+  --bg:#141416; --bg2:#1a1a1d; --surface:#202024;
+  --border:#2e2e33; --border-hi:#414148;
+  --text:#f2f2f4; --text-dim:#b0b0b8; --text-mute:#9f9fa9;
+  --accent-2-rgb:150,150,160;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --err:#f87171; --err-rgb:248,113,113;
+  --info:#93c5fd; --float:#3a3a40;
+  --canvas-bg:#111113; --canvas-grid:#26262a;
+  --canvas-ink:#f2f2f4; --canvas-ink2:#b0b0b8; --canvas-paper:#111113;
+  --wire-ink:#a0a0a8;
+  --panel-rgb:20,20,22; --panel2-rgb:26,26,29;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #1f1f23 0%, #0c0c0d 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%);
+  --code-bg:#0e0e10; --code-fg:#d4d4d8;
+  --head-grad-a:#f2f2f4; --head-grad-b:var(--accent);
+  --shadow:rgba(0,0,0,.6);
+  --accent-ink:var(--accent);
+  --glass-1:rgba(20,20,22,.9); --glass-2:rgba(26,26,29,.93); --glass-3:rgba(32,32,36,.96);
+  --glass-border:rgba(255,255,255,.09); --glass-border-hi:rgba(255,255,255,.16);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.05);
+  --glass-shadow:0 14px 36px rgba(0,0,0,.5);
+  --glass-control:rgba(255,255,255,.05); --glass-control-hi:rgba(255,255,255,.09);
+  --glass-solid:rgba(26,26,29,.98);
+}
+html[data-theme="custom-light"]{
+  --glow:.4;
+  --bg:#f7f7f8; --bg2:#efeff1; --surface:#ffffff;
+  --border:#dedee3; --border-hi:#c8c8cf;
+  --text:#17171a; --text-dim:#55555e; --text-mute:#70707a;
+  --accent-2-rgb:120,120,130;
+  --ok:#147b3b; --ok-rgb:21,128,61;
+  --warn:#92400e; --warn-rgb:146,64,14;
+  --err:#b91c1c; --err-rgb:185,28,28;
+  --info:#1d4ed8; --float:#a1a1aa;
+  --canvas-bg:#ffffff; --canvas-grid:#e7e7eb;
+  --canvas-ink:#17171a; --canvas-ink2:#55555e; --canvas-paper:#ffffff;
+  --wire-ink:#6b6b75;
+  --panel-rgb:255,255,255; --panel2-rgb:250,250,251;
+  --hair-rgb:23,23,26;
+  --stage-bg:radial-gradient(ellipse at center, #ffffff 0%, #ebebee 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.07), transparent 60%);
+  --code-bg:#f2f2f4; --code-fg:#27272a;
+  --head-grad-a:#17171a; --head-grad-b:var(--accent);
+  --shadow:rgba(20,20,30,.12);
+  --glass-1:rgba(255,255,255,.95); --glass-2:rgba(255,255,255,.97); --glass-3:rgba(255,255,255,.99);
+  --glass-border:rgba(23,23,26,.09); --glass-border-hi:rgba(23,23,26,.16);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.8);
+  --glass-shadow:0 10px 28px rgba(20,20,30,.10);
+  --glass-control:rgba(23,23,26,.04); --glass-control-hi:rgba(23,23,26,.08);
+  --glass-solid:rgba(255,255,255,.98);
+  --notice-hi:#92400e; --notice-sub:#78350f;
+}
+
+/* ============================================================
+   Temas secretos (Neón → Medianoche → Noche azul)
+   ============================================================ */
+
+/* «WorkBuddy»: ciruela oscura y coral. */
+html[data-theme="workbuddy"]{
+  --glow:.35;
+  --bg:#ffffff; --bg2:#f7f7f8; --surface:#ffffff;
+  --border:#e6e6e8; --border-hi:#d2d2d6;
+  --text:#111111; --text-dim:#4f4f55; --text-mute:#717177;
+  --accent:#12c29b; --accent-rgb:18,194,155; --accent-2-rgb:126,213,111;
+  --ok:#0b7c56; --ok-rgb:14,159,110;
+  --warn:#9e5a00; --warn-rgb:161,92,0;
+  --err:#d92d43; --err-rgb:217,45,67;
+  --info:#2563eb; --float:#b4b4ba;
+  --canvas-bg:#ffffff; --canvas-grid:#ececee;
+  --canvas-ink:#111111; --canvas-ink2:#4f4f55; --canvas-paper:#ffffff;
+  --wire-ink:#5f5f66;
+  --panel-rgb:255,255,255; --panel2-rgb:247,247,248;
+  --hair-rgb:17,17,17;
+  --stage-bg:radial-gradient(ellipse at center, #ffffff 0%, #eef8f4 100%);
+  --body-glow:radial-gradient(ellipse 70% 50% at 50% -20%, rgba(var(--accent-rgb),.10), transparent 60%),radial-gradient(ellipse 50% 40% at 100% 100%, rgba(126,213,111,.10), transparent 60%);
+  --code-bg:#f5f5f6; --code-fg:#0b6b55;
+  --head-grad-a:#111111; --head-grad-b:var(--accent);
+  --shadow:rgba(0,0,0,.08);
+  --accent-ink:#0a8569;
+  --glass-1:rgba(255,255,255,.96); --glass-2:rgba(255,255,255,.97); --glass-3:rgba(255,255,255,.99);
+  --glass-border:rgba(17,17,17,.08); --glass-border-hi:rgba(17,17,17,.15);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.9);
+  --glass-shadow:0 10px 30px rgba(0,0,0,.08);
+  --glass-control:rgba(17,17,17,.035); --glass-control-hi:rgba(17,17,17,.07);
+  --glass-solid:rgba(255,255,255,.98);
+  --metal-copper:#12c29b; --metal-solder:#7ed56f;
+  --notice-hi:#a15c00; --notice-sub:#7a4600;
+}
+
+/* «DeepSeek»: blanco con un velo azul y el azul ballena. */
+html[data-theme="deepseek"]{
+  --glow:.5;
+  --bg:#f5f7ff; --bg2:#ecf0ff; --surface:#ffffff;
+  --border:#dbe2fb; --border-hi:#c2ccf3;
+  --text:#121735; --text-dim:#4b5378; --text-mute:#697192;
+  --accent:#4d6bfe; --accent-rgb:77,107,254; --accent-2-rgb:99,179,237;
+  --ok:#0d7b55; --ok-rgb:15,138,95;
+  --warn:#9a5b00; --warn-rgb:154,91,0;
+  --err:#c62a4a; --err-rgb:198,42,74;
+  --info:#4d6bfe; --float:#a3acd6;
+  --canvas-bg:#ffffff; --canvas-grid:#e3e8fb;
+  --canvas-ink:#121735; --canvas-ink2:#4b5378; --canvas-paper:#ffffff;
+  --wire-ink:#5f6890;
+  --panel-rgb:255,255,255; --panel2-rgb:248,250,255;
+  --hair-rgb:18,23,53;
+  --stage-bg:radial-gradient(ellipse at center, #ffffff 0%, #e6ebff 100%);
+  --body-glow:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(var(--accent-rgb),.12), transparent 60%);
+  --code-bg:#eef2ff; --code-fg:#1e2a78;
+  --head-grad-a:#121735; --head-grad-b:var(--accent);
+  --shadow:rgba(30,40,110,.12);
+  --accent-ink:#2f4be0;
+  --glass-1:rgba(255,255,255,.92); --glass-2:rgba(255,255,255,.95); --glass-3:rgba(255,255,255,.98);
+  --glass-border:rgba(18,23,53,.08); --glass-border-hi:rgba(18,23,53,.15);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.8);
+  --glass-shadow:0 12px 30px rgba(30,40,110,.10);
+  --glass-control:rgba(77,107,254,.05); --glass-control-hi:rgba(77,107,254,.10);
+  --glass-solid:rgba(255,255,255,.98);
+  --metal-copper:#7f93ff; --metal-solder:#b7c3ff;
+  --notice-hi:#9a5b00; --notice-sub:#7a4700;
+}
+
+/* «Japón» (secreto): tinta sumi, bermellón de torii, oro y un velo de
+   ondas seigaiha que sólo se pinta una vez (fondo fijo, sin animar). */
+html[data-theme="japan"]{
+  --glow:.8;
+  --bg:#131015; --bg2:#19151a; --surface:#1d181d;
+  --border:#2f272d; --border-hi:#453a41;
+  --text:#f6efe6; --text-dim:#c9bbb0; --text-mute:#a89a90;
+  --accent:#ff5c3b; --accent-rgb:232,69,44; --accent-2-rgb:244,167,185;
+  --ok:#8fd19e; --ok-rgb:143,209,158;
+  --warn:#e9b949; --warn-rgb:233,185,73;
+  --err:#ff6f6f; --err-rgb:255,111,111;
+  --info:#9ab8ff; --float:#3b3138;
+  --canvas-bg:#100d11; --canvas-grid:#251f25;
+  --canvas-ink:#f6efe6; --canvas-ink2:#c9bbb0; --canvas-paper:#100d11;
+  --wire-ink:#bba99d;
+  --panel-rgb:19,16,21; --panel2-rgb:25,21,26;
+  --hair-rgb:255,255,255;
+  --stage-bg:radial-gradient(ellipse at center, #241c22 0%, #0a080b 100%);
+  --body-glow:radial-gradient(circle at 85% 12%, rgba(var(--accent-rgb),.16) 0, rgba(var(--accent-rgb),.05) 9%, transparent 22%),radial-gradient(ellipse 60% 45% at 0% 100%, rgba(244,167,185,.08), transparent 60%);
+  --code-bg:#0d0a0d; --code-fg:#f4a7b9;
+  --head-grad-a:#f6efe6; --head-grad-b:var(--accent);
+  --shadow:rgba(0,0,0,.6);
+  --accent-ink:#ff6a50;
+  --glass-1:rgba(19,16,21,.9); --glass-2:rgba(25,21,26,.93); --glass-3:rgba(32,27,33,.96);
+  --glass-border:rgba(255,255,255,.09); --glass-border-hi:rgba(255,255,255,.17);
+  --glass-specular:inset 0 1px 0 rgba(255,255,255,.06);
+  --glass-shadow:0 16px 40px rgba(0,0,0,.55);
+  --glass-control:rgba(255,255,255,.05); --glass-control-hi:rgba(255,255,255,.1);
+  --glass-solid:rgba(25,21,26,.98);
+  --metal-copper:#c9a64b; --metal-solder:#e6cf87;
+  --notice-hi:#f2c879; --notice-sub:#d9ab55;
+}
+html[data-theme="japan"] body{
+  background-image:var(--body-glow),
+    radial-gradient(circle at 50% 100%, transparent 38%, rgba(232,69,44,.045) 39%, rgba(232,69,44,.045) 44%, transparent 45%, transparent 58%, rgba(244,167,185,.035) 59%, rgba(244,167,185,.035) 64%, transparent 65%);
+  background-size:auto, 56px 28px;
+}
+
+/* Sin desenfoque de fondo (o con transparencia reducida) las tres alturas
+   tienen que ser casi opacas también en los temas nuevos. */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  html[data-theme="pcb"]{--glass-1:rgba(6,30,22,.96);--glass-2:rgba(10,40,30,.96);--glass-3:rgba(14,50,38,.97)}
+  html[data-theme="workbuddy"]{--glass-1:rgba(255,255,255,.98);--glass-2:rgba(255,255,255,.98);--glass-3:rgba(255,255,255,.99)}
+  html[data-theme="deepseek"],html[data-theme="custom-light"]{--glass-1:rgba(255,255,255,.98);--glass-2:rgba(255,255,255,.98);--glass-3:rgba(255,255,255,.99)}
+}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme="pcb"]{--glass-1:rgba(6,30,22,.96);--glass-2:rgba(10,40,30,.96);--glass-3:rgba(14,50,38,.97)}
+  html[data-theme="workbuddy"]{--glass-1:rgba(255,255,255,.98);--glass-2:rgba(255,255,255,.98);--glass-3:rgba(255,255,255,.99)}
+  html[data-theme="deepseek"],html[data-theme="custom-light"]{--glass-1:rgba(255,255,255,.98);--glass-2:rgba(255,255,255,.98);--glass-3:rgba(255,255,255,.99)}
+}
+
+/* ---------- Panel de temas: Temas | Color propio, y los secretos ---------- */
+.sp-mode button{flex:1;justify-content:center}
+/* Animación del fondo: sólido o interactivo, y cuál (js/theme.js). */
+.sp-bgsec{margin-top:14px;padding-top:12px;border-top:1px solid var(--glass-border)}
+.sp-bgstyles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px;transition:opacity .2s}
+.sp-bgstyles.off{opacity:.45}
+.sp-bgstyle{
+  display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:8px 2px 6px;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:8px;
+  color:var(--text-dim);cursor:pointer;font:500 10.5px var(--sans);box-shadow:var(--glass-specular);
+  transition:color .16s,border-color .16s,background .16s;
+}
+.sp-bgstyle svg{width:18px;height:18px;display:block}
+.sp-bgstyle span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-bgstyle:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.sp-bgstyle.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);border-color:var(--accent);
+}
+.sp-bgstyle:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+/* Fondo sólido: sin brillos ni rejilla, en cualquier página. */
+html[data-bg="solid"] body{background-image:none !important}
+.sp-pane[hidden]{display:none}
+.sp-themes .sp-theme{min-height:38px}
+.sp-secret{margin-top:12px;padding-top:10px;border-top:1px dashed rgba(var(--accent-rgb),.45)}
+.sp-secret[hidden]{display:none}
+.sp-secret-t{display:flex;align-items:center;gap:6px;color:var(--accent-ink) !important}
+.sp-secret-t::before{content:"✦"}
+@media (prefers-reduced-motion:no-preference){
+  .sp-secret-new{animation:spSecret .7s cubic-bezier(.34,1.56,.64,1) both}
+  .sp-secret-new .sp-theme{animation:spSecretCard .5s cubic-bezier(.34,1.56,.64,1) both}
+  .sp-secret-new .sp-theme:nth-child(2){animation-delay:.08s}
+  .sp-secret-new .sp-theme:nth-child(3){animation-delay:.16s}
+}
+@keyframes spSecret{from{transform:scale(.96)}to{transform:none}}
+@keyframes spSecretCard{from{transform:translateY(8px) scale(.9)}to{transform:none}}
+
+/* ============================================================
+   Degradación del vidrio
+   ------------------------------------------------------------
+   Sin `backdrop-filter` el cristal translúcido deja el texto
+   ilegible, así que las tres alturas pasan a ser casi opacas. Con
+   `prefers-reduced-transparency` se hace lo mismo a propósito.
+   ============================================================ */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  :root{
+    --glass-1:rgba(15,33,64,.98);
+    --glass-2:rgba(19,40,77,.98);
+    --glass-3:rgba(24,48,90,.99);
+  }
+  html[data-theme="dark"]{
+    --glass-1:rgba(9,10,12,.96);
+    --glass-2:rgba(16,19,22,.96);
+    --glass-3:rgba(22,26,30,.97);
+  }
+  html[data-theme="midnight"]{
+    --glass-1:rgba(8,11,26,.96);
+    --glass-2:rgba(14,19,44,.96);
+    --glass-3:rgba(19,25,56,.97);
+  }
+  html[data-theme="neon"]{
+    --glass-1:rgba(5,5,8,.96);
+    --glass-2:rgba(11,11,18,.96);
+    --glass-3:rgba(16,16,26,.97);
+  }
+  html[data-theme="light"]{
+    --glass-1:rgba(255,255,255,.97);
+    --glass-2:rgba(255,255,255,.97);
+    --glass-3:rgba(255,255,255,.98);
+  }
+  html[data-theme="sepia"]{
+    --glass-1:rgba(251,245,233,.97);
+    --glass-2:rgba(251,245,233,.97);
+    --glass-3:rgba(252,247,236,.98);
+  }
+  html[data-theme="ivory"]{
+    --glass-1:rgba(255,255,255,.98);
+    --glass-2:rgba(255,255,255,.98);
+    --glass-3:rgba(255,255,255,.99);
+  }
+}
+@media (prefers-reduced-transparency:reduce){
+  :root{
+    --glass-1:rgba(15,33,64,.98);
+    --glass-2:rgba(19,40,77,.98);
+    --glass-3:rgba(24,48,90,.99);
+    --glass-specular:none;
+  }
+  html[data-theme="dark"]{
+    --glass-1:rgba(9,10,12,.96);
+    --glass-2:rgba(16,19,22,.96);
+    --glass-3:rgba(22,26,30,.97);
+  }
+  html[data-theme="midnight"]{
+    --glass-1:rgba(8,11,26,.96);
+    --glass-2:rgba(14,19,44,.96);
+    --glass-3:rgba(19,25,56,.97);
+  }
+  html[data-theme="neon"]{
+    --glass-1:rgba(5,5,8,.96);
+    --glass-2:rgba(11,11,18,.96);
+    --glass-3:rgba(16,16,26,.97);
+  }
+  html[data-theme="light"]{
+    --glass-1:rgba(255,255,255,.97);
+    --glass-2:rgba(255,255,255,.97);
+    --glass-3:rgba(255,255,255,.98);
+  }
+  html[data-theme="sepia"]{
+    --glass-1:rgba(251,245,233,.97);
+    --glass-2:rgba(251,245,233,.97);
+    --glass-3:rgba(252,247,236,.98);
+  }
+  html[data-theme="ivory"]{
+    --glass-1:rgba(255,255,255,.98);
+    --glass-2:rgba(255,255,255,.98);
+    --glass-3:rgba(255,255,255,.99);
+  }
+}
+
+/* ============================================================
+   Componentes de vidrio (comunes a las tres vistas)
+   ------------------------------------------------------------
+   Van aquí y no en cada vista para no duplicarlos. Llevan el
+   prefijo `html` a propósito: así ganan en la cascada a las reglas
+   sin prefijo de editor.css / protoboard.css, que se cargan
+   después. Si algún día una vista necesita otra cosa, tiene que
+   usar también el prefijo `html`.
+   ============================================================ */
+/* ---------- Botones de herramienta: pastillas de vidrio ---------- */
+html .tool{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  border-radius:10px;
+  box-shadow:var(--glass-specular);
+  color:var(--text-dim);
+}
+html .tool:hover{
+  background:var(--glass-control-hi);
+  border-color:var(--glass-border-hi);
+  color:var(--text);
+  box-shadow:var(--glass-specular), 0 0 14px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)));
+}
+html .tool.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.24),rgba(var(--accent-rgb),.10));
+  border-color:rgba(var(--accent-rgb),.5);
+  color:var(--accent-ink);
+  box-shadow:var(--glass-specular), 0 0 16px rgba(var(--accent-rgb),calc(.22 * var(--glow,1)));
+}
+html .tool.warn-armed{
+  background:linear-gradient(180deg,rgba(var(--err-rgb),.28),rgba(var(--err-rgb),.12));
+  border-color:rgba(var(--err-rgb),.55);
+  color:var(--err);
+  box-shadow:var(--glass-specular), 0 0 16px rgba(var(--err-rgb),.3);
+}
+
+/* ---------- Menús desplegables (Esquema y Protoboard) ----------
+   Los dos comparten armazón para que se desplieguen igual: `.dd` es el
+   contenedor, `.dd-btn` el disparador, `.dd-pop` el panel flotante y
+   `.dd-item` una fila de lista (menú Archivo). El selector de módulos
+   añade su cuadrícula (.modgrid/.modcell) dentro del mismo panel.
+   El comportamiento de apertura vive en js/dropdown.js. */
+html .dd{position:relative;display:inline-flex}
+html .dd-btn{gap:8px}
+html .dd-ico{flex:none;width:15px;height:15px}
+html .dd-val{
+  font:600 12.5px var(--mono);color:var(--accent-ink);
+  min-width:40px;text-align:right;
+}
+html .dd-chev{
+  color:var(--text-dim);font-size:11px;line-height:1;
+  transition:transform .28s cubic-bezier(.22,.61,.36,1), color .2s ease;
+}
+html .dd.open .dd-chev{transform:rotate(180deg);color:var(--accent-ink)}
+html .dd-pop{
+  position:absolute;top:calc(100% + 7px);left:0;z-index:60;
+  min-width:186px;padding:12px 12px 10px;
+  background:var(--glass-3);
+  backdrop-filter:blur(var(--blur-3));
+  -webkit-backdrop-filter:blur(var(--blur-3));
+  border:1px solid var(--glass-border-hi);border-radius:12px;
+  box-shadow:var(--glass-shadow), var(--glass-specular), 0 0 18px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)));
+  user-select:none;
+}
+html .dd-pop[hidden]{display:none}
+/* Aparición de los paneles flotantes (menú Archivo, selectores de
+   módulo, panel de configuración): un leve descenso con fundido, para
+   que no «salten» de golpe. La clase la añade el JS al abrirlos; si no
+   se añade, el panel simplemente aparece sin animación. */
+@keyframes bwPopIn{from{opacity:0;transform:translateY(-7px) scale(.98)}to{opacity:1;transform:none}}
+html .dd-pop.bw-pop-in,html .settings-pop.bw-pop-in{
+  animation:bwPopIn .2s cubic-bezier(.22,.61,.36,1) both;
+  transform-origin:top left;
+}
+html .dd-head{display:flex;align-items:baseline;gap:6px;margin-bottom:10px}
+html .dd-head-val{font:600 13px var(--mono);color:var(--accent-ink)}
+html .dd-head-unit{font-size:11px;color:var(--text-mute)}
+/* Lista (menú Archivo del esquema) */
+html .dd-pop-list{min-width:242px;padding:6px}
+html .dd-pop-list .dd-head{padding:6px 10px 10px;margin-bottom:4px;border-bottom:1px solid var(--glass-border)}
+html .dd-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;background:transparent;
+  border:1px solid transparent;border-radius:8px;
+  color:var(--text-dim);font:500 13px var(--sans);
+  text-align:left;cursor:pointer;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+}
+html .dd-item .dd-ico{color:var(--text-mute);transition:color .15s ease}
+html .dd-item:hover,html .dd-item:focus-visible{
+  background:rgba(var(--accent-rgb),.10);color:var(--accent-ink);
+  border-color:rgba(var(--accent-rgb),.22);
+}
+html .dd-item:hover .dd-ico,html .dd-item:focus-visible .dd-ico{color:var(--accent-ink)}
+html .dd-sep{height:1px;margin:6px 4px;background:var(--glass-border)}
+/* El selector de idioma ya no cuelga de la cabecera: es un grupo dentro
+   del panel de configuración (ver `.sp-group` más abajo). */
+/* Cuadrícula del selector de módulos */
+html .modgrid{display:grid;grid-template-columns:repeat(3,26px);grid-auto-rows:26px;gap:4px}
+html .modcell{
+  width:26px;height:26px;padding:0;
+  /* `--hair-rgb` se invierte con el tema (blanco en oscuro, tinta en
+     claro), así que la casilla vacía se ve sobre el vidrio en los dos. */
+  background:rgba(var(--hair-rgb),.05);
+  border:1px solid rgba(var(--hair-rgb),.20);
+  border-radius:6px;cursor:pointer;
+  box-shadow:var(--glass-specular);
+  transition:background .1s ease, border-color .1s ease, box-shadow .1s ease;
+}
+html .modcell:hover{background:rgba(var(--hair-rgb),.10);border-color:rgba(var(--hair-rgb),.42)}
+html .modcell.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.26),rgba(var(--accent-rgb),.10));
+  border-color:var(--accent-ink);
+}
+html .modcell.live{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.55),rgba(var(--accent-rgb),.26));
+  border-color:var(--accent);
+  box-shadow:var(--glass-specular), 0 0 10px rgba(var(--accent-rgb),calc(.35 * var(--glow,1)));
+}
+
+/* ---------- Lista del selector de tamaño de protoboard ----------
+   Reutiliza `.dd-item` (misma fila que el menú Archivo) pero en dos
+   líneas: nombre + puntos arriba, para qué sirve abajo, y un ✓ en el
+   preset activo. Necesita algo más de ancho que el menú Archivo para
+   que la descripción entre en una sola línea. */
+html .dd-pop-size{min-width:300px}
+html .dd-item.sizeitem{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:2px 8px;
+}
+html .sizeitem .sz-name{grid-area:1/1;font:500 13px var(--sans)}
+html .sizeitem .sz-pts{grid-area:1/2;font:600 11.5px var(--mono);color:var(--accent-ink);opacity:.85;white-space:nowrap}
+html .sizeitem .sz-check{grid-area:1/3;width:12px;text-align:right;color:var(--accent-ink);opacity:0;font-weight:700;transition:opacity .15s ease}
+html .sizeitem .sz-note{grid-area:2/1/3/3;font-size:11px;color:var(--text-mute);line-height:1.3}
+html .dd-item.sizeitem:hover .sz-note{color:var(--text-dim)}
+html .dd-item.sizeitem.on{
+  background:rgba(var(--accent-rgb),.08);
+  border-color:rgba(var(--accent-rgb),.28);
+  color:var(--accent-ink);
+}
+html .dd-item.sizeitem.on .sz-check{opacity:1}
+
+/* ---------- Segunda página del menú «Tamaño»: Personalizada ----------
+   Al pulsar «Personalizada» la lista se sustituye por esta página, con
+   el campo de columnas y sus botones − / +. Se queda dentro del mismo
+   panel desplegable, así que no hay que salir del menú para medir. */
+html .sz-custom{padding:2px 0 0}
+html .sz-custom[hidden]{display:none}
+html .sz-custom .dd-back{
+  width:100%;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+  font-weight:600;color:var(--text-dim);
+}
+html .sz-custom .dd-back .dd-ico{font:700 15px/1 var(--mono);color:var(--accent-ink)}
+html .sz-custom .sz-row{
+  display:flex;align-items:center;gap:6px;
+  padding:0 2px;
+}
+html .sz-custom .sz-row .lab{margin-right:2px}
+html .sz-custom .sz-row input[type=number]{
+  width:74px;padding:6px 8px;text-align:center;
+  font:500 13px var(--mono);
+}
+html .sz-custom .sz-hint{
+  margin:10px 2px 2px;
+  font-size:11px;line-height:1.4;color:var(--text-mute);
+}
+
+/* ---------- Barra de estado (Esquema y Protoboard) ----------
+   El botón × que retira la ayuda. Lo usan #statusbar del esquema y de
+   la protoboard, así que vive aquí, en la capa compartida. */
+html #statusbar .sb-close{
+  margin-left:auto;flex:none;
+  width:20px;height:20px;
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:0;background:transparent;color:inherit;
+  border:1px solid transparent;border-radius:6px;cursor:pointer;
+  font:600 14px/1 var(--mono);opacity:.6;
+  transition:opacity .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
+}
+html #statusbar .sb-close:hover{opacity:1;background:rgba(var(--accent-rgb),.12);border-color:rgba(var(--accent-rgb),.35);color:var(--accent-ink)}
+
+/* ---------- Widget de zoom (las tres vistas) ----------
+   Cuatro lupas: acercar, alejar, ajustar/centrar (recuadro) y zoom a
+   una zona arrastrando un recuadro. Antes cada página repetía su copia
+   con los mismos valores; vive aquí porque ahora es idéntico en las
+   tres. */
+html #zoomWidget{
+  position:absolute;bottom:14px;left:14px;
+  display:flex;align-items:center;gap:2px;
+  padding:4px;
+  background:var(--glass-3);
+  backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));
+  border:1px solid var(--glass-border-hi);
+  border-radius:10px;
+  box-shadow:var(--glass-shadow), var(--glass-specular), 0 0 14px rgba(var(--accent-rgb),calc(.05 * var(--glow,1)));
+  z-index:10;user-select:none;
+}
+html #zoomWidget button{
+  width:26px;height:26px;
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:0;background:transparent;border:1px solid transparent;border-radius:6px;
+  color:var(--text-dim);cursor:pointer;
+  font:500 13px var(--mono);line-height:1;
+  transition:all .15s ease;
+}
+html #zoomWidget button:hover{background:rgba(var(--accent-rgb),.08);color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.25);box-shadow:0 0 8px rgba(var(--accent-rgb),calc(.15 * var(--glow,1)))}
+html #zoomWidget button:active{transform:scale(.94)}
+html #zoomWidget button.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.45);
+}
+html #zoomWidget .zi{width:15px;height:15px;display:block;pointer-events:none}
+html #zoomWidget .zoom-level{display:inline-flex;align-items:center;justify-content:center;padding:0 6px;height:26px;min-width:40px;font:500 11px var(--mono);color:var(--accent-ink);text-shadow:0 0 5px rgba(var(--accent-rgb),calc(.5 * var(--glow,1)));letter-spacing:.02em}
+html #zoomWidget .divider{width:1px;height:16px;background:var(--border);margin:0 2px}
+/* Recuadro que se arrastra para el zoom por zona (protoboards: es un
+   div sobre el lienzo; el esquema lo dibuja dentro del SVG). */
+html .zoom-area{
+  position:absolute;display:none;pointer-events:none;z-index:14;
+  border:1.5px dashed var(--accent);border-radius:6px;
+  background:rgba(var(--accent-rgb),.10);
+  box-shadow:0 0 14px rgba(var(--accent-rgb),calc(.35 * var(--glow,1)));
+}
+html .zoom-area.on{display:block}
+/* Mientras se elige la zona el cursor es una cruz en todo el lienzo. */
+html.bw-zooming .canvas-zoom-target{cursor:crosshair}
+
+/* ---------- Navegación entre vistas ---------- */
+html header nav a{border:1px solid transparent;border-radius:10px}
+html header nav a:hover{
+  background:var(--glass-control);
+  border-color:var(--glass-border);
+  color:var(--text);
+}
+html header nav a[aria-current]{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  border-color:rgba(var(--accent-rgb),.45);
+  color:var(--accent-ink);
+  box-shadow:var(--glass-specular), 0 0 20px rgba(var(--accent-rgb),calc(.16 * var(--glow,1)));
+}
+/* La marca (miga + «breadwire») es un enlace a la pantalla de inicio.
+   Se envuelve el icono y el título en un <a class="brand">: el layout de
+   la cabecera no cambia (sigue siendo una fila con el mismo gap) y el
+   realce es solo de opacidad, para no mover nada al pasar el ratón. */
+html header .brand{
+  display:flex;align-items:center;gap:14px;
+  text-decoration:none;color:inherit;cursor:pointer;
+  border-radius:10px;
+  transition:opacity .18s ease;
+}
+html header .brand:hover{opacity:.82}
+html header .brand:focus-visible{outline:2px solid var(--accent-ink);outline-offset:3px}
+
+/* ---------- Teclas, chips y bloques de código ---------- */
+html kbd{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  border-radius:6px;
+  color:var(--text-dim);
+  opacity:.85;
+  box-shadow:var(--glass-specular);
+}
+html .chip{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular);
+}
+html pre{
+  background:var(--glass-control);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border:1px solid var(--glass-border);
+  color:var(--code-fg);
+}
+
+/* ---------- Campos y controles ---------- */
+html select,html input[type=text],html input[type=number],html input[type=search]{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border-hi);
+  border-radius:8px;
+  color:var(--text);
+  box-shadow:var(--glass-specular);
+  transition:border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+html select:hover,html input[type=text]:hover,html input[type=number]:hover{background:var(--glass-control-hi);border-color:var(--glass-border-hi)}
+html select:focus,html input[type=text]:focus,html input[type=number]:focus,html input[type=search]:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:var(--glass-specular), 0 0 0 3px rgba(var(--accent-rgb),calc(.18 * var(--glow,1)));
+}
+/* La lista desplegable la pinta el sistema: necesita fondo opaco. */
+html select option{background:var(--surface);color:var(--text)}
+
+/* Texto que existe para el lector de pantalla y no se ve. Sirve para anunciar
+   estados que sólo tienen forma (el esqueleto de carga, por ejemplo). */
+.sr-only{
+  position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* `<b>` y `<strong>` llegan en 700 por la hoja del navegador. El sistema de
+   diseño admite 400/500/600 (700 sólo en cifras grandes), así que se fijan
+   aquí: si no, el mismo texto pesa distinto según el motor. */
+b,strong{font-weight:600}
+
+html input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  /* `padding:0` y `margin:0`: el navegador deja su propio `margin:3px 3px
+     3px 4px` en la casilla, así que el visto baila 3 px dentro de su caja y
+     el cuarto lado mide distinto. Nadie escribió esos valores. */
+  padding:0;margin:0;
+  width:18px;height:18px;border-radius:6px;
+  background:var(--glass-control);
+  border:1px solid var(--glass-border-hi);
+  box-shadow:var(--glass-specular);
+  cursor:pointer;position:relative;
+  transition:background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+html input[type=checkbox]:hover{background:var(--glass-control-hi)}
+html input[type=checkbox]:checked{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.36),rgba(var(--accent-rgb),.16));
+  border-color:var(--accent);
+  box-shadow:var(--glass-specular), 0 0 12px rgba(var(--accent-rgb),calc(.3 * var(--glow,1)));
+}
+html input[type=checkbox]:checked::after{
+  content:'';position:absolute;left:5px;top:1.5px;width:5px;height:10px;
+  border:2px solid var(--accent);border-top:0;border-left:0;transform:rotate(42deg);
+}
+
+html input[type=range]{
+  appearance:none;-webkit-appearance:none;
+  height:7px;border-radius:999px;
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular);
+}
+html input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--accent);border:1px solid rgba(0,0,0,.4);
+  box-shadow:0 0 10px rgba(var(--accent-rgb),calc(.5 * var(--glow,1)));cursor:pointer;
+}
+html input[type=range]::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;
+  background:var(--accent);border:1px solid rgba(0,0,0,.4);
+  box-shadow:0 0 10px rgba(var(--accent-rgb),calc(.5 * var(--glow,1)));cursor:pointer;
+}
+
+/* ---------- Botones secundarios y de las barras flotantes ---------- */
+html .copy{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border-hi);
+  border-radius:10px;
+  box-shadow:var(--glass-specular);
+}
+html .copy:hover{background:var(--glass-control-hi);border-color:var(--accent);color:var(--accent-ink)}
+html #guideBar button,html #zoomWidget button{border-radius:8px}
+html #guideBar button:hover:not(:disabled),html #zoomWidget button:hover{
+  background:var(--glass-control-hi);
+  box-shadow:var(--glass-specular), 0 0 10px rgba(var(--accent-rgb),calc(.15 * var(--glow,1)));
+}
+
+/* ---------- Aviso flotante ---------- */
+html .toast{
+  background:var(--glass-3);
+  backdrop-filter:blur(var(--blur-2));
+  -webkit-backdrop-filter:blur(var(--blur-2));
+  border:1px solid rgba(var(--accent-rgb),.4);
+  box-shadow:var(--glass-shadow), var(--glass-specular), 0 0 24px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)));
+}
+
+/* ---------- Barras de desplazamiento ---------- */
+html *{scrollbar-width:thin;scrollbar-color:var(--glass-border-hi) transparent}
+html ::-webkit-scrollbar{width:10px;height:10px}
+html ::-webkit-scrollbar-track{background:transparent}
+html ::-webkit-scrollbar-thumb{
+  background:var(--glass-border-hi);
+  border:2px solid transparent;background-clip:padding-box;border-radius:999px;
+}
+html ::-webkit-scrollbar-thumb:hover{background:rgba(var(--accent-rgb),.45);background-clip:padding-box}
+html ::-webkit-scrollbar-corner{background:transparent}
+
+/* ============================================================
+   El acento como texto
+   ------------------------------------------------------------
+   El acento lo elige el usuario y puede ser muy claro (el cian lo
+   es). Sobre el vidrio oscuro contrasta de sobra, pero sobre el
+   claro se queda en 1.5:1 y no se lee. `--accent-ink` es la misma
+   tonalidad oscurecida lo justo para pasar AA como texto; el
+   acento puro sigue usándose en rellenos, bordes y halos, donde no
+   hace falta leer nada.
+   ============================================================ */
+html header nav a:hover,
+html header nav a[aria-current],
+html .tool:hover,
+html .tool.on,
+html .tabs button:hover,
+html .tabs button.on,
+html .pitem:hover,
+html .pitem.on,
+html .phead:hover .pchev,
+html .pgroup.open .pchev,
+html .copy:hover,
+html .cc .h .pos,
+html #statusbar b,
+html #statusbar .coords,
+html #zoomWidget .zoom-level,
+html #guideBar .g-step,
+html #balanceVal,
+html #transPanel .trans-title,
+html #resPanel .res-title,
+html .toast{
+  color:var(--accent-ink);
+}
+/* Los indicadores de estado y el foco también necesitan 3:1 (WCAG 1.4.11),
+   así que usan la tinta, no el acento puro. */
+html header nav a[aria-current],
+html .tool.on,
+html select:focus,
+html input[type=text]:focus,
+html input[type=number]:focus,
+html input[type=search]:focus{
+  border-color:var(--accent-ink);
+}
+html .tabs button.on{border-bottom-color:var(--accent-ink)}
+
+/* ============================================================
+   Coste del desenfoque
+   ------------------------------------------------------------
+   `backdrop-filter` obliga a recomponer y desenfocar la zona cada
+   vez que el fondo cambia. Al arrastrar o hacer zoom sobre la
+   placa el fondo cambia en cada frame, así que durante el gesto el
+   vidrio flotante suelta el blur y pasa a ser opaco: el gesto va
+   fluido y al soltar vuelve el cristal. La clase `bw-moving` la
+   pone y la quita js/protoboard/viewport.js y js/editor/viewport.js.
+   ============================================================ */
+/* El aviso de varias fuentes (.notice) NO entra en esta lista a propósito:
+   su fondo es un degradado ámbar propio (css/protoboard.css), así que
+   cambiarlo aquí por `--glass-solid` lo hacía PARPADEAR de ámbar a sólido
+   cada vez que se hacía zoom (el gesto añade y luego quita `bw-moving`).
+   Mantiene su color durante el gesto; solo pierde el blur, que es el
+   coste real, y el degradado ámbar ya es suficientemente opaco. */
+html.bw-moving #zoomWidget,
+html.bw-moving #guideBar,
+html.bw-moving #transPanel,
+html.bw-moving #resPanel,
+html.bw-moving .toast{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  background:var(--glass-solid);
+}
+html.bw-moving .notice{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+
+/* ============================================================
+   Accesibilidad
+   ============================================================ */
+/* Anillo de foco: tinta + halo, siempre visible sobre el vidrio. */
+html :focus-visible{
+  outline:2px solid var(--accent-ink);
+  outline-offset:2px;
+  box-shadow:0 0 0 4px rgba(var(--accent-rgb),calc(.22 * var(--glow,1)));
+}
+/* Sin animaciones si el sistema lo pide: la guía, el flujo de los
+   cables y las transiciones dejan de moverse. */
+@media (prefers-reduced-motion:reduce){
+  html *,html *::before,html *::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* ============================================================
+   Menú de configuración del programa (la tuerca, en la cabecera).
+   Dentro viven dos submenús plegables: Tema e Idioma.
+   ============================================================ */
+/* ---------- La tuerca ----------
+   Vive en la cabecera, a la derecha de la navegación. Solo el icono,
+   pintado con el acento del tema puesto sobre un fondo oscuro que lo
+   despega de la barra (que en el tema claro es blanca: el pastilla
+   oscura es lo que mantiene el icono legible en los dos temas). */
+html header .hdr-settings{position:relative;display:flex;align-items:center;margin-left:2px;flex:none}
+html #themeGear{
+  width:33px;height:33px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(12,10,9,.84);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:10px;
+  /* La pastilla del engranaje es oscura en todos los temas: el icono
+     va en el acento, o en blanco si el acento es demasiado oscuro. */
+  color:var(--accent-on-dark,var(--accent));
+  cursor:pointer;
+  /* Brillo y borde FIJOS, no los del tema: la pastilla es oscura en los
+     dos temas, y con los tokens del tema claro (blancos) el canto se
+     convertía en un halo. */
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 2px 10px rgba(0,0,0,.3);
+  transition:color .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+html #themeGear svg{width:16px;height:16px;display:block;filter:drop-shadow(0 0 6px rgba(var(--accent-rgb),calc(.45 * var(--glow,1))))}
+html #themeGear:hover{
+  border-color:rgba(var(--accent-rgb),.5);
+  background:rgba(12,10,9,.92);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 2px 12px rgba(0,0,0,.34), 0 0 16px rgba(var(--accent-rgb),calc(.28 * var(--glow,1)));
+}
+html #themeGear[aria-expanded="true"]{
+  border-color:var(--accent);
+  background:rgba(12,10,9,.95);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 2px 12px rgba(0,0,0,.34), 0 0 18px rgba(var(--accent-rgb),calc(.34 * var(--glow,1)));
+}
+.settings-pop{
+  position:absolute;left:14px;bottom:52px;z-index:45;
+  width:min(302px,calc(100% - 28px));
+  max-height:min(72vh,560px);overflow-y:auto;
+  padding:12px 14px 14px;
+  background:var(--glass-3);
+  backdrop-filter:blur(var(--blur-3));
+  -webkit-backdrop-filter:blur(var(--blur-3));
+  border:1px solid var(--glass-border-hi);
+  border-radius:12px;
+  box-shadow:var(--glass-shadow), var(--glass-specular), 0 0 18px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)));
+  color:var(--text);font-size:13px;user-select:none;
+}
+/* En la cabecera el panel cuelga de la tuerca: se abre debajo, alineado
+   por la derecha, y su ancho se mide contra la ventana (el contenedor
+   posicionado es el envoltorio de 34 px de la tuerca). */
+html header .settings-pop{
+  left:auto;right:0;top:calc(100% + 10px);bottom:auto;
+  width:min(302px,calc(100vw - 32px));
+}
+.settings-pop[hidden]{display:none}
+.sp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.sp-head h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.01em;color:var(--text)}
+.sp-close{
+  width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0;background:transparent;border:1px solid transparent;border-radius:6px;
+  color:var(--text-dim);cursor:pointer;font:700 12px/1 var(--mono);
+  transition:all .15s ease;
+}
+.sp-close:hover{color:var(--err);border-color:rgba(var(--err-rgb),.4);background:rgba(var(--err-rgb),.08)}
+/* --- Submenús plegables (Tema, Idioma) --- */
+.sp-group{border-top:1px solid var(--glass-border)}
+.sp-group-head{
+  display:flex;align-items:center;gap:8px;width:100%;padding:10px 2px;
+  background:transparent;border:0;border-radius:8px;
+  color:var(--text);cursor:pointer;text-align:left;
+  font:600 12.5px var(--sans);letter-spacing:.01em;
+  transition:color .15s ease;
+}
+.sp-group-head:hover{color:var(--accent-ink)}
+.sp-group-head .dd-ico{width:14px;height:14px;flex:none;opacity:.8}
+/* Red de seguridad: un icono de cabecera sin su clase (lo añade otro
+   módulo, como «Tu cuenta» en js/auth/account-menu.js) no puede ocupar
+   todo el panel. Pasó el 30 oct en el sitio publicado. */
+.sp-group-head > svg{width:14px;height:14px;flex:none}
+.sp-group-head .sp-chev{margin-left:auto;color:var(--text-mute);transition:transform .18s ease}
+.sp-group.open .sp-group-head .sp-chev{transform:rotate(180deg)}
+.sp-group-body{display:none;padding:2px 2px 10px}
+.sp-group.open .sp-group-body{display:block}
+.sp-sec{margin-top:12px}
+.sp-sec:first-of-type{margin-top:0}
+.sp-sec>label{
+  display:block;margin-bottom:8px;
+  font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--text-dim);
+}
+.sp-seg{display:flex;gap:6px}
+/* ---------- Interruptor de apariencia (Claro / Oscuro / Predeterminado) ----------
+   La decisión gruesa va PRIMERO y con más peso visual que las seis
+   tarjetas de abajo: icono + etiqueta, tres botones a lo ancho. Es el
+   control que el usuario buscaba para elegir claro u oscuro de un
+   toque. */
+.sp-appearance{gap:6px}
+.sp-appearance button{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 4px;min-width:0;
+}
+.sp-appearance button svg{width:15px;height:15px;flex:none;opacity:.9}
+.sp-appearance button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ---------- Selector de tema: tarjetas con muestra de color ----------
+   Cada tema se presenta con tres puntos (fondo, superficie, metal) y su
+   nombre. Con seis temas una fila de botones no cabe en el panel y las
+   etiquetas se cortaban; en rejilla de dos columnas se leen enteras y se
+   ve de un vistazo cómo es cada tema sin aplicarlo. */
+.sp-themes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sp-theme{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;min-width:0;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text-dim);cursor:pointer;font:500 12px var(--sans);text-align:left;
+  box-shadow:var(--glass-specular);transition:all .16s ease;
+}
+.sp-theme:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.sp-theme.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);border-color:var(--accent);
+  box-shadow:var(--glass-specular), 0 0 12px rgba(var(--accent-rgb),calc(.22 * var(--glow,1)));
+}
+.sp-theme-dots{display:inline-flex;flex:0 0 auto;align-items:center}
+.sp-theme-dots i{display:block;width:10px;height:10px;border-radius:50%;margin-left:-4px;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.sp-theme-dots i:first-child{margin-left:0}
+.sp-theme-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-seg button{
+  flex:1 1 0;padding:8px 4px;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:8px;
+  color:var(--text-dim);cursor:pointer;font:500 12px var(--sans);
+  box-shadow:var(--glass-specular);
+  transition:all .16s ease;
+}
+.sp-seg button:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.sp-seg button.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);border-color:var(--accent);
+  box-shadow:var(--glass-specular), 0 0 12px rgba(var(--accent-rgb),calc(.22 * var(--glow,1)));
+}
+.sp-swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.sp-swatch{
+  width:100%;aspect-ratio:1/1;padding:0;
+  border:1px solid var(--border-hi);border-radius:6px;cursor:pointer;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.sp-swatch:hover{transform:scale(1.14);box-shadow:0 0 8px rgba(var(--accent-rgb),calc(.3 * var(--glow,1)))}
+.sp-swatch.on{outline:2px solid var(--text);outline-offset:2px}
+.sp-accents.off{opacity:.4;pointer-events:none}
+.sp-hint{margin:10px 0 0;font-size:11px;line-height:1.4;color:var(--text-mute)}
+
+/* ---------- Cuenta (js/auth/account-menu.js) ----------
+   Vive dentro del engranaje, no en la cabecera. Cuando hay sesión se
+   enseña la identidad con la foto de Google (sin referrer, que esa URL
+   es de googleusercontent) y dos acciones; sin sesión, una frase y el
+   botón de entrar. */
+.sp-acc-id{display:flex;align-items:center;gap:10px;padding:2px 0 10px}
+.sp-acc-av{
+  width:34px;height:34px;flex:none;border-radius:50%;object-fit:cover;
+  border:1px solid var(--glass-border-hi);background:var(--glass-control);
+}
+.sp-acc-av-txt{
+  display:flex;align-items:center;justify-content:center;
+  font:700 14px var(--sans);color:var(--accent-ink);
+}
+.sp-acc-txt{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.sp-acc-txt b{font:600 12.5px var(--sans);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-acc-txt i{
+  font:400 11px var(--mono);font-style:normal;color:var(--text-mute);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sp-acc-hint{margin:0 0 10px}
+/* Los botones del panel se usan en dos sitios: el bloque de la cuenta y
+   el del proyecto. Las clases `sp-act`/`sp-note` son los nombres
+   genéricos; los `sp-acc-*` se quedan porque ya están en el HTML que
+   pinta `js/auth/account-menu.js`. Mismo estilo, una sola definición. */
+.sp-acc-acts,.sp-acts{display:flex;flex-direction:column;gap:6px}
+.sp-acc-btn,.sp-act{
+  padding:8px 10px;text-align:left;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:8px;
+  color:var(--text-dim);cursor:pointer;font:500 12px var(--sans);
+  box-shadow:var(--glass-specular);transition:all .16s ease;
+}
+.sp-acc-btn:hover,.sp-act:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.sp-acc-btn.on,.sp-act.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  color:var(--accent-ink);border-color:var(--accent);
+}
+.sp-acc-btn:disabled,.sp-act:disabled{opacity:.5;cursor:progress}
+/* Borrar la cuenta es irreversible: no puede tener el mismo color que
+   «Cerrar sesión», que está justo encima. */
+.sp-acc-btn.danger{margin-top:4px;color:var(--err);border-color:rgba(var(--err-rgb),.28)}
+.sp-acc-btn.danger:hover{color:var(--err);border-color:rgba(var(--err-rgb),.55);background:rgba(var(--err-rgb),.1)}
+.sp-acc-note,.sp-note{
+  margin:8px 0 0;font-size:11px;line-height:1.45;color:var(--text-mute);
+}
+.sp-acc-note[hidden],.sp-note[hidden]{display:none}
+.sp-acc-note.ok,.sp-note.ok{color:var(--ok)}
+.sp-acc-note.err,.sp-note.err{color:var(--err)}
+/* El selector de archivo no se ve nunca: lo pulsa el botón «Abrir». */
+.sp-file{display:none}
+.bw-cloud-acts button.primary.danger{
+  color:var(--err);border-color:rgba(var(--err-rgb),.5);
+  background:rgba(var(--err-rgb),.12);
+}
+.bw-cloud-acts button.primary.danger:hover{background:rgba(var(--err-rgb),.2);border-color:var(--err)}
+
+/* ---------- aviso de guardado en la cuenta ----------
+   Pastilla flotante (js/auth/cloud-status.js). Va abajo a la derecha
+   porque cada página tiene su propia barra de estado y no todas dicen lo
+   mismo; así hay un solo sitio donde mirar en las ocho. */
+.bw-cloud{
+  position:fixed;right:14px;bottom:14px;z-index:130;
+  display:flex;align-items:center;gap:8px;max-width:min(340px,80vw);
+  padding:8px 12px;border-radius:999px;
+  background:var(--glass-3);border:1px solid var(--glass-border);
+  color:var(--text-dim);font:500 11.5px var(--sans);
+  box-shadow:0 6px 20px rgba(0,0,0,.28);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.bw-cloud[hidden]{display:none}
+.bw-cloud span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bw-cloud svg{width:13px;height:13px;flex:none}
+.bw-cloud.saved{color:var(--ok);border-color:rgba(var(--ok-rgb),.42)}
+.bw-cloud.saving{color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.45)}
+.bw-cloud.offline{color:var(--warn);border-color:rgba(var(--warn-rgb),.42)}
+.bw-cloud.error,.bw-cloud.conflict{color:var(--err);border-color:rgba(var(--err-rgb),.45)}
+.bw-cloud.spin svg{animation:bw-cloud-spin 1s linear infinite}
+@keyframes bw-cloud-spin{to{transform:rotate(360deg)}}
+
+/* Diálogo de conflicto: dos salidas y ninguna que borre trabajo. */
+.bw-cloud-dlg{
+  position:fixed;inset:0;z-index:210;display:grid;place-items:center;
+  padding:16px;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);
+}
+.bw-cloud-card{
+  width:min(430px,94vw);padding:22px 22px 18px;
+  background:var(--glass-3);border:1px solid var(--glass-border);border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.4);
+}
+.bw-cloud-card h2{margin:0 0 8px;font:600 16px var(--sans)}
+.bw-cloud-card p{margin:0 0 16px;font-size:12.5px;line-height:1.5;color:var(--text-dim)}
+.bw-cloud-acts{display:flex;flex-direction:column;gap:8px}
+.bw-cloud-acts button{
+  padding:10px 12px;text-align:left;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text-dim);cursor:pointer;font:500 12.5px var(--sans);
+  transition:all .15s ease;
+}
+.bw-cloud-acts button:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.bw-cloud-acts button.primary{
+  color:var(--accent-ink);border-color:var(--accent);
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.2),rgba(var(--accent-rgb),.07));
+}
+
+/* ---------- Avisos del montaje y bloqueo («Fijar») ----------
+   El panel lateral que explicaba el montaje está oculto, así que los
+   problemas del montaje se anuncian en la barra de herramientas como una
+   insignia. Un montaje correcto no se anuncia: la insignia solo existe
+   cuando hay algo que arreglar. Y los controles que cambian el montaje se
+   apagan cuando el circuito está fijado. */
+html .vbadge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border-radius:8px;border:1px solid transparent;
+  font:600 12px var(--mono);letter-spacing:.01em;white-space:nowrap;
+  cursor:default;
+}
+html .vbadge[hidden]{display:none}
+html .vbadge.bad{color:var(--err);border-color:rgba(var(--err-rgb),.5);background:rgba(var(--err-rgb),.12)}
+html .tool:disabled,html .dd-btn:disabled{opacity:.42;cursor:not-allowed}
+/* Un botón apagado (Deshacer sin pasos, controles con el circuito
+   fijado) no debe encenderse al pasar por encima: el resalte de
+   `.tool:hover` es solo para lo que se puede pulsar. */
+html .tool:disabled:hover{background:transparent;color:var(--text-dim);border-color:transparent;box-shadow:none}
+html .dd.locked{opacity:.6}
+html input[type=range]:disabled{opacity:.42;cursor:not-allowed}
+html .check input:disabled{cursor:not-allowed}
+html body.locked #canvasWrap{cursor:not-allowed}
+
+/* ============================================================
+   Estilo Claude («Arcilla» y «Marfil»)
+   ------------------------------------------------------------
+   Lo que distingue a una interfaz profesional tranquila de una
+   «neón»: títulos con serifa y en caja normal, botón principal plano
+   del color de acento, sin halos de colores, y movimiento corto.
+   Solo se aplica a los dos temas de esta familia; los demás temas no
+   cambian (su `--glow` vale 1).
+   ============================================================ */
+html[data-theme="ivory"] :is(.lnd-name,.lnd-card h2,.ptitle h2,.bw-tour-title,.dt-head h2,.sp-head h2,.lgn-title,.pj-gate h2,.pj-titles h2,.pj-public h2,.lgl-title){
+  font-family:var(--serif);font-weight:500;letter-spacing:-.005em;text-transform:none;
+}
+html[data-theme="ivory"] .lnd-name{
+  font-size:clamp(42px,7.4vw,70px);letter-spacing:-.015em;
+  background:none;color:var(--text);-webkit-text-fill-color:currentColor;
+}
+html[data-theme="ivory"] .lnd-mark{filter:none}
+html[data-theme="ivory"] .lnd-play{
+  /* Plano y del color de acento, como pide el tema; el borde de 2 px
+     por el que corre la corriente (plan 09 · IF-01) se queda, con el
+     mismo degradado cónico de `home.css` encima del relleno plano. */
+  background:
+    linear-gradient(var(--accent),var(--accent)) padding-box,
+    conic-gradient(from var(--ang,0deg),rgba(255,255,255,.08) 0deg,rgba(255,255,255,.95) 40deg,rgba(255,255,255,.35) 80deg,rgba(255,255,255,.08) 140deg,rgba(255,255,255,.08) 360deg) border-box,
+    linear-gradient(var(--accent),var(--accent)) border-box;
+  color:var(--on-accent,#fff);border:2px solid transparent;
+  box-shadow:0 1px 2px rgba(0,0,0,.18),0 6px 18px rgba(var(--accent-rgb),.22);
+  padding:14px 16px 14px 28px;
+}
+/* La flecha va detrás del texto («Empezar →») y se adelanta un poco
+   al pasar por encima; la coletilla «Pulsa para empezar» repetía el
+   botón y sobra. */
+html[data-theme="ivory"] .lnd-play-ico{
+  order:2;background:rgba(255,255,255,.16);
+  transition:transform var(--dur-2,.2s) var(--ease-out,ease);
+}
+html[data-theme="ivory"] .lnd-play:hover .lnd-play-ico{transform:translateX(3px)}
+html[data-theme="ivory"] .lnd-hint{visibility:hidden}
+html[data-theme="ivory"] .lnd-play:hover{
+  transform:translate(var(--tx,0px),calc(var(--ty,0px) - 1px)) scale(1.03);filter:brightness(1.05);
+  box-shadow:0 2px 4px rgba(0,0,0,.2),0 10px 26px rgba(var(--accent-rgb),.28);
+}
+html[data-theme="ivory"] .lnd-play-ico{background:rgba(255,255,255,.2)}
+html[data-theme="default"] .lnd-play-ico{
+  --text-mute:#899bc0;background:rgba(11,26,51,.14)}
+html[data-theme="ivory"] .ptitle h2{font-size:19px}
+html[data-theme="ivory"] .bw-tour-title{font-size:19px;line-height:1.3}
+html[data-theme="ivory"] .bw-tour-kicker{font-family:var(--sans);letter-spacing:.04em}
+html[data-theme="ivory"] .bw-tour-btn.primary{color:var(--on-accent,#fff);background:var(--accent)}
+html[data-theme="ivory"] .bw-tour-fill{background:var(--accent)}
+/* En claro, el acento de relleno se oscurece un punto para que el texto
+   blanco encima pase AA (el arcilla de Claude en claro es #c96442). */
+html[data-theme="ivory"] .bw-tour-btn.primary{background:#c96442}
+html[data-theme="ivory"] .lnd-play{
+  background:
+    linear-gradient(#c96442,#c96442) padding-box,
+    conic-gradient(from var(--ang,0deg),rgba(255,255,255,.08) 0deg,rgba(255,255,255,.95) 40deg,rgba(255,255,255,.35) 80deg,rgba(255,255,255,.08) 140deg,rgba(255,255,255,.08) 360deg) border-box,
+    linear-gradient(#c96442,#c96442) border-box;
+}
+/* Selección de texto y barra de desplazamiento a juego. */
+html[data-theme="ivory"] ::selection{background:rgba(var(--accent-rgb),.28)}
+html[data-theme="ivory"] *{scrollbar-color:rgba(var(--hair-rgb),.18) transparent}
+/* El engranaje: la pastilla oscura existía para que el cian se leyera
+   sobre la cabecera blanca; con el arcilla basta un botón plano más. */
+html[data-theme="ivory"] #themeGear{
+  background:var(--glass-control);border-color:var(--glass-border);
+  color:var(--text-dim);box-shadow:none;
+}
+html[data-theme="ivory"] #themeGear:hover,
+html[data-theme="ivory"] #themeGear[aria-expanded="true"]{
+  background:var(--glass-control-hi);border-color:rgba(var(--accent-rgb),.45);color:var(--accent-ink);box-shadow:none;
+}
+html[data-theme="ivory"] #themeGear svg{filter:none}
+
+/* ============================================================
+   Movimiento (25 oct 2026)
+   ------------------------------------------------------------
+   Una sola gramática para todo el programa: tres duraciones, dos
+   curvas, y siempre «sale rápido, frena suave». Nada rebota ni gira
+   por gusto: el movimiento solo dice de dónde viene algo o que una
+   acción se ha registrado. `prefers-reduced-motion` (más arriba) lo
+   apaga todo.
+   ============================================================ */
+:root{
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+  --ease-in-out:cubic-bezier(.65,0,.35,1);
+  --dur-1:.12s; --dur-2:.2s; --dur-3:.32s;
+}
+
+/* ---------- Entre páginas ----------
+   Esquema · 2D · 3D del traductor son páginas distintas: sin esto, cada
+   pestaña era un parpadeo en blanco. Con View Transitions entre
+   documentos se funden en 200 ms y la cabecera y las pestañas se quedan
+   quietas, como si fuera una sola aplicación. Donde el navegador no lo
+   soporta, no pasa nada: se navega como siempre. */
+@view-transition{navigation:auto}
+::view-transition-old(root),::view-transition-new(root){
+  animation-duration:var(--dur-2);
+  animation-timing-function:var(--ease-out);
+}
+/* `view-transition-name` convierte la cabecera en **contexto de apilamiento**
+   (y en bloque contenedor). Con `z-index:auto` y `position:static` ese
+   contexto se pinta en el orden del flujo, o sea **antes** que `main`, así que
+   el panel de la tuerca —que cuelga de la cabecera con `z-index:45`— se
+   quedaba debajo de la rejilla de «Mis proyectos» y no se podía pulsar nada
+   de él. `t-projects.cjs` lo cazó: el clic sobre «Tu cuenta» lo interceptaba
+   la miniatura de una tarjeta. La cabecera sube por encima del contenido y
+   sigue por debajo de los avisos (`.toast`, 900). */
+html body > header:first-of-type{view-transition-name:bw-head;position:relative;z-index:60}
+html .step-tabs{view-transition-name:bw-steps}
+::view-transition-group(bw-head),::view-transition-group(bw-steps){animation-duration:var(--dur-2)}
+
+/* ---------- Pulsar ----------
+   Hundimiento de un píxel al pulsar: la mano nota que el botón ha
+   respondido aunque la acción tarde. Las transiciones se declaran por
+   propiedad (no `all`) para no animar el diseño. */
+html :is(.tool,.dd-btn,.dd-item,.step-tab,#themeGear){
+  transition:background-color var(--dur-1) ease,border-color var(--dur-1) ease,
+    color var(--dur-1) ease,box-shadow var(--dur-2) ease,transform var(--dur-1) var(--ease-out);
+}
+html :is(.tool,.dd-btn,.step-tab,#themeGear):not(:disabled):active{transform:translateY(1px) scale(.985)}
+
+/* ---------- Avisos ----------
+   El aviso sube 8 px mientras aparece, en vez de encenderse sin más. */
+html .toast{
+  transform:translate(-50%,8px);
+  transition:opacity var(--dur-2) ease,transform var(--dur-3) var(--ease-out);
+}
+html .toast.show{transform:translate(-50%,0)}
+
+/* ---------- Paneles ----------
+   El panel de la tuerca y los desplegables ya entran con `bwPopIn`; se
+   les da la curva común para que todos abran al mismo ritmo. */
+html .dd-pop.bw-pop-in,html .settings-pop.bw-pop-in{
+  animation-duration:var(--dur-2);
+  animation-timing-function:var(--ease-out);
+}
+
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}
+  html .toast,html .toast.show{transform:translate(-50%,0)}
+}
+
+/* ============================================================
+   Objetivos táctiles (25 oct 2026 · 44 px desde V1.17)
+   ------------------------------------------------------------
+   Con el dedo, un botón de 26 px de alto se falla. El disparador es
+   `pointer: coarse`, que es la señal correcta: cubre móviles y tabletas
+   aunque la pantalla sea ancha, y **no cambia nada en un escritorio con
+   ratón** (por eso las capturas y las sondas de siempre no se mueven ni
+   un píxel).
+
+   Estaban a 40 px; la ficha V1.17 pide la talla del pulgar, **44 px**
+   (más que los 40 de `docs/DISENO.md` §4, que se queda corto para un
+   dedo). La sonda `t-mobile` lo mide a 375 px en las once páginas.
+
+   Se sube con `min-height`/`min-width` y no con `height`, para no romper
+   los controles que se estiran a lo ancho (`.tool` con rótulo largo).
+   Los de cerrar un aviso (`.notice-close`, `.sp-close`, `.sb-close`) se
+   quedan pequeños a propósito: están en una esquina y hacen falta.
+   ============================================================ */
+@media (pointer: coarse){
+  html .tool,
+  html .sim-tool,
+  html .mb-top,
+  html .step-tab,
+  html .sim-tab,
+  html .dd-btn,
+  html .dd-item,
+  html .chip,
+  html .pitem,
+  html .pal-item,
+  html .lnd-ic,
+  html .modcell,
+  html .dt-y,
+  html .dz-chip,
+  html .bw-tour-btn,
+  html .bw-tour-skip,
+  html .snd,
+  html .sp-seg button,
+  html .sp-theme,
+  html .sp-bgstyle,
+  html .sp-group-head,
+  html .sp-act,
+  html #zoomWidget button,
+  html input[type="range"]{
+    min-height:44px;
+  }
+  html .step-tab,
+  html .modcell,
+  html .dt-y,
+  html .snd,
+  html .lnd-ic,
+  html #zoomWidget button{min-width:44px}
+  html #themeGear{width:44px;height:44px}
+  /* Alto fijo y ancho mínimo: en una tableta ancha el icono lleva su
+     rótulo («Qué es», «Contacto»), y un ancho fijo lo cortaba. */
+  html .lnd-ic{height:44px}
+  /* Los hijos de `body` son ítems de un flex en columna y, por defecto, no
+     bajan de su ancho `min-content` (`min-width:auto`). La barra del Esquema
+     no cabe en 390 px y ensanchaba la página entera 12 px —scroll horizontal
+     en un móvil— aunque su caja midiera 390. Con `min-width:0` se recorta el
+     contenido de dentro, que es lo que debe pasar. */
+  html body > header,
+  html body > main{min-width:0}
+  /* El carril del mando de densidad se queda igual; lo que crece es la
+     zona que responde al dedo. */
+  html input[type="range"]{height:44px}
+  /* La portada y la entrada (V1.17). `home.css` y `login.css` declaran su
+     talla a 40 px y ganan por orden de carga, así que hay que nombrar la
+     clase del cuerpo (`bw-landing`) para que la medida siga viviendo en un
+     solo sitio. La tuerca necesita además el contenedor: su regla
+     `html :is(.lnd-head,.lgn-head) #themeGear` es más específica. */
+  html .bw-landing .bw-link,
+  html .bw-landing .lnd-tpls-chips button,
+  html .bw-landing .lnd-close .bw-link.lnd-contact{min-height:44px}
+  /* Los del pie llevan además ancho mínimo: «Qué es» mide 43 px de texto y
+     el lado corto también cuenta. */
+  html .bw-landing .lnd-foot.lnd-foot-pro :is(a,button){min-height:44px;min-width:44px}
+  html .bw-landing .lnd-pause{width:44px;height:44px}
+  /* El punto de la guía crece sólo lo que responde al dedo: el punto y su
+     anillo (`inset`) se mueven con él para que se vean igual de grandes. */
+  html .bw-landing .lnd-hot{width:44px;height:44px;margin:-22px 0 0 -22px}
+  html .bw-landing .lnd-hot-dot{inset:14px}
+  html .bw-landing .lnd-hot::after{inset:11px}
+  html body :is(.lnd-head,.lgn-head) #themeGear{width:44px;height:44px}
+}
+
+/* ---------- Selector de color de «Color propio» ----------
+   Cuadro de saturación (horizontal) y brillo (vertical) sobre el tono
+   de la barra; todo son degradados CSS, sin lienzo. */
+.sp-picker{display:flex;flex-direction:column;gap:10px}
+.sp-sv{
+  --hue:190;
+  position:relative;height:132px;border-radius:10px;cursor:crosshair;touch-action:none;
+  background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(var(--hue) 100% 50%));
+  box-shadow:inset 0 0 0 1px rgba(var(--hair-rgb),.12);
+}
+.sp-sv:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+.sp-sv-knob{
+  position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;pointer-events:none;
+  border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.35);
+}
+html .sp-picker input.sp-hue{
+  -webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:999px;margin:0;cursor:pointer;
+  background:linear-gradient(to right,#f00,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00);
+  box-shadow:inset 0 0 0 1px rgba(var(--hair-rgb),.12);
+  min-height:14px;
+}
+html .sp-picker input.sp-hue::-webkit-slider-runnable-track{background:transparent;height:14px}
+html .sp-picker input.sp-hue::-moz-range-track{background:transparent}
+html .sp-picker input.sp-hue::-webkit-slider-thumb{-webkit-appearance:none;margin-top:-2px;width:18px;height:18px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 2px 6px rgba(0,0,0,.35)}
+html .sp-picker input.sp-hue::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.sp-hue:focus-visible{outline:2px solid var(--accent-ink);outline-offset:3px}
+.sp-pick-row{display:flex;align-items:center;gap:8px}
+.sp-pick-chip{width:34px;height:34px;border-radius:10px;flex:none;box-shadow:inset 0 0 0 1px rgba(var(--hair-rgb),.18)}
+.sp-hex{
+  flex:1;min-width:0;height:34px;padding:0 10px;border-radius:10px;box-sizing:border-box;
+  font:600 13px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+}
+.sp-hex:focus{outline:2px solid var(--accent-ink);outline-offset:1px}
+.sp-picker .sp-swatches{grid-template-columns:repeat(10,1fr)}
+
+/* ============================================================
+   Tipografía de los temas secretos (26 oct)
+   ------------------------------------------------------------
+   Los temas base comparten la misma letra (la de la app). Los secretos
+   cambian la de los títulos según en qué se inspiran. Sólo fuentes del
+   sistema: la política de seguridad no deja descargar ninguna.
+   · Claude («ivory»): serifa clásica (arriba, en su bloque).
+   · WorkBuddy: palo seco muy negro y geométrico, como su logotipo.
+   · DeepSeek: geométrica técnica y limpia.
+   · Japón: mincho (la serifa japonesa).
+   ============================================================ */
+html[data-theme="workbuddy"]{--display:'Segoe UI Black','Arial Black','Helvetica Neue',Arial,sans-serif}
+html[data-theme="deepseek"]{--display:Bahnschrift,'DIN Alternate','Segoe UI Variable Display','Segoe UI',system-ui,sans-serif}
+/* Japón: serifa de libro para el latín (las mincho de Windows dibujan
+   las letras latinas como una Times sin gracia) y mincho para el japonés. */
+html[data-theme="japan"]{--display:'Palatino Linotype','Book Antiqua',Palatino,'Iowan Old Style',Georgia,'Yu Mincho','YuMincho','Hiragino Mincho ProN','Noto Serif JP',serif}
+:is(html[data-theme="workbuddy"],html[data-theme="deepseek"],html[data-theme="japan"]) :is(.lnd-name,.lnd-lead,.lnd-h2,.lnd-guide-env h3,.lnd-card h2,.ptitle h2,.bw-tour-title,.dt-head h2,.sp-head h2,.lgn-title:not(.bw-eyebrow),.lgn-intro-name,.pj-gate h2,.pj-titles h2,.pj-public h2,.lgl-title,.bot-head h2,.dz-head h2,.osc-head h2){
+  font-family:var(--display);
+}
+html[data-theme="workbuddy"] :is(.lnd-name,.lnd-lead,.lnd-h2){font-weight:900;letter-spacing:-.01em}
+/* DeepSeek: titulares finos y abiertos, como su «Into the Unknown». */
+html[data-theme="deepseek"] .lnd-name{font-weight:600;letter-spacing:-.005em}
+html[data-theme="deepseek"] :is(.lnd-h1,.lnd-h2){font-weight:400;letter-spacing:.005em}
+/* Claude: el titular del héroe y los de sección también con serifa, en
+   caja normal y peso de libro, como en su web. */
+html[data-theme="ivory"]{--display:var(--serif)}
+html[data-theme="ivory"] :is(.lnd-h1,.lnd-h2,.lnd-guide-env h3){font-weight:400;letter-spacing:-.015em}
+html[data-theme="japan"] :is(.lnd-name,.lnd-lead,.lnd-h2){font-weight:600;letter-spacing:.02em}
+
+/* ---------- «Placa»: tamaño, nº de placas y rieles en un panel ----------
+   Plan 09 · IF-04. Eran tres controles sueltos en la barra; ahora son un
+   solo desplegable, y dentro cada cosa tiene su renglón con su nombre. */
+html .pp-sep{height:1px;margin:10px -12px 10px;background:var(--glass-border)}
+html .pp-title{
+  display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  margin:0 0 8px;font:500 12px var(--sans);color:var(--text-mute);
+}
+html .pp-val{font:600 12.5px var(--mono);color:var(--accent-ink)}
+html .pp-check{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--text)}
+/* Un elemento del desplegable que puede quedar encendido (Fijar). */
+html .dd-item.on{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.08));
+  border-color:var(--accent-ink);color:var(--text);
+}
+
+/* ---------- Preguntas dentro de la página (js/ask.js) ----------
+   Sustituyen a `confirm()` y `prompt()`: un <dialog> modal con los
+   colores del tema, Esc para cancelar y botones de 40 px. */
+.bw-ask{
+  width:min(420px,calc(100vw - 32px));box-sizing:border-box;margin:auto;padding:20px 20px 16px;
+  border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);
+  box-shadow:0 18px 50px rgba(0,0,0,.35);font:400 14.5px/1.5 var(--sans);
+}
+.bw-ask::backdrop{background:rgba(0,0,0,.45)}
+.bw-ask p{margin:0 0 16px}
+.bw-ask label{display:block;margin:0 0 6px;font-weight:600}
+.bw-ask input{
+  display:block;width:100%;box-sizing:border-box;margin:0 0 16px;padding:10px 12px;
+  border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;
+}
+.bw-ask input:focus{outline:2px solid var(--accent-ink);outline-offset:1px}
+.bw-ask-acts{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.bw-ask button{
+  min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--text);font:600 14px var(--sans);cursor:pointer;
+}
+.bw-ask button:hover{border-color:var(--border-hi,var(--border))}
+.bw-ask button.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#111)}
+.bw-ask button.danger{background:var(--err);border-color:var(--err);color:#fff}
+.bw-ask button:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+
+/* ============================================================
+   V1.22 · Imprimir
+   ------------------------------------------------------------
+   Chrome **no imprime los fondos** salvo que se le pida, y la app es un
+   tema oscuro: `--text` es casi blanco (#eef3ff) sobre un sustrato casi
+   negro. Impresa sin fondo, eso es **texto blanco sobre papel blanco**:
+   la página sale en blanco y parece que la impresora está rota.
+
+   Dos cosas, y una sola regla sirve para las trece páginas porque todas
+   cargan este fichero:
+
+     1. **Papel blanco, tinta negra.** Se cambian los tokens de color en
+        `@media print`, no elemento a elemento: así el texto que usa
+        `var(--text)`, `var(--text-dim)`… se vuelve oscuro de golpe, en
+        cualquier tema que tenga puesto el visitante.
+     2. **Lo que es de pantalla, fuera.** El aviso de la nube, la barra de
+        lecciones, los cajones y modales, la tarjeta de misiones y los
+        avisos flotantes van `position:fixed`: impresos salen **encima**
+        del contenido, en mitad de la hoja. No se imprimen.
+
+   Lo que **no** se toca: los `sticky` (una cabecera de tabla pegajosa se
+   imprime donde toca) ni los dibujos de verdad —el esquema, la placa, el
+   cronograma—, que son el contenido y se quieren en el papel.
+   ============================================================ */
+@media print{
+  :root, html[data-theme]{
+    --bg:#fff; --bg2:#fff; --surface:#fff;
+    --border:#bbb; --border-hi:#8a8a8a;
+    --text:#111; --text-dim:#3a3a3a; --text-mute:#555;
+    --accent-ink:#111; --on-accent:#fff;
+    --canvas-bg:#fff; --canvas-ink:#111; --canvas-ink2:#444; --canvas-paper:#fff;
+    --canvas-grid:#d8d8d8; --grid-line:#d8d8d8;
+    --code-bg:#f2f2f2; --code-fg:#111;
+    --glass-1:#fff; --glass-2:#fff; --glass-3:#fff; --glass-solid:#fff;
+    --glass-border:#c8c8c8; --glass-border-hi:#9a9a9a;
+    --glass-control:#fff; --glass-control-hi:#f0f0f0;
+    --glass-specular:none; --glass-shadow:none; --shadow:transparent;
+    --stage-bg:none; --body-glow:none; --float:#fff;
+  }
+  html, body{background:#fff !important; color:#111 !important}
+  /* Nada de desenfoques ni sombras: en papel sólo ensucian. */
+  *{backdrop-filter:none !important; -webkit-backdrop-filter:none !important; box-shadow:none !important;
+    text-shadow:none !important; animation:none !important; transition:none !important}
+  /* Lo que es de pantalla, fuera de la hoja. */
+  .bw-cloud, .bw-cloud-dlg, .bw-embed-open, .bw-les-bar,
+  .lnd-scrim, .lnd-menu, .lnd-modal, .lnd-mascot.docked,
+  .mb-back, .bw-mis, .toast, .bw-guide, .bw-tutorial{display:none !important}
+  /* Los diálogos que quedaran abiertos tampoco se imprimen encima. */
+  dialog, [role="dialog"]{display:none !important}
+  /* Un enlace impreso dice a dónde va. */
+  a[href^="http"]::after{content:" (" attr(href) ")"; font-size:.85em; color:#444}
+  @page{margin:14mm}
+}

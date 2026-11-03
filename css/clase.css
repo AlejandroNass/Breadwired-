@@ -1,0 +1,297 @@
+/* ============================================================
+   Clase · el paquete de clase (plan 06 · N-12)
+   ------------------------------------------------------------
+   Tres tarjetas, una por pantalla: crear, abrir y la hoja. Los colores
+   salen del tema de la casa (`css/theme.css`), así que esta hoja no
+   escribe ni un color a mano salvo los del aprobado y el suspenso, que
+   son los mismos del resto del programa.
+   ============================================================ */
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+}
+
+.cl-head {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.cl-brand {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: .01em;
+  text-decoration: none;
+}
+
+.cl-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+  display: grid;
+  gap: 22px;
+}
+
+.cl-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 22px 22px 24px;
+}
+
+.cl-card h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.cl-sub {
+  margin: 0 0 16px;
+  color: var(--text);
+  opacity: .72;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+.cl-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cl-field input,
+.cl-field textarea {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--glass-control);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* `html input[type=text]:focus` (theme.css) apaga el `outline` y deja sólo un
+   halo que además entra con transición: la sonda de foco lo lee como «sin
+   anillo». Aquí se repone el anillo con la misma especificidad y este fichero
+   va después, así que gana. */
+html .cl-field input:focus-visible,
+html .cl-field textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.cl-pick {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.cl-pick legend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 0 8px;
+}
+
+.cl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cl-chip {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--glass-control);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  /* Un dedo necesita 44 px de alto: con el relleno solo daba 30 y la sonda
+     del móvil lo cazó. `inline-flex` centra el texto sin tocar el redondeo. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.cl-chip:hover {
+  border-color: var(--glass-border-hi);
+  background: var(--glass-control-hi);
+}
+
+.cl-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  /* Texto encima del relleno de acento: `--accent-ink` vale el propio acento
+     en los temas claros y dejaba el rótulo amarillo sobre amarillo. La casa
+     usa `--on-accent` para esto (shell.css, editor.css, home.css). */
+  color: var(--on-accent, #0b1a33);
+  font-weight: 600;
+}
+
+.cl-count {
+  margin: 0 0 12px;
+  font-size: 13px;
+  opacity: .72;
+}
+
+.cl-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--glass-control);
+  border: 1px solid var(--glass-border-hi);
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  /* 44 px en el lado corto, como las fichas: con el relleno daba 39. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.cl-btn.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  /* Texto encima del relleno de acento: `--accent-ink` vale el propio acento
+     en los temas claros y dejaba el rótulo amarillo sobre amarillo. La casa
+     usa `--on-accent` para esto (shell.css, editor.css, home.css). */
+  color: var(--on-accent, #0b1a33);
+}
+
+.cl-btn:hover {
+  background: var(--glass-control-hi);
+}
+
+.cl-btn.accent:hover {
+  filter: brightness(1.06);
+}
+
+.cl-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: .8;
+}
+
+.cl-note.err {
+  color: var(--err);
+  opacity: 1;
+}
+
+.cl-pack-head h3 {
+  margin: 4px 0 2px;
+  font-size: 16px;
+}
+
+.cl-notes {
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--glass-control);
+  border-radius: 0 8px 8px 0;
+}
+
+.cl-tasks {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.cl-task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.cl-task a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.cl-task a:hover {
+  text-decoration: underline;
+}
+
+.cl-ok {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ok);
+  border: 1px solid var(--ok);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.cl-miss {
+  color: var(--err);
+}
+
+.cl-sheet {
+  overflow-x: auto;
+  margin: 4px 0 14px;
+}
+
+.cl-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 100%;
+}
+
+.cl-table th,
+.cl-table td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+
+.cl-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  opacity: .7;
+}
+
+.cl-yes {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.cl-no {
+  color: var(--err);
+}
+
+.cl-total td {
+  font-weight: 650;
+  border-bottom: 0;
+}
+
+@media (max-width: 560px) {
+  .cl-wrap {
+    padding: 20px 14px 48px;
+  }
+
+  .cl-card {
+    padding: 18px 16px 20px;
+  }
+}

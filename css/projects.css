@@ -1,0 +1,342 @@
+/* ============================================================
+   breadwire · Mis proyectos (projects.html)
+   ------------------------------------------------------------
+   La rejilla de la cuenta. Misma casa que el resto: cabecera de
+   marca + tuerca, tema guardado y textos traducidos. Lo único propio
+   de esta página es la rejilla, así que vive aquí y no en
+   `theme.css`.
+
+   Regla de siempre: a 360 px no puede haber scroll horizontal. Todo
+   lo que se estira (buscador, tarjetas, barra) se encoge con
+   `min-width:0` y `flex-wrap`.
+   ============================================================ */
+
+html,body{height:100%}
+body{
+  margin:0;min-height:100vh;display:flex;flex-direction:column;
+  background:var(--bg);color:var(--text);
+  font:400 14px/1.5 var(--sans);
+}
+
+/* ---------- cabecera: marca + tuerca ---------- */
+.pj-head{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 18px;flex:none;
+}
+.pj-brand{
+  display:flex;align-items:center;gap:10px;
+  color:inherit;text-decoration:none;border-radius:10px;
+}
+.pj-brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.pj-brand svg{width:27px;height:27px;flex:none}
+.pj-brand h1{margin:0;font:600 15px var(--sans);letter-spacing:.01em}
+.pj-brand:hover h1{color:var(--accent-ink)}
+
+/* ---------- armazón ---------- */
+.pj-wrap{
+  flex:1;width:100%;max-width:1180px;margin:0 auto;
+  padding:6px 18px 56px;box-sizing:border-box;
+}
+
+/* ---------- puerta (sin sesión) ---------- */
+.pj-gate{
+  max-width:420px;margin:8vh auto 0;padding:30px 26px 26px;
+  text-align:center;
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;
+  box-shadow:var(--glass-specular),0 18px 50px rgba(0,0,0,.22);
+}
+.pj-gate-ico{width:42px;height:42px;color:var(--accent-ink);opacity:.9}
+.pj-gate h2{margin:12px 0 6px;font:600 20px var(--sans);letter-spacing:-.01em}
+.pj-gate p{margin:0 0 20px;font-size:12.5px;line-height:1.55;color:var(--text-dim)}
+.pj-gate-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:180px;height:40px;padding:0 18px;
+  background:rgba(var(--accent-rgb),.14);
+  border:1px solid rgba(var(--accent-rgb),.5);border-radius:10px;
+  color:var(--accent-ink);text-decoration:none;
+  font:600 13px var(--sans);
+  transition:background .15s ease,border-color .15s ease;
+}
+.pj-gate-btn:hover{background:rgba(var(--accent-rgb),.22);border-color:var(--accent)}
+.pj-gate-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- cabecera de la rejilla ---------- */
+.pj-main{display:flex;flex-direction:column;gap:14px}
+.pj-main[hidden]{display:none}
+.pj-top{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.pj-titles{flex:1 1 200px;min-width:0}
+.pj-titles h2{margin:0;font:600 21px var(--sans);letter-spacing:-.01em}
+.pj-who{
+  margin:2px 0 0;font-size:12px;color:var(--text-mute);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pj-new{display:flex;gap:8px;flex:none}
+.pj-new-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  height:36px;padding:0 14px;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text-dim);cursor:pointer;
+  font:500 12.5px var(--sans);white-space:nowrap;
+  transition:all .15s ease;
+}
+.pj-new-btn svg{width:14px;height:14px;flex:none}
+.pj-new-btn:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.pj-new-btn.primary{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.45);
+  background:rgba(var(--accent-rgb),.1);
+}
+.pj-new-btn.primary:hover{background:rgba(var(--accent-rgb),.18);border-color:rgba(var(--accent-rgb),.7)}
+.pj-new-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- barra: buscar, filtrar, ordenar ---------- */
+.pj-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pj-find{
+  position:relative;flex:1 1 200px;min-width:0;display:flex;align-items:center;
+}
+.pj-find svg{
+  position:absolute;left:10px;width:14px;height:14px;
+  color:var(--text-mute);pointer-events:none;
+}
+.pj-find input{
+  width:100%;height:36px;padding:0 12px 0 32px;box-sizing:border-box;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text);font:400 12.5px var(--sans);
+}
+.pj-find input::placeholder{color:var(--text-mute)}
+.pj-find input:focus{
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16);
+}
+.pj-find input::-webkit-search-cancel-button{cursor:pointer}
+.pj-sel{
+  height:36px;padding:0 26px 0 10px;flex:none;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text-dim);cursor:pointer;
+  font:400 12.5px var(--sans);
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 14px) 15px,calc(100% - 9px) 15px;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+.pj-sel:hover{color:var(--text);border-color:var(--glass-border-hi)}
+.pj-sel:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16)}
+.pj-count{font-size:11.5px;color:var(--text-mute);white-space:nowrap;margin-left:auto}
+
+/* ---------- carpetas ---------- */
+.pj-folders{display:flex;gap:6px;flex-wrap:wrap}
+.pj-folders[hidden]{display:none}
+.pj-folders button{
+  height:27px;padding:0 12px;
+  background:transparent;border:1px solid var(--glass-border);border-radius:100px;
+  color:var(--text-mute);cursor:pointer;
+  font:400 11.5px var(--sans);
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  transition:all .15s ease;
+}
+.pj-folders button:hover{color:var(--text);border-color:var(--glass-border-hi)}
+.pj-folders button.on{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.55);
+  background:rgba(var(--accent-rgb),.1);
+}
+
+/* ---------- avisos ---------- */
+.pj-banner{
+  margin:0;padding:10px 12px;border-radius:10px;
+  font-size:12.5px;line-height:1.45;
+  color:var(--err);background:rgba(var(--err-rgb),.1);
+  border:1px solid rgba(var(--err-rgb),.35);
+}
+.pj-banner[hidden]{display:none}
+.pj-banner.ok{
+  color:var(--ok);background:rgba(var(--ok-rgb),.1);
+  border-color:rgba(var(--ok-rgb),.35);
+}
+
+/* ---------- esqueleto ---------- */
+.pj-skel{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px}
+.pj-skel[hidden]{display:none}
+.pj-sk{
+  height:186px;border-radius:14px;
+  background:linear-gradient(100deg,var(--glass-control) 30%,var(--glass-control-hi) 50%,var(--glass-control) 70%);
+  background-size:220% 100%;
+  animation:pj-shimmer 1.2s linear infinite;
+}
+@keyframes pj-shimmer{to{background-position:-220% 0}}
+
+/* ---------- rejilla ---------- */
+.pj-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));
+  gap:12px;align-items:start;
+}
+.pj-grid[hidden]{display:none}
+
+.pj-card{
+  position:relative;display:flex;flex-direction:column;
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;
+  box-shadow:var(--glass-specular);
+  cursor:pointer;overflow:visible;
+  transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+}
+.pj-card:hover{
+  border-color:var(--glass-border-hi);
+  transform:translateY(-1px);
+  box-shadow:var(--glass-specular),0 8px 22px rgba(0,0,0,.22);
+}
+
+.pj-thumb{
+  position:relative;aspect-ratio:16/10;overflow:hidden;
+  border-radius:12px 12px 0 0;
+  background:
+    linear-gradient(180deg,rgba(var(--accent-rgb),.05),transparent 70%),
+    var(--canvas-bg);
+  display:grid;place-items:center;
+}
+.pj-img{width:100%;height:100%;object-fit:cover;display:block}
+.pj-ph{display:grid;place-items:center;width:100%;height:100%;color:var(--text-mute);opacity:.5}
+.pj-ph svg{width:34px;height:34px}
+
+.pj-body{padding:10px 12px 12px;min-width:0}
+.pj-title{
+  margin:0 0 6px;font:600 12.5px var(--sans);line-height:1.35;
+  color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  /* deja hueco a la «⋯» para que el título no se le monte encima */
+  padding-right:18px;
+}
+.pj-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0}
+.pj-kind{
+  font:600 9.5px var(--sans);letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:6px;white-space:nowrap;
+}
+.pj-kind.analog{color:var(--accent-ink);background:rgba(var(--accent-rgb),.12)}
+.pj-kind.digital{color:var(--info);background:rgba(127,156,245,.14)}
+.pj-pub{
+  font:600 9.5px var(--sans);letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:6px;white-space:nowrap;
+  color:var(--ok);background:rgba(var(--ok-rgb),.12);
+}
+.pj-when{font-size:10.5px;color:var(--text-mute);white-space:nowrap}
+
+/* «⋯» de la tarjeta */
+.pj-more{
+  position:absolute;top:6px;right:6px;
+  width:26px;height:26px;display:grid;place-items:center;
+  background:rgba(var(--panel-rgb),.72);border:1px solid transparent;border-radius:8px;
+  color:var(--text-dim);cursor:pointer;
+  font:600 14px/1 var(--sans);padding:0;
+  opacity:0;transition:opacity .12s ease,background .12s ease;
+  backdrop-filter:blur(4px);
+}
+.pj-card:hover .pj-more,.pj-more[aria-expanded="true"]{opacity:1}
+.pj-more:hover{color:var(--text);background:rgba(var(--panel-rgb),.92);border-color:var(--glass-border-hi)}
+.pj-more:focus-visible{opacity:1;outline:2px solid var(--accent);outline-offset:2px}
+/* En pantallas táctiles no hay «hover»: la «⋯» se queda visible. */
+@media (hover:none){
+  .pj-more{opacity:1}
+}
+
+/* menú de la tarjeta */
+.pj-pop{
+  position:absolute;top:34px;right:6px;z-index:20;
+  min-width:172px;padding:4px;
+  background:var(--glass-solid);border:1px solid var(--glass-border-hi);border-radius:10px;
+  box-shadow:0 14px 34px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;gap:2px;
+}
+.pj-pop[hidden]{display:none}
+.pj-pop button{
+  display:block;width:100%;text-align:left;
+  padding:8px 10px;background:transparent;border:0;border-radius:8px;
+  color:var(--text-dim);cursor:pointer;
+  font:400 12px var(--sans);
+}
+.pj-pop button:hover{background:var(--glass-control-hi);color:var(--text)}
+.pj-pop button.danger{color:var(--err)}
+.pj-pop button.danger:hover{background:rgba(var(--err-rgb),.12);color:var(--err)}
+
+/* ---------- vacío ---------- */
+.pj-empty{padding:56px 18px;text-align:center}
+.pj-empty[hidden]{display:none}
+.pj-empty-t{margin:0 0 6px;font:600 14px var(--sans);color:var(--text)}
+.pj-empty-s{margin:0;font-size:12px;color:var(--text-mute)}
+
+/* ---------- «Ver más» ---------- */
+.pj-more-wrap{display:flex;justify-content:center;padding:6px 0 0}
+.pj-more-btn{
+  height:34px;padding:0 20px;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text-dim);cursor:pointer;font:500 12.5px var(--sans);
+  transition:all .15s ease;
+}
+.pj-more-btn:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.pj-more-btn[hidden]{display:none}
+
+/* ---------- aviso flotante con «Deshacer» ---------- */
+.pj-toast{
+  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:900;
+  display:flex;align-items:center;gap:12px;
+  max-width:calc(100vw - 32px);box-sizing:border-box;
+  padding:10px 14px;
+  background:var(--glass-solid);border:1px solid var(--glass-border-hi);border-radius:12px;
+  box-shadow:0 14px 34px rgba(0,0,0,.45);
+  font-size:12.5px;color:var(--text);
+  animation:pj-toast-in .18s ease;
+}
+.pj-toast[hidden]{display:none}
+.pj-toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-toast button{
+  flex:none;padding:4px 10px;
+  background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.45);border-radius:8px;
+  color:var(--accent-ink);cursor:pointer;font:600 12px var(--sans);
+}
+.pj-toast button:hover{background:rgba(var(--accent-rgb),.24)}
+@keyframes pj-toast-in{from{opacity:0;transform:translate(-50%,8px)}}
+
+/* ---------- vista pública ---------- */
+.pj-public{
+  max-width:520px;margin:6vh auto 0;padding:24px 22px;
+  background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;
+  box-shadow:var(--glass-specular),0 18px 50px rgba(0,0,0,.22);
+}
+.pj-public[hidden]{display:none}
+.pj-public h2{margin:0 0 8px;font:600 19px var(--sans);letter-spacing:-.01em;overflow-wrap:anywhere}
+.pj-public-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pj-public-acts button{
+  height:36px;padding:0 16px;
+  background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;
+  color:var(--text-dim);cursor:pointer;font:500 12.5px var(--sans);
+}
+.pj-public-acts button:hover{color:var(--text);border-color:var(--glass-border-hi);background:var(--glass-control-hi)}
+.pj-public-acts button.primary{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.45);
+  background:rgba(var(--accent-rgb),.1);
+}
+.pj-public-acts button.primary:hover{background:rgba(var(--accent-rgb),.18)}
+
+/* ---------- cuadro de texto propio (renombrar, carpeta, nuevo) ----------
+   Usa el velo y la tarjeta de `theme.css` (`.bw-cloud-dlg`,
+   `.bw-cloud-card`): es el mismo diálogo que el de conflictos, así que
+   no hay dos maneras de pedir algo. */
+.pj-ask-l{display:block;margin:0 0 6px;font-size:11.5px;color:var(--text-dim)}
+.pj-ask .lgn-input{width:100%;box-sizing:border-box;height:38px}
+.pj-ask .bw-cloud-acts{margin-top:14px}
+
+/* texto sólo para lectores de pantalla */
+.pj-sr{
+  position:absolute;width:1px;height:1px;padding:0;margin:2px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+
+/* ---------- móvil: 360 px sin scroll horizontal ---------- */
+@media (max-width:560px){
+  .pj-wrap{padding:4px 12px 44px}
+  .pj-head{padding:10px 12px}
+  .pj-titles h2{font-size:19px}
+  .pj-new{width:100%}
+  .pj-new-btn{flex:1;justify-content:center}
+  .pj-grid,.pj-skel{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .pj-count{display:none}
+  .pj-gate{margin-top:4vh;padding:24px 18px 22px;border-radius:14px}
+  .pj-public{margin-top:3vh;padding:20px 16px;border-radius:14px}
+}

@@ -1,0 +1,74 @@
+/* ============================================================
+   breadwire · tipografías del proyecto, servidas desde casa
+   ------------------------------------------------------------
+   Antes se pedían a fonts.googleapis.com en las siete páginas: era lo
+   único que salía a internet. Ahora los .woff2 viven en
+   `vendor/fonts/` y este archivo sólo los declara.
+
+   Tres familias, las mismas de siempre:
+     · Familjen Grotesk   textos e interfaz
+     · JetBrains Mono     código, valores, la tabla
+     · DM Mono            la mono estrecha de los rótulos del lienzo
+
+   Sólo el subconjunto latino (U+0000-00FF, que incluye tildes y eñe).
+   El japonés no está en estas familias: cae a la fuente del sistema,
+   como caía antes.
+
+   Se genera con `node tools/fetch-fonts.mjs`; no hace falta tocar a mano.
+   ============================================================ */
+@font-face{
+  font-family:'DM Mono';
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url('../vendor/fonts/dm-mono-400.woff2') format('woff2');
+}
+@font-face{
+  font-family:'DM Mono';
+  font-style:normal;
+  font-weight:500;
+  font-display:swap;
+  src:url('../vendor/fonts/dm-mono-500.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Familjen Grotesk';
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url('../vendor/fonts/familjen-grotesk-400.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Familjen Grotesk';
+  font-style:normal;
+  font-weight:500;
+  font-display:swap;
+  src:url('../vendor/fonts/familjen-grotesk-500.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Familjen Grotesk';
+  font-style:normal;
+  font-weight:600;
+  font-display:swap;
+  src:url('../vendor/fonts/familjen-grotesk-600.woff2') format('woff2');
+}
+@font-face{
+  font-family:'JetBrains Mono';
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url('../vendor/fonts/jetbrains-mono-400.woff2') format('woff2');
+}
+@font-face{
+  font-family:'JetBrains Mono';
+  font-style:normal;
+  font-weight:500;
+  font-display:swap;
+  src:url('../vendor/fonts/jetbrains-mono-500.woff2') format('woff2');
+}
+@font-face{
+  font-family:'JetBrains Mono';
+  font-style:normal;
+  font-weight:700;
+  font-display:swap;
+  src:url('../vendor/fonts/jetbrains-mono-700.woff2') format('woff2');
+}

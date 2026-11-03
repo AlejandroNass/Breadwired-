@@ -1,0 +1,188 @@
+/* ============================================================
+   breadwire · cabecera compartida y caja de pasos
+   ------------------------------------------------------------
+   Las tres pantallas (traductor, simulador y digitales) comparten la
+   misma cabecera: la marca a la izquierda y la tuerca de tema/idioma a
+   la derecha. **No hay conmutador de entorno**: se cambia de entorno
+   pulsando el pan, que lleva a la portada.
+
+   La parte superior queda RESERVADA a la marca y a la configuración.
+   Los pasos del traductor (Esquema · Protoboard · Protoboard 3D) ya no
+   viven ahí: van en su propia caja (`.step-box`), más visibles.
+
+   La especificidad es alta (`html header …`) a propósito: tiene que
+   ganar a las reglas de `css/editor.css`, `css/protoboard.css` y
+   `css/sim.css`, que reparten los elementos de la cabecera a su manera.
+   ============================================================ */
+
+/* ---------- la tuerca, siempre al extremo derecho ---------- */
+html header .hdr-settings{margin-left:auto;flex:none}
+
+/* En las vistas beta la marca va seguida de la píldora «beta»; la
+   tuerca se queda igualmente en el extremo derecho. */
+html header .sim-brand + .dig-beta ~ .hdr-settings{margin-left:auto}
+
+/* ============================================================
+   Pasos del traductor (Esquema · 2D · 3D)
+   ------------------------------------------------------------
+   Las mismas pestañas que el entorno digital (`.sim-tabs` de sim.css,
+   copiadas aquí porque el traductor no carga sim.css): un grupo con
+   icono y nombre corto, la activa encendida en el color de acento.
+
+   Van FIJAS en el extremo derecho de la barra de herramientas, en el
+   mismo sitio en las tres pantallas, y la barra les reserva su hueco
+   (`padding-right`) para que ninguna herramienta pase por debajo. Así
+   no ocupan una franja propia ni se comen el lienzo. En pantallas
+   estrechas dejan de flotar y se ponen al final de la barra.
+   ============================================================ */
+.step-tabs{
+  display:inline-flex;
+  padding:2px;
+  gap:2px;
+  border-radius:10px;
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  flex:none;
+}
+.step-tabs .step-tab{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 14px;
+  border-radius:8px;
+  color:var(--text-dim);
+  text-decoration:none;
+  font:500 13px var(--sans);
+  line-height:1.2;
+  white-space:nowrap;
+  transition:all .18s ease;
+}
+.step-tabs .step-tab:hover{color:var(--text)}
+.step-tabs .step-tab[aria-current="page"]{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.2),rgba(var(--accent-rgb),.07));
+  color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),calc(.3 * var(--glow,1)));
+}
+.step-tabs .step-tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.step-tabs .ico{width:15px;height:15px;flex:none}
+
+/* Las inactivas, sólo el icono (el nombre va en el tooltip): la activa
+   dice dónde estás y el grupo ocupa la mitad, así cabe sin empujar las
+   herramientas a una segunda fila. */
+.step-tabs .step-tab:not([aria-current="page"]){padding:6px 10px}
+.step-tabs .step-tab:not([aria-current="page"]) .sb-t{display:none}
+
+/* 2D y 3D: fijas en el extremo derecho de la barra de herramientas,
+   alineadas con su primera fila. La barra les guarda el hueco. */
+html #toolbar{padding-right:176px}
+html #toolbar > .step-tabs{position:absolute;right:12px;top:9px}
+/* Esquema: arriba de la columna de la derecha (la paleta), en el mismo
+   rincón que en las otras dos pantallas. */
+#palette > .step-tabs{
+  position:sticky;top:0;z-index:3;
+  display:flex;width:max-content;
+  margin:12px 12px 2px auto;
+  backdrop-filter:blur(var(--blur-1));-webkit-backdrop-filter:blur(var(--blur-1));
+}
+
+/* Estrecho: dejan de flotar y van al final de la barra, a la derecha. */
+@media (max-width:1100px){
+  html #toolbar{padding-right:12px}
+  html #toolbar > .step-tabs{position:static;margin-left:auto}
+}
+@media (max-width:980px){
+  #palette > .step-tabs{position:static;margin:10px auto 2px}
+}
+
+/* ============================================================
+   Insertado en otra web (`?embed=1`, js/embed.js)
+   Sólo el circuito: fuera la cabecera, la paleta y los atajos; el
+   enlace «Abrir en breadwire» va abajo a la derecha.
+   ============================================================ */
+html.bw-embed .sim-head,
+html.bw-embed .sim-pal,
+html.bw-embed .sim-status .keys,
+html.bw-embed #btnEmbed{display:none !important}
+html.bw-embed .sim-body{grid-template-columns:minmax(0,1fr) 270px !important}
+@media (max-width:860px){html.bw-embed .sim-body{grid-template-columns:1fr !important}}
+.bw-embed-open{
+  position:fixed;right:12px;bottom:40px;z-index:70;
+  padding:8px 12px;border-radius:999px;text-decoration:none;
+  font:600 12.5px var(--sans);color:var(--on-accent,#fff);background:var(--accent);
+  box-shadow:0 6px 18px rgba(0,0,0,.3);
+}
+.bw-embed-open:hover{filter:brightness(1.08)}
+.bw-embed-dlg{
+  width:min(560px,92vw);padding:18px 20px;border-radius:14px;
+  color:var(--text);background:var(--glass-solid);border:1px solid var(--glass-border-hi);
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+.bw-embed-dlg::backdrop{background:rgba(0,0,0,.5)}
+.bw-embed-dlg h2{margin:0 0 6px;font:600 17px var(--sans)}
+.bw-embed-dlg p{margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--text-dim)}
+.bw-embed-dlg textarea{
+  width:100%;box-sizing:border-box;padding:10px;border-radius:10px;resize:vertical;
+  font:500 12px var(--mono);color:var(--text);background:var(--canvas-paper);border:1px solid var(--border);
+}
+.bw-embed-note:empty{display:none}
+.bw-embed-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.bw-embed-acts button{
+  min-height:36px;padding:0 14px;border-radius:10px;cursor:pointer;font:600 13px var(--sans);
+  color:var(--text);background:var(--glass-control);border:1px solid var(--glass-border);
+}
+.bw-embed-acts .bw-embed-copy{color:var(--on-accent,#fff);background:var(--accent);border-color:transparent}
+
+/* ============================================================
+   Versiones del proyecto (plan 06 · N-11 · js/versions-ui.js)
+   Un grupo del engranaje: guardar una foto, ver la lista y volver.
+   ============================================================ */
+.bw-ver-save{width:100%;margin-bottom:6px}
+.bw-ver-note{margin:0 0 8px;font-size:11px;line-height:1.45;color:var(--text-mute)}
+.bw-ver-list{
+  list-style:none;margin:0;padding:0;max-height:220px;overflow:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+.bw-ver-row{display:flex;align-items:center;gap:6px}
+.bw-ver-when{
+  flex:1 1 auto;min-width:0;font:500 11.5px var(--mono);color:var(--text-dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bw-ver-back{flex:none;padding:4px 8px;font-size:11px}
+.bw-ver-del{flex:none;padding:4px 8px;font-size:12px;line-height:1;color:var(--text-mute)}
+.bw-ver-del:hover{color:var(--err);border-color:rgba(var(--err-rgb),.45)}
+.bw-ver-empty{font-size:11.5px;color:var(--text-mute);padding:2px 0}
+
+/* ============================================================
+   Lecciones guiadas (plan 06 · N-13 · js/lessons-ui.js)
+   Aquí sólo la barra de los entornos: la tarjeta de la portada vive en
+   `css/home.css`, porque `home.html` no carga esta hoja.
+   ============================================================ */
+/* La barra va fija abajo: cada entorno tiene su rejilla y un hijo más
+   arriba rompería el reparto de columnas. */
+.bw-les-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:900;
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;
+  padding:10px 16px;
+  background:var(--glass-1);border-top:1px solid var(--glass-border);
+  backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));
+  box-shadow:0 -8px 24px rgba(0,0,0,.18);
+}
+.bw-les-bar-head{display:flex;align-items:baseline;gap:10px;min-width:0}
+.bw-les-bar-head b{font:600 13px var(--sans);color:var(--text)}
+.bw-les-count{font:600 11px var(--mono);color:var(--accent-ink);white-space:nowrap}
+.bw-les-text{
+  flex:1 1 320px;margin:0;min-width:0;
+  font:500 12.5px var(--sans);color:var(--text-dim);line-height:1.45;
+}
+.bw-les-acts{display:flex;align-items:center;gap:8px;margin-left:auto}
+.bw-les-acts .sim-tool{text-decoration:none}
+.bw-les-acts .sim-tool[aria-disabled="true"]{opacity:.4;pointer-events:none}
+.bw-les-quit{
+  background:transparent;border:0;cursor:pointer;color:var(--text-mute);
+  font:600 16px var(--sans);line-height:1;padding:2px 4px;border-radius:6px;
+}
+.bw-les-quit:hover{color:var(--err)}
+@media (max-width:720px){
+  .bw-les-text{display:none}
+}
+

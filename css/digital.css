@@ -1,0 +1,1995 @@
+/* ============================================================
+   Entorno de Electrónica digital (beta) · estilos
+   ------------------------------------------------------------
+   Hoja PROPIA del entorno digital. No toca css/editor.css ni
+   css/protoboard.css: el traductor de esquemático sigue intacto.
+
+   La carcasa (cabecera, pestañas, botones, barra de estado) se
+   reutiliza de css/sim.css —es el mismo «chasis» de beta y así los dos
+   entornos no se separan con el tiempo—. Aquí sólo vive lo que es
+   nuevo y propio del digital:
+
+     .dig-*  reparto de la pantalla (paleta · lienzo · panel)
+     .pal-*  paleta de piezas
+     .sd-*   panel lateral del circuito
+     .dt-*   tabla de verdad editable
+     .dg-*   esquemático de compuertas (papel IEEE)
+     .d2-*   protoboard en 2D (la misma geometría que el 3D)
+
+   Todo el color sale de css/theme.css, así que la hoja cambia de tema
+   con el resto de la aplicación.
+   ============================================================ */
+
+/* ---------- Ajustes de la carcasa para esta pantalla ---------- */
+/* La pestaña «beta» se anuncia en verde (el digital) para no
+   confundirla con la del simulador analógico, que va en ámbar. */
+.dig-beta{
+  font:600 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;
+  color:var(--ok);border:1px solid rgba(var(--ok-rgb),.45);
+  background:rgba(var(--ok-rgb),.12);
+}
+
+/* ---------- Barra de herramientas ---------- */
+/* Cada juego de controles (tabla / esquemático / 2D / 3D) es un grupo
+   que se enseña entero o no se enseña: nunca se mezclan. */
+.dig-ctx{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  flex:1 1 auto;min-width:0;
+}
+.dig-ctx[hidden]{display:none}
+/* En esta barra los selectores no se van al extremo derecho: van en
+   fila con los botones. */
+.dig-ctx .sim-pick{margin-left:0}
+.dig-ctx .sim-pick span{white-space:nowrap}
+/* `hidden` es un atributo, y `.sim-pick` trae `display:inline-flex`: la regla
+   del autor gana a la del navegador y los deslizadores de las piezas
+   —distancia, cursor, luz, temperatura— se veían siempre, aunque su `hidden`
+   estuviera puesto. Se ocultan aquí, que es donde se decide el `display`. */
+.dig-ctx .sim-pick[hidden]{display:none}
+.dig-mode .sim-tab{padding:4px 12px;font-size:12.5px}
+.dig-hint{
+  font:400 11.5px var(--sans);color:var(--text-mute);
+  margin-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#btnCable.on{color:var(--warn);border-color:rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.12);box-shadow:none}
+
+/* ---------- Reparto de la pantalla ---------- */
+/* En la TABLA manda el ancho completo: ni paleta a la izquierda ni
+   panel a la derecha. Sólo la tabla. */
+.dig-body{
+  flex:1;min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+}
+.dig-body[data-view="sch"],
+.dig-body[data-view="2d"],
+.dig-body[data-view="3d"]{
+  grid-template-columns:214px minmax(0,1fr) 274px;
+}
+
+.dig-pal{
+  overflow-y:auto;
+  padding:10px 10px 22px;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-right:1px solid var(--glass-border);
+}
+.dig-pal[hidden]{display:none}
+
+.dig-side{
+  display:flex;flex-direction:column;gap:8px;
+  min-height:0;overflow-y:auto;
+  padding:10px 12px 22px;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-left:1px solid var(--glass-border);
+}
+.dig-side[hidden]{display:none}
+
+.dig-stage{
+  position:relative;min-width:0;min-height:0;
+  display:flex;padding:6px;
+  background:var(--stage-bg);
+  overflow:hidden;
+}
+.dig-view{display:none;flex:1;min-width:0;min-height:0}
+.dig-view.on{display:block}
+#view-table.on{display:flex;flex-direction:column;min-height:0}
+
+/* ============================================================
+   1 · PALETA  (.pal-*)
+   ============================================================ */
+/* Buscador de piezas: con 89 piezas y 8 grupos, bajar a mano hasta
+   «Divisor de bus» es la mitad del trabajo. Va pegado arriba. */
+.pal-search-wrap{
+  position:sticky;top:-10px;z-index:2;
+  margin:-10px -10px 10px;padding:10px;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border-bottom:1px solid var(--glass-border);
+}
+.pal-search{
+  width:100%;box-sizing:border-box;
+  padding:6px 10px;border-radius:8px;
+  font:400 11.5px var(--sans);color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+}
+.pal-search:focus{outline:none;border-color:rgba(var(--accent-rgb),.55)}
+
+.pal-group{margin-bottom:14px}
+.pal-head{
+  display:flex;align-items:center;gap:8px;
+  margin:0 4px 8px;
+  font:600 10.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-mute);
+}
+/* Dos columnas que pueden encogerse: con `1fr` el mínimo es el contenido
+   y un nombre largo (o un icono de 24 px) estiraba la columna y sacaba
+   la paleta de su sitio en vez de recortar el texto con puntos suspensivos. */
+.pal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+
+/* En japonés cada carácter ocupa el doble: con dos columnas los nombres
+   se quedan en «バスス…» y no hay quién los distinga. Una sola columna,
+   como el árbol de componentes, y se leen enteros. */
+html[lang="ja"] .pal-grid{grid-template-columns:minmax(0,1fr)}
+.pal-row{display:flex;flex-wrap:wrap;gap:4px}
+.pal-col{display:flex;flex-direction:column;gap:4px}
+
+.pal-grid .pal-item,.pal-row .pal-item,.pal-col .pal-item{margin-bottom:0}
+
+/* El icono de la compuerta es un trazo, no una miniatura con marco. */
+.pal-item .pal-ico{
+  width:24px;height:22px;flex:none;
+  background:none;border:0;border-radius:0;
+  color:var(--text-dim);
+}
+.pal-item .pal-ico svg{width:24px;height:22px;display:block}
+.pal-item:hover .pal-ico,.pal-item.on .pal-ico{color:var(--accent-ink)}
+
+.pal-name{
+  font:500 11px var(--sans);color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pal-item.on .pal-name{color:var(--accent-ink)}
+
+/* Botones de una letra (entradas A…F, salidas Y0…Y3). */
+.pal-mini{
+  justify-content:center;
+  width:30px;padding:6px 0;margin:0;
+  font:700 12px var(--mono);color:var(--text-dim);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:8px;
+}
+.pal-mini:hover{color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.08)}
+
+/* Selector de entradas de la compuerta (2 · 3 · 4). */
+.pal-ins{margin-left:auto;display:inline-flex;gap:2px}
+.pal-n2,.pal-n3,.pal-n4{
+  width:19px;height:19px;padding:0;cursor:pointer;
+  font:600 10px var(--mono);color:var(--text-mute);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:6px;
+}
+.pal-n2:hover,.pal-n3:hover,.pal-n4:hover{color:var(--text)}
+.pal-n2.on,.pal-n3.on,.pal-n4.on{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.5);
+  background:rgba(var(--accent-rgb),.14);
+}
+
+/* Integrados del catálogo. */
+.pal-chip{flex-direction:column;align-items:flex-start;gap:0}
+.pal-chipname{font:700 12px var(--mono);color:var(--accent-ink);line-height:1.35}
+.pal-chiptitle{
+  font:400 10.5px var(--sans);color:var(--text-mute);line-height:1.35;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+.pal-help{
+  margin:10px 4px 0;
+  font:400 11px var(--sans);color:var(--text-mute);line-height:1.5;
+}
+
+/* ============================================================
+   2 · PANEL LATERAL  (.sd-*)
+   ============================================================ */
+.sd-sec{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  border-radius:10px;
+  padding:10px 10px 10px;
+  flex:none;
+}
+.sd-h{
+  font:600 10.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-mute);margin-bottom:8px;
+}
+.sd-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.sd-list+.sd-list{margin-top:6px}
+.sd-list li{
+  display:flex;align-items:center;gap:8px;
+  padding:4px 6px;border-radius:8px;
+  font:500 12px var(--mono);color:var(--text-dim);
+  transition:background .14s ease,color .14s ease;
+}
+.sd-list li b{margin-left:auto;font-weight:600;color:var(--text);font-size:11px}
+.sd-list li[data-chip],.sd-list li[data-var]{cursor:pointer}
+.sd-list li[data-chip]:hover,.sd-list li[data-var]:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.sd-list li[data-comp]{cursor:pointer}
+.sd-list li[data-comp]:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+/* Tipo de pieza (interruptor / pulsador / reloj), en pequeño. */
+.sd-list li em{font:400 9.5px var(--mono);font-style:normal;color:var(--text-mute);margin-left:4px}
+/* Pinout en vivo del integrado seleccionado. */
+.sd-pins{max-height:240px;overflow:auto}
+.sd-pins li{font:500 10.5px var(--mono)}
+.sd-list li.on{background:rgba(var(--accent-rgb),.11);color:var(--accent-ink)}
+
+/* La tabla de verdad dentro del panel: compacta, legible en los cinco
+   temas y con la fila activa marcada. Es la misma tabla de la primera
+   pestaña, así que se lee igual en el esquemático, en el 2D y en el 3D. */
+.sd-tt{max-height:210px;overflow:auto;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.sd-tt table{width:100%;border-collapse:collapse;font:500 11px var(--mono)}
+.sd-tt th,.sd-tt td{padding:2px 6px;text-align:center;border-bottom:1px solid var(--border)}
+.sd-tt thead th{
+  position:sticky;top:0;z-index:1;
+  background:var(--surface-2,var(--surface));color:var(--text-mute);
+  font-weight:600;letter-spacing:.04em;
+}
+.sd-tt tbody tr{cursor:pointer}
+.sd-tt tbody tr:hover{background:rgba(var(--accent-rgb),.07)}
+.sd-tt tbody tr.on{background:rgba(var(--accent-rgb),.16);color:var(--accent-ink)}
+.sd-tt tbody tr.bad td{color:var(--err)}
+.sd-tt tbody tr:last-child td{border-bottom:none}
+.sd-list li.on b{color:var(--accent-ink)}
+.sd-list li.sel{box-shadow:inset 0 0 0 1px rgba(var(--warn-rgb),.55)}
+.sd-list li.empty{color:var(--text-mute);cursor:default}
+
+.sd-note{font:400 11.5px var(--sans);color:var(--text-mute);line-height:1.5;margin:0}
+.sd-check{
+  font:500 11.5px var(--sans);line-height:1.5;
+  padding:8px 10px;border-radius:8px;
+  border:1px solid var(--glass-border);background:var(--glass-1);
+  color:var(--text-dim);
+}
+.sd-check.ok{color:var(--ok);border-color:rgba(var(--ok-rgb),.42);background:rgba(var(--ok-rgb),.08)}
+.sd-check.bad{color:var(--warn);border-color:rgba(var(--warn-rgb),.42);background:rgba(var(--warn-rgb),.08)}
+
+.sd-btn{
+  width:100%;margin-top:8px;padding:6px 10px;cursor:pointer;
+  font:500 11.5px var(--sans);color:var(--text-dim);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:8px;transition:all .16s ease;
+}
+.sd-btn:hover{color:var(--err);border-color:rgba(var(--err-rgb),.45);background:rgba(var(--err-rgb),.08)}
+/* El botón que ejecuta (vectores, comprobar): el mismo acento que el
+   botón principal de la barra, para que se vea cuál es la acción. */
+.sd-btn.accent{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.5);
+  background:rgba(var(--accent-rgb),.1);
+}
+.sd-btn.accent:hover{color:var(--accent-ink);border-color:var(--accent);background:rgba(var(--accent-rgb),.18)}
+
+/* Vectores de prueba: una fila por caso, en mono y sin corrector. */
+.sd-vectors{
+  width:100%;box-sizing:border-box;resize:vertical;min-height:76px;
+  padding:8px 10px;border-radius:8px;
+  font:400 11.5px/1.55 var(--mono);
+  color:var(--text);background:var(--glass-control);
+  border:1px solid var(--glass-border);
+}
+.sd-vectors:focus{outline:none;border-color:rgba(var(--accent-rgb),.55)}
+.sd-vectors-bad b{color:var(--warn)}
+
+/* Registro: la hora en gris y el mensaje en su color. Un error se queda
+   marcado en rojo aunque ya no esté en la barra de estado. */
+.sd-log li{font:400 10.5px/1.45 var(--sans);gap:6px;align-items:baseline}
+.sd-log li span{color:var(--text-mute);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.sd-log li b{font-weight:500;color:var(--text-dim);text-align:left;min-width:0}
+.sd-log li.err b{color:var(--warn)}
+
+/* ============================================================
+   3 · TABLA DE VERDAD  (.dt-*)
+   ------------------------------------------------------------
+   Sin paleta y sin panel: la tabla ocupa la pantalla y se centra
+   para que las filas no se estiren de lado a lado.
+   ============================================================ */
+.dt-wrap{
+  flex:1;min-height:0;display:flex;justify-content:center;
+  padding:2px;
+}
+.dt-card{
+  width:100%;max-width:880px;min-height:0;
+  display:flex;flex-direction:column;
+  background:var(--canvas-paper);
+  border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;
+}
+
+.dt-head{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px 12px;flex:none;
+  border-bottom:1px solid var(--border);
+}
+.dt-head h2{margin:0;font:600 14px var(--sans);color:var(--text)}
+.dt-badges{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.dt-badge{
+  font:500 11px var(--mono);
+  padding:4px 8px;border-radius:6px;
+  color:var(--text-mute);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  white-space:nowrap;
+}
+.dt-badge.ok{color:var(--ok);border-color:rgba(var(--ok-rgb),.45);background:rgba(var(--ok-rgb),.10)}
+.dt-badge.bad{color:var(--warn);border-color:rgba(var(--warn-rgb),.45);background:rgba(var(--warn-rgb),.10)}
+
+/* Modo «Ecuación»: una línea por salida. */
+.dt-exprs{
+  flex:none;display:flex;flex-direction:column;gap:8px;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  background:var(--glass-1);
+}
+.dt-exprs[hidden]{display:none}
+.dt-exprrow{display:flex;align-items:center;gap:10px}
+.dt-exprname{flex:none;font:700 12.5px var(--mono);color:var(--accent-ink)}
+.dt-exprinput{
+  flex:1;min-width:0;
+  font:500 13px var(--mono);color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:8px;padding:8px 10px;outline:none;
+}
+.dt-exprinput::placeholder{color:var(--text-mute)}
+.dt-exprinput:focus{border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 3px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)))}
+.dt-exprhint{
+  flex:none;max-width:38%;
+  font:500 11.5px var(--mono);color:var(--text-mute);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.dt-scroll{overflow:auto;flex:1;min-height:0;padding:6px 10px}
+.dt-table{
+  width:100%;border-collapse:collapse;
+  font:500 13px var(--mono);color:var(--canvas-ink);
+}
+.dt-table th,.dt-table td{
+  padding:6px 10px;text-align:center;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.dt-table thead th{
+  position:sticky;top:0;z-index:2;
+  background:var(--canvas-paper);
+  font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-mute);
+  border-bottom:1px solid var(--glass-border);
+}
+.dt-table thead th.out{color:var(--ok)}
+.dt-table thead th.dt-mh{color:var(--text-mute);font-weight:500}
+.dt-table tbody tr:hover{background:rgba(var(--accent-rgb),.05)}
+.dt-m{font-size:11px;color:var(--text-mute)}
+.dt-bit{font-variant-numeric:tabular-nums;color:var(--text-mute)}
+.dt-bit.one{color:var(--accent-ink);font-weight:600}
+
+/* La celda de salida es un botón: 0 → 1 → X → 0. */
+.dt-y{
+  width:34px;height:26px;margin:0 auto;padding:0;
+  display:grid;place-items:center;
+  font:600 13px var(--mono);
+  border-radius:6px;cursor:pointer;
+  color:var(--text-mute);
+  background:transparent;
+  border:1px solid var(--border);
+  transition:all .14s ease;
+}
+.dt-y:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--text)}
+.dt-y.v1{
+  color:#04150f;background:var(--ok);border-color:var(--ok);
+  box-shadow:0 0 10px rgba(var(--ok-rgb),.4);
+}
+.dt-y.vx{
+  color:var(--warn);border-color:rgba(var(--warn-rgb),.55);
+  background:rgba(var(--warn-rgb),.10);
+  border-style:dashed;
+}
+
+/* Pie: la función minimizada de cada salida. */
+.dt-foot{
+  flex:none;padding:8px 16px 10px;
+  border-top:1px solid var(--border);
+  background:var(--glass-1);
+  max-height:34%;overflow:auto;
+}
+.dt-fn{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:4px 0;
+  font:500 12px var(--mono);
+}
+.dt-fn+.dt-fn{border-top:1px solid var(--border)}
+.dt-fn-name{flex:none;font-weight:600;color:var(--accent-ink)}
+.dt-fn-expr{font:600 12.5px var(--mono);color:var(--text);word-break:break-word}
+.dt-fn-approx{
+  flex:none;font:500 9.5px var(--sans);letter-spacing:.02em;
+  color:var(--warn);border:1px solid rgba(var(--warn-rgb),.45);
+  border-radius:6px;padding:0 6px;cursor:help;
+}
+.dt-fn-sum{margin-left:auto;font:500 11.5px var(--mono);color:var(--text-mute)}
+
+/* ============================================================
+   4 · ESQUEMÁTICO  (.dg-*)
+   ============================================================ */
+#svgSch{
+  width:100%;height:100%;display:block;
+  background:var(--canvas-paper);
+  border:1px solid var(--border);border-radius:10px;
+  touch-action:none;
+  color:var(--canvas-ink2);          /* los puntos de la rejilla */
+  cursor:default;
+}
+.dg-bg{fill:url(#dgGrid);cursor:crosshair}
+
+.dg-wire{
+  fill:none;stroke:var(--canvas-ink2);
+  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;
+  stroke-opacity:.62;
+  transition:stroke .16s ease,stroke-opacity .16s ease;
+  cursor:pointer;
+}
+/* Un cable con 1 lógico se enciende: es la lectura inmediata de la
+   simulación sobre el dibujo. */
+.dg-wire.on{
+  stroke:var(--accent);stroke-opacity:1;stroke-width:2.2;
+  filter:drop-shadow(0 0 3px rgba(var(--accent-rgb),calc(.55 * var(--glow,1))));
+}
+.dg-wire.sel{stroke:var(--warn);stroke-opacity:1;stroke-width:2.6}
+/* Dos salidas en la misma red: el cable va en rojo y con una «E», el
+   valor de error. Se pinta por encima del nivel lógico porque
+   un conflicto no es un 1. */
+.dg-wire.err{stroke:#e05252;stroke-opacity:1;stroke-width:2.4}
+.dg-wireerr{
+  font:600 11px/1 var(--font-mono,monospace);fill:#e05252;
+  paint-order:stroke;stroke:var(--canvas-bg,#fff);stroke-width:3px;
+  pointer-events:none;
+}
+/* Vista previa del cable que se está tendiendo. */
+.dg-wire.ghost{
+  stroke:var(--accent);stroke-opacity:.85;stroke-width:1.7;
+  stroke-dasharray:5 4;pointer-events:none;
+}
+
+.dg-body{
+  fill:var(--canvas-paper);
+  stroke:var(--canvas-ink);
+  stroke-width:2;stroke-linejoin:round;
+}
+.dg-bubble{
+  fill:var(--canvas-paper);
+  stroke:var(--canvas-ink);
+  stroke-width:1.9;
+}
+/* Arco extra que convierte la OR en XOR. */
+.dg-gate-edge{
+  fill:none;stroke:var(--canvas-ink);
+  stroke-width:2;stroke-linecap:round;
+}
+.dg-tag{
+  font:500 9.5px var(--mono);fill:var(--canvas-ink2);
+  letter-spacing:.02em;text-anchor:start;pointer-events:none;
+}
+.dg-gate{cursor:grab}
+.dg-gate:hover .dg-body{stroke:var(--accent)}
+.dg-gate:hover .dg-gate-edge{stroke:var(--accent)}
+.dg-gate.on .dg-body{stroke:var(--accent)}
+.dg-gate.sel .dg-body{stroke:var(--warn);stroke-width:2.6}
+.dg-gate.sel .dg-bubble{stroke:var(--warn)}
+.dg-gate.sel .dg-gate-edge{stroke:var(--warn)}
+.dg-gate.sel .dg-tag{fill:var(--warn)}
+
+/* Caja de selección: se dibuja por debajo de la pieza. */
+.dg-selbox{
+  fill:none;stroke:var(--warn);stroke-width:1.5;
+  stroke-dasharray:5 4;stroke-opacity:.85;
+  pointer-events:none;
+}
+
+/* Entradas y salidas del circuito. */
+.dg-io{cursor:grab}
+.dg-iobox{
+  fill:var(--canvas-paper);stroke:var(--canvas-ink);stroke-width:1.9;
+}
+.dg-io:hover .dg-iobox{stroke:var(--accent)}
+.dg-io.on .dg-iobox{stroke:var(--accent);fill:rgba(var(--accent-rgb),.10)}
+.dg-ioname{
+  font:700 13px var(--mono);fill:var(--canvas-ink);
+  pointer-events:none;
+}
+.dg-io.on .dg-ioname{fill:var(--accent)}
+.dg-lamp{
+  fill:var(--canvas-paper);stroke:var(--canvas-ink);stroke-width:2;
+  transition:fill .16s ease,stroke .16s ease;
+}
+.dg-lamp.on{
+  fill:var(--ok);stroke:var(--ok);
+  filter:drop-shadow(0 0 7px rgba(var(--ok-rgb),.7));
+}
+
+/* Pines: el punto donde se agarra el cable. */
+.dg-pin{
+  fill:var(--canvas-paper);
+  stroke:var(--canvas-ink2);
+  stroke-width:1.3;
+  cursor:crosshair;
+  transition:r .12s ease,fill .12s ease,stroke .12s ease;
+}
+.dg-pin:hover{fill:rgba(var(--accent-rgb),.35);stroke:var(--accent)}
+.dg-pin.out{fill:var(--canvas-ink2);stroke:var(--canvas-ink)}
+.dg-pin.out:hover{fill:var(--accent);stroke:var(--accent)}
+.dg-pin.hot{
+  fill:var(--accent);stroke:var(--accent);
+  filter:drop-shadow(0 0 6px rgba(var(--accent-rgb),calc(.8 * var(--glow,1))));
+}
+
+/* ============================================================
+   5 · PROTOBOARD 2D  (.d2-*)
+   ============================================================ */
+#svgBoard2d{
+  width:100%;height:100%;display:block;
+  background:transparent;
+  touch-action:none;
+}
+
+/* El tablero usa el mismo skin que el paso 2 del traductor (css/protoboard.css):
+   placa hueso, canal más oscuro, agujeros cuadrados y rieles rojo/azul. */
+.d2-board{fill:#efece3;stroke:#c3bdab;stroke-width:1.5}
+.d2-channel{fill:#d8d3c5;stroke:#c3bdab;stroke-width:1}
+.d2-hole{fill:#2f3d4b;pointer-events:none}
+.d2-rail{stroke-width:2.5;stroke-linecap:round}
+.d2-rail.plus{stroke:#d64545}
+.d2-rail.minus{stroke:#2f6bd6}
+.d2-railsign{font:700 15px var(--mono);text-anchor:middle}
+.d2-railsign.plus{fill:#d64545}
+.d2-railsign.minus{fill:#2f6bd6}
+.d2-colnum,.d2-rowname{font:500 11px var(--mono);fill:#7d8b9a}
+
+/* Integrado: cuerpo negro, muesca del pin 1, patas y numeración. */
+.d2-body{stroke-width:1.4}
+.d2-notch{fill:none;stroke:#4a4640;stroke-width:1.6}
+.d2-dot{fill:#4a4640}
+.d2-leg{stroke:#b9b2a4;stroke-width:2.4;stroke-linecap:round}
+.d2-pnum{font:500 6.5px var(--mono);fill:#9a8f7d}
+.d2-chipname{font:600 9px var(--mono);fill:#c9c1b4}
+.d2-chipref{font:400 7.5px var(--mono);fill:#8f877c}
+.d2-chip{cursor:grab}
+.d2-chip:hover .d2-body{stroke:var(--warn);stroke-width:2}
+.d2-chip.sel .d2-body{stroke:var(--warn);stroke-width:2.4}
+/* Integrado puesto a mano: se distingue con el borde discontinuo. */
+.d2-chip.extra .d2-body{stroke:#6f8fa8;stroke-width:1.6;stroke-dasharray:4 3}
+
+/* Cables puente y alimentación. */
+.d2-wires path{fill:none;stroke-linecap:round}
+.d2-power .d2-bridge{fill:none;stroke-width:2;stroke-linecap:round;opacity:.5}
+
+/* Pata del integrado: es el anclaje del montaje (clic = cable).
+   La zona es transparente; el cursor y el realce avisan de que se puede
+   pulsar. */
+.d2-pin{cursor:crosshair}
+.d2-chip:hover .d2-pin{fill:rgba(var(--warn-rgb),.16)}
+/* Zona sensible del cable, para poder seleccionarlo. */
+.d2-wirehit{cursor:pointer}
+
+/* Bus de la placa: una línea gruesa con una derivación corta a cada
+   pata. Es lo que sería un cable de 8 bits; aquí no cambia la
+   electricidad, cambia que se ve el cable plano en vez de ocho cables. */
+.d2-bus{cursor:pointer}
+.d2-bustrunk{stroke-linecap:round;transition:stroke-width .12s ease, opacity .12s ease}
+.d2-bus:hover .d2-bustrunk{opacity:1;filter:brightness(1.12)}
+.d2-bus.sel .d2-bustrunk{stroke:#f4a261}
+.d2-bustrunk.on{filter:drop-shadow(0 0 3px rgba(0,184,212,.55))}
+.d2-busfan{pointer-events:none}
+.d2-buslabel{font:700 9px var(--mono);fill:#e9e3d5;paint-order:stroke;
+  stroke:#1b1917;stroke-width:2.6px;stroke-linejoin:round;pointer-events:none}
+
+/* Interruptores de entrada (tira izquierda). */
+.d2-sw{cursor:pointer}
+.d2-swbox{fill:#2b2926;stroke:#141312;stroke-width:1.2}
+.d2-swname{font:700 11px var(--mono);fill:#e9e3d5}
+.d2-lever rect{fill:#c9c1b4;stroke:#6f6659;stroke-width:.9}
+.d2-lever.on rect{fill:var(--accent);stroke:var(--accent)}
+.d2-lever circle{fill:#2b2926}
+.d2-swval{font:700 10px var(--mono);fill:#5d554a}
+/* Tira apretada (bancos de ocho): el nombre encoge para no meterse debajo
+   de la palanca y el 0/1 se calla, que ya lo dice la palanca. */
+.d2-sw.tight .d2-swname{font-size:9.5px}
+.d2-sw.tight .d2-swval{display:none}
+.d2-term{stroke:#8a7f6d;stroke-width:1.4;stroke-dasharray:3 3}
+.d2-sw.extra .d2-swbox{stroke:#6f8fa8;stroke-dasharray:4 3}
+
+/* LED de salida (tira derecha). */
+.d2-led{cursor:pointer}
+.d2-lamp{fill:#4a453d;stroke:#8a7f6d;stroke-width:1.2}
+.d2-lamp.on{fill:var(--ok);stroke:var(--ok)}
+.d2-ledtxt{font:700 10px var(--mono);fill:#e9e3d5;text-anchor:middle}
+.d2-lamp:not(.on)+.d2-ledtxt{fill:#8a7f6d}
+.d2-ledname{font:600 8.5px var(--mono);fill:#5d554a;text-anchor:middle}
+.d2-led.extra .d2-lamp{stroke:#6f8fa8;stroke-dasharray:3 2}
+
+/* Visualizador de 7 segmentos. */
+.d2-dsbox{fill:#1d1b18;stroke:#0d0c0b;stroke-width:1.4}
+.d2-seg{stroke:#2f2b26;stroke-width:4;stroke-linecap:round}
+.d2-seg.on{stroke:#ff5a4d;filter:drop-shadow(0 0 4px rgba(255,90,77,.75))}
+.d2-segdot{fill:#2f2b26}
+.d2-segdot.on{fill:#ff5a4d;filter:drop-shadow(0 0 4px rgba(255,90,77,.75))}
+.d2-dsname{font:600 8.5px var(--mono);fill:#8a8172}
+
+/* Marca del primer agujero de un cable manual. */
+.d2-cablefrom{
+  fill:none;stroke:var(--warn);stroke-width:2.2;stroke-dasharray:3 3;
+  animation:d2pulse 1.1s ease-in-out infinite;
+}
+@keyframes d2pulse{
+  0%,100%{opacity:.45;r:6}
+  50%{opacity:1;r:8}
+}
+
+/* Ayuda al montaje: el agujero de debajo del puntero y el cable de goma
+   que sale del primer extremo mientras se tiende un cable. La capa no
+   recibe clics (`pointer-events:none`): si los recibiera, el aro taparía
+   justo el agujero que está señalando y no se podría pulsar. */
+.d2-hover{pointer-events:none}
+.d2-hover-ring{
+  fill:none;stroke:var(--canvas-ink);stroke-width:1.8;opacity:.55;
+}
+.d2-rubber{
+  fill:none;stroke:#00b8d4;stroke-width:2.4;stroke-linecap:round;
+  stroke-dasharray:6 5;opacity:.9;
+}
+/* Red señalada al pasar el ratón por un cable. El color y el grosor van
+   como atributos de presentación en el `path`, y una regla CSS gana
+   siempre a un atributo de presentación: no hace falta `!important`. */
+.d2-wire.hl{stroke:#00b8d4;stroke-width:3.4}
+
+/* ============================================================
+   6 · PROTOBOARD 3D
+   ============================================================ */
+#threeD{
+  width:100%;height:100%;display:block;
+  border:1px solid var(--border);border-radius:10px;
+  /* El fondo de escena del tema (antes un azul fijo que no casaba con
+     los temas cálidos). */
+  background:var(--stage-bg,radial-gradient(ellipse at 50% 0%, #16202c 0%, #070a0e 70%));
+  touch-action:none;cursor:grab;
+}
+#threeD:active{cursor:grabbing}
+[data-theme="light"] #threeD,[data-theme="sepia"] #threeD,[data-theme="ivory"] #threeD,[data-theme="deepseek"] #threeD,[data-theme="custom-light"] #threeD,[data-theme="workbuddy"] #threeD{
+  background:radial-gradient(ellipse at 50% 0%, #f4f0e6 0%, #d8d2c4 75%);
+}
+
+/* ---------- Barra de estado ---------- */
+.sim-status .ok{color:var(--ok)}
+.sim-status .bad{color:var(--err)}
+#status.err{color:var(--err)}
+
+/* El interruptor del sonido: el altavoz de la barra. Apagado se le ve
+   la cruz y las ondas desaparecen, así que el estado se lee sin pasar
+   el ratón por encima. */
+.sim-status .snd{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:22px;padding:0;margin-right:10px;flex:none;
+  border:1px solid var(--border);border-radius:6px;
+  background:var(--surface);color:var(--text);cursor:pointer;
+  transition:color .15s ease,border-color .15s ease;
+}
+.sim-status .snd svg{
+  width:15px;height:15px;fill:none;stroke:currentColor;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+}
+.sim-status .snd .snd-box{fill:currentColor;stroke:none}
+.sim-status .snd .snd-cross{display:none}
+.sim-status .snd:hover{border-color:var(--accent)}
+.sim-status .snd.off{color:var(--text-mute)}
+.sim-status .snd.off .snd-wave{display:none}
+.sim-status .snd.off .snd-cross{display:inline}
+.sim-status .snd:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* ---------- Pantallas estrechas ---------- */
+@media (max-width:1180px){
+  .dig-body[data-view="sch"],
+  .dig-body[data-view="2d"],
+  .dig-body[data-view="3d"]{grid-template-columns:186px minmax(0,1fr) 244px}
+  /* Con la guía abierta el panel se ensancha también aquí: si no, el
+     texto del paso se parte en seis renglones. */
+  .dig-body.guide-open[data-view="2d"],
+  .dig-body.guide-open[data-view="3d"]{grid-template-columns:186px minmax(0,1fr) 300px}
+  .pal-grid{grid-template-columns:1fr}
+  .dt-exprhint{display:none}
+}
+@media (max-width:900px){
+  /* En vertical la paleta y el panel ya no caben al lado: bajan y la
+     página se desplaza. El escenario se queda con un alto mínimo para
+     que el lienzo no se aplaste a cero (era lo que dejaba el 3D en
+     blanco en ventanas estrechas). */
+  .dig-body[data-view="sch"],
+  .dig-body[data-view="2d"],
+  .dig-body[data-view="3d"]{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    overflow-y:auto;
+  }
+  /* La guía abierta no cambia el reparto en vertical: ya es una sola
+     columna (y sin esto, la regla de escritorio —más específica— dejaría
+     tres columnas de 186/300 px en un móvil). */
+  .dig-body.guide-open[data-view="2d"],
+  .dig-body.guide-open[data-view="3d"]{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+  }
+  .dg-guide{position:static}
+  .dg-guide-list{max-height:160px}
+  .dig-stage{min-height:min(58vh,480px)}
+  .dig-pal{
+    order:3;max-height:34vh;
+    border-right:none;border-top:1px solid var(--glass-border);
+  }
+  .dig-side{
+    order:2;max-height:40vh;
+    border-left:none;border-top:1px solid var(--glass-border);
+  }
+  .pal-grid{grid-template-columns:1fr 1fr}
+  .dt-card{max-width:none}
+}
+
+/* ---------- editor de la PLA ----------
+   Ocho filas de término producto por cuatro columnas de entrada y cuatro
+   de salida. Las celdas son botones porque se pulsan: un «·» es «no
+   importa», la letra sola es la entrada tal cual y la letra con raya
+   encima es la negada. Todo con variables para que aguante los cinco
+   temas sin quedar ilegible en el claro. */
+.pla-grid{
+  display:flex;flex-direction:column;gap:2px;
+  margin:2px 0 8px;
+}
+.pla-row{
+  display:grid;
+  grid-template-columns:16px repeat(4,1fr) 6px repeat(4,1fr);
+  gap:2px;align-items:center;
+}
+.pla-head span{
+  font:500 9.5px var(--mono);color:var(--text-mute);
+  text-align:center;letter-spacing:.04em;
+}
+.pla-head .pla-n{text-align:left}
+.pla-n{
+  font:400 9px var(--mono);color:var(--text-mute);text-align:left;
+}
+.pla-sep{width:1px;height:14px;background:var(--border-hi);justify-self:center}
+.pla-cell{
+  appearance:none;border:1px solid var(--border);background:var(--surface);
+  color:var(--text-dim);border-radius:4px;
+  font:500 10px var(--mono);line-height:1;
+  padding:4px 0;cursor:pointer;
+  transition:background .12s,color .12s,border-color .12s;
+}
+.pla-cell:hover{border-color:var(--border-hi);color:var(--text)}
+.pla-cell.any{color:var(--text-mute);background:transparent}
+.pla-cell.pos{color:var(--text);background:rgba(var(--accent-rgb),.14);border-color:rgba(var(--accent-rgb),.45)}
+.pla-cell.neg{
+  color:var(--accent-ink);background:rgba(var(--accent-rgb),.07);
+  border-color:rgba(var(--accent-rgb),.3);
+  text-decoration:overline;
+}
+.pla-cell.pla-out{color:var(--text-mute);background:transparent}
+.pla-cell.pla-out.on{
+  color:var(--ok);border-color:rgba(var(--ok-rgb),.5);
+  background:rgba(var(--ok-rgb),.15);font-weight:700;
+}
+.sd-pla-sums li{font:400 10px var(--mono)}
+.sd-pla-sums li b{font-weight:500;color:var(--accent-ink);font-size:10px}
+
+/* ---------- guardar / abrir ----------
+   Va en la barra de herramientas pero fuera de los bloques dig-ctx: el
+   archivo es del circuito entero, no de la vista que esté abierta. */
+.dig-file{display:flex;align-items:center;gap:6px}
+
+/* ---------- frecuencia del reloj ----------
+   Va dentro de la fila de la pieza, entre el nombre y el valor: es un
+   control pequeño a propósito, para que la lista siga leyéndose. */
+.sd-hz{
+  appearance:none;margin-left:auto;margin-right:6px;
+  background:var(--surface);color:var(--text-dim);
+  border:1px solid var(--border);border-radius:4px;
+  font:500 9.5px var(--mono);padding:2px 4px;cursor:pointer;
+  max-width:66px;
+}
+.sd-hz:hover{border-color:var(--border-hi);color:var(--text)}
+.sd-hz:focus-visible{outline:1px solid var(--accent);outline-offset:1px}
+.sd-list li .sd-hz + b{margin-left:0}
+.sim-speed select{max-width:74px}
+
+/* ============================================================
+   9 · BIBLIOTECA DE COMPONENTES
+   ------------------------------------------------------------
+   La paleta suma grupos nuevos y el esquemático dibuja cajas con
+   cabecera y una fila por pata. Los colores salen del tema, así que
+   estas piezas cambian con el resto de la aplicación.
+   ============================================================ */
+
+/* Etiqueta corta de la paleta (MUX, DFF, RAM…). */
+.pal-item .pal-tag{
+  width:24px;height:22px;flex:none;display:grid;place-items:center;
+  font:700 9px var(--mono);letter-spacing:.02em;
+  color:var(--text-dim);background:var(--glass-control);
+  border:1px solid var(--glass-border);border-radius:6px;
+}
+.pal-item:hover .pal-tag,.pal-item.on .pal-tag{
+  color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.45);
+}
+.pal-item.pal-lib{padding:6px 8px}
+
+/* Caja de una pieza de biblioteca. */
+.dg-lib{cursor:grab}
+.dg-libbox{
+  fill:var(--canvas-paper);
+  stroke:var(--canvas-ink);stroke-width:1.9;
+}
+.dg-lib:hover .dg-libbox{stroke:var(--accent)}
+.dg-libhead{
+  stroke:var(--canvas-ink);stroke-width:1.2;stroke-opacity:.45;
+  marker-end:none;pointer-events:none;
+}
+.dg-libname{
+  font:600 10px var(--mono);fill:var(--canvas-ink);
+  letter-spacing:.02em;pointer-events:none;
+}
+.dg-libw{
+  font:500 8.5px var(--mono);fill:var(--canvas-ink2);pointer-events:none;
+}
+/* Texto libre sobre el plano. El
+   `cursor` lo pone el grupo, no la letra: el hueco entre dos palabras
+   también tiene que agarrarse, o arrastrar la nota se vuelve un juego. */
+.dg-note{cursor:move}
+/* Ojo con la fuente: aquí NO se pone `font-size`, porque el tamaño es un
+   parámetro de la pieza y viaja en el atributo del `<text>`. Una regla
+   con `font:` lo pisaría y todas las notas saldrían iguales. */
+.dg-notetext{
+  font-family:var(--mono);font-weight:500;fill:var(--canvas-ink);
+  paint-order:stroke;stroke:var(--canvas-paper);stroke-width:3px;stroke-linejoin:round;
+  user-select:none;
+}
+.dg-libpin{
+  font:500 9px var(--mono);fill:var(--canvas-ink2);pointer-events:none;
+}
+.dg-libval{
+  font:500 9px var(--mono);fill:var(--canvas-ink2);
+  pointer-events:none;opacity:.8;
+}
+.dg-libval.on{fill:var(--accent);opacity:1}
+.dg-clk{
+  fill:none;stroke:var(--canvas-ink2);stroke-width:1.4;
+  stroke-linejoin:round;pointer-events:none;
+}
+.dg-netval{
+  font:500 8.5px var(--mono);fill:var(--canvas-ink2);
+  pointer-events:none;opacity:.9;
+  paint-order:stroke;stroke:var(--canvas-paper);stroke-width:3px;
+}
+.dg-wire.bus{stroke-width:2.8;stroke-opacity:.72}
+.dg-wire.bus.on{stroke-width:3.2}
+
+/* ============================================================
+   Integrado del catálogo en el esquemático (.dg-chip*)
+   ------------------------------------------------------------
+   Un 74LS no es una caja con nombres: es su símbolo. La caja lleva el
+   nombre arriba, las patas numeradas por fuera, el nombre de cada pata
+   por dentro y la función dibujada en medio (cuatro NAND, el trapecio
+   del multiplexor, la Σ del sumador…).
+   ============================================================ */
+.dg-chip{cursor:grab}
+.dg-chipbox{
+  fill:var(--canvas-paper);
+  stroke:var(--canvas-ink);stroke-width:2;
+}
+.dg-chip:hover .dg-chipbox{stroke:var(--accent)}
+.dg-chip.sel .dg-chipbox{stroke:var(--warn);stroke-width:2.6}
+.dg-chiphead{
+  stroke:var(--canvas-ink);stroke-width:1.2;stroke-opacity:.5;
+  pointer-events:none;
+}
+.dg-chipname{
+  font:700 11px var(--mono);fill:var(--canvas-ink);
+  letter-spacing:.03em;pointer-events:none;
+}
+.dg-chipfoot{
+  font:500 7.5px var(--mono);fill:var(--canvas-ink2);
+  opacity:.8;pointer-events:none;
+}
+.dg-chipart{
+  fill:none;stroke:var(--canvas-ink);stroke-width:1.5;
+  stroke-linejoin:round;stroke-linecap:round;
+  pointer-events:none;
+}
+.dg-chiplabel{
+  fill:var(--canvas-ink2);font:600 9px var(--mono);
+  text-anchor:middle;pointer-events:none;
+}
+.dg-chipstub{
+  fill:none;stroke:var(--canvas-ink2);stroke-width:1.6;
+  stroke-linecap:round;stroke-opacity:.75;pointer-events:none;
+}
+.dg-chipstub.on{stroke:var(--accent);stroke-opacity:1}
+/* Burbuja de la pata activa por nivel bajo: el hueco se rellena con el
+   fondo del lienzo, no con blanco, o en tema oscuro sale un punto claro. */
+.dg-chiplow{
+  fill:var(--canvas-bg, #fff);stroke:var(--canvas-ink2);stroke-width:1.1;
+  pointer-events:none;
+}
+.dg-chipnum{
+  font:600 7.5px var(--mono);fill:var(--canvas-ink2);
+  opacity:.7;pointer-events:none;
+}
+.dg-chippin{
+  font:500 9px var(--mono);fill:var(--canvas-ink2);
+  pointer-events:none;
+}
+.dg-chipval{
+  font:600 9px var(--mono);fill:var(--canvas-ink2);
+  opacity:.65;pointer-events:none;
+}
+.dg-chipval.on{fill:var(--accent);opacity:1}
+/* Cuña de la entrada de reloj. */
+.dg-chipclk{
+  fill:none;stroke:var(--canvas-ink);stroke-width:1.4;
+  stroke-linejoin:round;stroke-linecap:round;pointer-events:none;
+}
+
+/* Indicadores: LED, barra, 7 segmentos y sonda. */
+.dg-libled{
+  fill:var(--canvas-paper);stroke:var(--canvas-ink);stroke-width:1.4;
+  transition:fill .16s ease,stroke .16s ease;
+}
+.dg-libled.on{
+  fill:var(--ok);stroke:var(--ok);
+  filter:drop-shadow(0 0 6px rgba(var(--ok-rgb),.65));
+}
+.dg-libdisplay{
+  font:600 11px var(--mono);fill:var(--canvas-ink);
+  pointer-events:none;
+}
+.dg-libdisplay.err{fill:#e05252}
+
+/* El visualizador de siete segmentos del plano: la ventana oscura y los
+   siete segmentos, con los encendidos en rojo de display. Es el mismo
+   dibujo que el de la placa (`SEG_LINES`), así que el del esquemático y
+   el del montaje enseñan lo mismo con el mismo valor. */
+.dg-segdisp{pointer-events:none}
+.dg-segwin{
+  fill:#1d1b18;stroke:var(--canvas-ink);stroke-width:1.2;
+}
+.dg-seg{
+  stroke:#3a352f;stroke-width:3.2;stroke-linecap:round;
+  transition:stroke .12s ease;
+}
+.dg-seg.on{
+  stroke:#ff5a4d;filter:drop-shadow(0 0 3px rgba(255,90,77,.8));
+}
+.dg-segdot{fill:#3a352f}
+.dg-segdot.on{fill:#ff5a4d}
+.dg-segtip{
+  font:600 11px var(--mono);fill:var(--canvas-ink);
+  pointer-events:none;
+}
+
+/* Símbolo de las piezas de cableado (resistencia, transistor, tierra…):
+   el dibujo va en un cuadro de 24 unidades y se pinta con trazo, sin
+   relleno, como el resto del esquemático. */
+.dg-libglyph{
+  fill:none;stroke:var(--canvas-ink2);stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;pointer-events:none;
+}
+.dg-libglyph.on{stroke:var(--accent)}
+
+/* ---------- zumbador, LED de dos patas y matriz de puntos ----------
+   Las tres piezas que antes eran una caja con patas y nada dentro. El
+   dibujo va en la banda de debajo, como el símbolo de las piezas de
+   cableado, y se enciende con la misma señal que el resto. */
+.dg-buzz .dg-spk{
+  fill:var(--canvas-ink2);stroke:var(--canvas-ink2);stroke-width:1.2;
+  stroke-linejoin:round;pointer-events:none;
+}
+.dg-buzz .dg-wave{
+  fill:none;stroke:var(--canvas-ink2);stroke-width:1.5;stroke-linecap:round;
+  opacity:.45;pointer-events:none;
+}
+.dg-buzz.on .dg-spk{fill:var(--accent);stroke:var(--accent)}
+.dg-buzz.on .dg-wave{stroke:var(--accent);opacity:1}
+/* Las ondas laten sólo mientras suena: en una captura se ve si el
+   zumbador está chillando o callado, que es lo que el oído ya sabe. */
+.dg-buzz.on .dg-wave{animation:dg-buzz-pulse .42s ease-in-out infinite alternate}
+.dg-buzz.on .dg-wave.w2{animation-delay:.14s}
+@keyframes dg-buzz-pulse{
+  from{opacity:.3;stroke-width:1.3}
+  to{opacity:1;stroke-width:2}
+}
+.dg-buzzhz{
+  font:600 8.5px var(--mono);fill:var(--canvas-ink2);
+  text-anchor:end;pointer-events:none;
+}
+.dg-buzz.on .dg-buzzhz{fill:var(--accent)}
+
+.dg-dled{
+  fill:none;stroke:var(--canvas-ink2);stroke-width:1.6;
+  stroke-linejoin:round;stroke-linecap:round;pointer-events:none;
+}
+.dg-dled.on{fill:var(--ok);stroke:var(--ok);fill-opacity:.28}
+.dg-dglow{
+  fill:var(--ok);fill-opacity:.2;pointer-events:none;
+}
+.dg-darrow{
+  fill:none;stroke:var(--canvas-ink2);stroke-width:1.1;
+  stroke-linecap:round;opacity:.5;pointer-events:none;
+}
+
+.dg-mxbg{
+  fill:rgba(0,0,0,.3);stroke:var(--canvas-ink2);stroke-opacity:.32;stroke-width:1;
+  pointer-events:none;
+}
+.dg-mxdot{fill:var(--accent);pointer-events:none}
+
+/* Formulario de parámetros del panel lateral. */
+.sd-field{
+  display:flex;align-items:center;gap:8px;justify-content:space-between;
+  margin-top:8px;
+  font:500 11.5px var(--sans);color:var(--text-dim);
+}
+.sd-field > span{flex:1;min-width:0}
+.sd-field input[type=number],.sd-field input[type=text],.sd-field select,.sd-field textarea{
+  width:96px;flex:none;
+  font:500 11px var(--mono);color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:6px;padding:4px 6px;
+}
+.sd-field textarea{
+  width:100%;min-height:66px;resize:vertical;
+  font:500 10.5px var(--mono);line-height:1.45;
+}
+.sd-field-col{display:block}
+.sd-field-col > span{display:block;margin-bottom:6px}
+.sd-check-field{justify-content:flex-start}
+.sd-check-field input{accent-color:var(--accent)}
+.sd-row{display:flex;gap:6px}
+
+/* Hojas del proyecto: una lista de nombres donde el que está abierto se
+   ve como una pestaña y el principal lleva su etiqueta. Los dos datos
+   —abierta y principal— son distintos a propósito: se puede editar una
+   hoja sin que sea la principal. */
+.sd-sheets{gap:2px}
+.sd-sheet{display:flex;align-items:center;gap:6px}
+.sd-sheet-open{
+  flex:1;min-width:0;text-align:left;
+  font:500 11px var(--sans);color:var(--text-dim);
+  background:none;border:0;border-radius:6px;
+  padding:4px 6px;cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sd-sheet-open:hover{background:var(--glass-control);color:var(--text)}
+.sd-sheet.on .sd-sheet-open{
+  color:var(--text);background:var(--glass-control);
+  box-shadow:inset 0 0 0 1px var(--glass-border);
+}
+.sd-sheet-main{
+  flex:none;font:600 9px var(--sans);letter-spacing:.04em;
+  text-transform:uppercase;color:var(--accent-ink);
+  opacity:.85;
+}
+
+/* Vista previa de la apariencia del subcircuito: el mismo dibujo que va
+   a salir en el plano, a escala del cuadro de 100 × 60. El trazo es de
+   un solo color y sin relleno, como el de un símbolo de esquemático. */
+.sd-artpreview{
+  display:block;width:100%;height:auto;
+  margin:2px 0 8px;
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);border-radius:8px;
+}
+.sd-artpreview .sd-art{
+  fill:none;stroke:var(--text-dim);stroke-width:1.6;
+  stroke-linejoin:round;stroke-linecap:round;
+}
+.sd-artpreview .sd-art text{
+  fill:var(--text);stroke:none;font:600 11px var(--sans);
+}
+.sd-artempty{fill:var(--text-dim);font:500 8px var(--sans)}
+/* Puntos de control del símbolo: un tirador por vértice y una cruz
+   tenue en el medio de cada segmento, donde se añade uno nuevo. */
+.sd-cp{fill:var(--accent);stroke:var(--bg,#fff);stroke-width:1;cursor:pointer}
+.sd-cp.sel{fill:#fff;stroke:var(--accent);stroke-width:2}
+.sd-cpadd{fill:none;stroke:var(--accent);stroke-width:1.2;opacity:.45;cursor:copy}
+.sd-cpadd:hover{opacity:1}
+/* Las dos caras del símbolo: disposición y apariencia. */
+.sd-tabs{display:flex;gap:4px;margin:0 0 6px}
+.sd-tab{
+  flex:1;appearance:none;cursor:pointer;
+  font:600 10px var(--sans);letter-spacing:.03em;
+  padding:6px 6px;border-radius:8px;
+  border:1px solid var(--glass-border);background:var(--glass-control);color:var(--text-dim);
+}
+.sd-tab.on{color:var(--text);border-color:var(--accent);background:var(--glass-strong,rgba(0,0,0,.06))}
+.sd-mini{
+  appearance:none;cursor:pointer;width:20px;height:20px;padding:0;
+  font:600 11px var(--sans);line-height:1;
+  border-radius:6px;border:1px solid var(--glass-border);
+  background:var(--glass-control);color:var(--text-dim);
+}
+.sd-mini:hover{color:var(--text);border-color:var(--accent)}
+.sd-lay li{gap:4px}
+/* El mismo dibujo dentro de la pieza, en el plano. */
+.dg-libart .dg-art{
+  fill:none;stroke:var(--text-dim);stroke-width:1.4;
+  stroke-linejoin:round;stroke-linecap:round;
+}
+.dg-libart .dg-art text{fill:var(--text);stroke:none;font:600 11px var(--sans)}
+
+/* Rejilla del divisor de bus: una fila por rama. Las casillas son
+   estrechas a propósito —un bit es un número de una o dos cifras— y el
+   botón de quitar va pegado a la derecha para que no se pulse sin
+   querer. */
+.sd-split{display:flex;flex-direction:column;gap:6px}
+.sd-split-row{
+  display:flex;align-items:center;gap:6px;
+}
+.sd-split-row label{
+  display:flex;align-items:center;gap:4px;
+  font:500 10.5px var(--sans);color:var(--text-dim);
+}
+.sd-split-row input[type=number]{
+  width:52px;
+  font:500 11px var(--mono);color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:6px;padding:4px 6px;
+}
+.sd-split-del{
+  margin-left:auto;flex:none;
+  width:22px;height:22px;line-height:1;border-radius:6px;
+  border:1px solid var(--glass-border);background:var(--glass-control);
+  color:var(--text-dim);font:500 13px var(--sans);cursor:pointer;
+}
+.sd-split-del:hover{color:var(--err);border-color:var(--err)}
+.sd-split-add{
+  margin-top:8px;width:100%;
+  font:500 11px var(--sans);color:var(--text-dim);
+  background:var(--glass-control);border:1px dashed var(--glass-border);
+  border-radius:6px;padding:6px 8px;cursor:pointer;
+}
+.sd-split-add:hover{color:var(--text);border-color:var(--accent)}
+.sd-hint{
+  margin-top:6px;font:400 10.5px var(--sans);color:var(--text-dim);
+  line-height:1.45;opacity:.85;
+}
+
+/* ============================================================
+   10 · ESPEJO DEL ESQUEMÁTICO EN 2D Y 3D
+   ------------------------------------------------------------
+   La placa y el esquemático son dos caras del mismo circuito. En 2D
+   se reparten el alto (placa arriba, esquema abajo); en 3D el espejo
+   flota sobre la escena para no tapar el montaje.
+   ============================================================ */
+#view-2d.on{padding:0}
+.dig-split{
+  display:grid;grid-template-rows:minmax(0,1fr) minmax(180px,34%);
+  gap:8px;height:100%;min-height:0;
+}
+#view-2d #svgBoard2d{min-height:0}
+.dig-mirror{
+  position:relative;display:flex;flex-direction:column;min-height:0;
+  background:var(--canvas-paper);
+  border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;
+}
+.dig-mirror-head{
+  flex:none;padding:6px 10px;
+  font:600 9.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-mute);
+  border-bottom:1px solid var(--border);
+  background:var(--glass-1);
+}
+.dig-mirror svg{
+  flex:1;display:block;width:100%;height:100%;min-height:0;
+  touch-action:none;color:var(--canvas-ink2);
+}
+#view-3d.on{position:relative}
+.dig-mirror.float{
+  position:absolute;right:14px;bottom:14px;
+  width:44%;height:46%;min-height:180px;z-index:4;
+  box-shadow:0 18px 46px rgba(0,0,0,.45);
+  background:color-mix(in srgb, var(--canvas-paper) 94%, transparent);
+  backdrop-filter:blur(5px);
+}
+@media (max-width: 900px){
+  .dig-split{grid-template-rows:minmax(0,1fr) minmax(150px,40%)}
+  .dig-mirror.float{width:62%;height:38%;right:8px;bottom:8px}
+}
+
+/* ---------- Guía de montaje ----------
+   Vive en la columna derecha, como una sección más del panel, y no
+   flotando sobre la placa: flotando tapaba justo la tira de
+   interruptores y las primeras columnas, que es donde manda poner las
+   piezas. Se queda pegada arriba (`sticky`) para que no se pierda al
+   bajar a mirar los integrados o la comprobación. */
+.dig-body.guide-open[data-view="2d"],
+.dig-body.guide-open[data-view="3d"]{
+  grid-template-columns:214px minmax(0,1fr) 336px;
+}
+.dg-guide{
+  position:sticky;top:0;z-index:2;
+  background:var(--glass-1);
+  backdrop-filter:blur(var(--blur-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+  border:1px solid var(--accent);
+  border-radius:10px;
+}
+.dg-guide .sd-h{display:flex;align-items:center;gap:6px}
+.dg-guide-count{
+  margin-left:auto;font:600 9.5px var(--mono);color:var(--text-mute);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.dg-guide-x{
+  flex:none;width:18px;height:18px;line-height:1;padding:0;
+  border:1px solid var(--border);border-radius:6px;
+  background:transparent;color:var(--text-mute);cursor:pointer;
+  font:600 12px var(--mono);
+}
+.dg-guide-x:hover{color:var(--text);border-color:var(--accent)}
+/* El paso actual, en grande: es lo que se lee de un vistazo mientras se
+   tienen las manos en la placa. */
+.dg-guide-now{
+  padding:8px 10px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  font:600 11.5px/1.45 var(--mono);color:var(--canvas-ink);
+}
+.dg-guide-list{
+  margin:0;padding:6px;list-style:none;counter-reset:paso;
+  max-height:230px;overflow:auto;
+}
+.dg-guide-list li{
+  counter-increment:paso;
+  display:flex;gap:6px;align-items:flex-start;
+  padding:4px 6px;border-radius:6px;cursor:pointer;
+  font:500 10px/1.35 var(--mono);color:var(--text-mute);
+}
+.dg-guide-list li::before{
+  content:counter(paso);
+  flex:none;width:14px;text-align:right;color:var(--text-mute);
+  font-variant-numeric:tabular-nums;
+}
+.dg-guide-list li:hover{background:var(--glass-1);color:var(--text)}
+.dg-guide-list li.done{opacity:.6}
+.dg-guide-list li.done::before{content:"✓";color:var(--ok)}
+.dg-guide-list li.now{
+  color:var(--text);background:color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow:inset 2px 0 0 var(--accent);
+}
+.dg-guide-foot{display:flex;gap:6px;padding:6px 8px;border-top:1px solid var(--border)}
+.dg-guide-btn{
+  flex:1;padding:6px 6px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--border);background:transparent;
+  color:var(--text);font:600 10px var(--mono);
+}
+.dg-guide-btn:hover:not(:disabled){border-color:var(--accent)}
+.dg-guide-btn:disabled{opacity:.4;cursor:default}
+.dg-guide-btn.accent{border-color:var(--accent);color:var(--accent-ink)}
+
+/* ---------- Nivel lógico en las patas (placa 2D) ----------
+   Un punto por pata: apagado cuando la red está a 0, encendido con el
+   acento cuando está a 1, y con anillo cian cuando esa red es la que se
+   está mirando. El punto va DENTRO del agujero y no recibe clics: la
+   zona que cablea sigue siendo `.d2-pin`, que va por encima. */
+.d2-pinlv{fill:rgba(255,255,255,.22);stroke:none;pointer-events:none}
+.d2-pinlv.on{fill:var(--accent);filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),calc(.65 * var(--glow,1))))}
+.d2-pinlv.hl{stroke:#00b8d4;stroke-width:1.8;fill:#00b8d4}
+/* Los dos estados que no son un nivel: E (dos salidas peleando) y Z (red
+   que nadie mueve). El rojo y el hueco son los mismos que usa el plano
+   para un cable en conflicto, así que las dos vistas dicen lo mismo. */
+.d2-pinlv.err{fill:#e05252;stroke:#ffb4b4;stroke-width:1.1}
+.d2-pinlv.float{fill:none;stroke:#6aa9e0;stroke-width:1.3;stroke-dasharray:2 1.6}
+.d2-nethl{fill:none;stroke:#00b8d4;stroke-width:2;opacity:.8;pointer-events:none}
+
+/* ---------- Osciloscopio dibujado ----------
+   En el plano la ventana es una caja oscura con una línea de base por
+   canal y el trazo encima; sin muestras queda vacía y con el aviso
+   «Pulsa Paso», que es lo que evita confundirla con una pieza muda. */
+.dg-scope{fill:rgba(0,0,0,.28);stroke:var(--accent);stroke-opacity:.34;stroke-width:1.2}
+.dg-scopebase{stroke:var(--canvas-ink2);stroke-opacity:.2;stroke-width:1;stroke-dasharray:2 3}
+.dg-trace{fill:none;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;opacity:.95}
+.dg-scopetip{fill:var(--canvas-ink2);opacity:.55;font:500 8px var(--mono);text-anchor:middle}
+
+/* La misma onda, en el panel lateral. */
+.sd-scope{
+  height:104px;margin:0 0 8px;border-radius:8px;overflow:hidden;
+  background:var(--glass-control);border:1px solid var(--glass-border);
+}
+.sd-scope svg{display:block;width:100%;height:100%}
+.sd-swatch{
+  display:inline-block;flex:none;width:8px;height:8px;border-radius:2px;
+  margin-right:6px;vertical-align:middle;
+}
+
+/* ---------- Buscador de integrados ----------
+   El desplegable tiene 105 piezas: sin filtro, encontrar el 74181 es
+   desplazar a ciegas. El campo va pegado al select y lo filtra por id,
+   nombre, título y categoría. */
+.chip-pick{margin-left:0;gap:6px}
+.chip-filter{
+  font:500 12px var(--sans);color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  border-radius:8px;padding:6px 10px;width:104px;outline:none;
+}
+.chip-filter:hover{border-color:var(--glass-border-hi)}
+.chip-filter:focus{border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 3px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)))}
+.chip-filter::placeholder{color:var(--text-mute)}
+
+/* ---------- Zoom del esquemático ----------
+   El widget (#zoomWidget) es el mismo del traductor y vive en
+   css/theme.css; aquí sólo se le da un contenedor posicionado y se
+   dibuja el recuadro del zoom por zona. */
+#view-sch{position:relative}
+#view-sch #zoomWidget{bottom:12px;left:12px}
+/* Mientras se elige la zona el puntero es una cruz: si no, el usuario
+   no sabe que el siguiente arrastre encuadra en vez de mover piezas. */
+#view-sch.zooming #svgSch{cursor:crosshair}
+.dg-zoombox{
+  fill:rgba(var(--accent-rgb),.10);
+  stroke:var(--accent);stroke-width:1.4;stroke-dasharray:5 4;
+  pointer-events:none;
+}
+
+/* Recuadro de selección: mismo gesto que el zoom por zona pero para
+   marcar piezas. Se distingue del de zoom por el color y el relleno. */
+.dg-marquee{
+  fill:rgba(var(--accent-rgb),.07);
+  stroke:var(--accent);stroke-width:1.2;stroke-dasharray:4 3;
+  pointer-events:none;
+}
+
+/* El quiebro del cable: una bolita en el codo. Con el puntero encima
+   crece, para que se vea que se puede agarrar. */
+.dg-bend{
+  fill:var(--warn);stroke:var(--panel,#0b1018);stroke-width:1.5;
+  cursor:grab;
+}
+.dg-bend:hover{r:6.5}
+
+/* ---------- Fijar el circuito (el candado del traductor) ----------
+   Puesto, la paleta se apaga y el lienzo sigue dejándose mirar y
+   simular. El candado cerrado se marca con el acento, como en la
+   protoboard del traductor. */
+.sim-tool.lock-btn{display:inline-flex;align-items:center;gap:6px}
+.lock-ico{width:14px;height:14px;display:block;pointer-events:none}
+.sim-tool.lock-btn[aria-pressed="true"]{
+  background:linear-gradient(180deg,rgba(var(--accent-rgb),.24),rgba(var(--accent-rgb),.08));
+  border-color:rgba(var(--accent-rgb),.5);color:var(--accent-ink);
+}
+#digBody.locked .dig-pal{opacity:.42;pointer-events:none}
+#digBody.locked .dt-y{cursor:default}
+
+/* ---------- zoom por zona en la placa (2D y 3D) ----------
+   El recuadro que se arrastra con la lupa encendida. En el 2D va dentro
+   del SVG y se dibuja con `vector-effect` para que el trazo no engorde al
+   acercarse; en el 3D es una capa HTML encima del lienzo. */
+.d2-zone{
+  fill:rgba(0,184,212,.10);stroke:#00b8d4;stroke-width:1.4;
+  stroke-dasharray:5 4;vector-effect:non-scaling-stroke;pointer-events:none;
+}
+.d3-zone{
+  position:fixed;display:none;pointer-events:none;z-index:60;border-radius:4px;
+  border:1.5px dashed #00b8d4;background:rgba(0,184,212,.12);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.10);
+}
+
+/* Los desplegables del 3D no pueden encogerse: sin un mínimo, el de
+   «Vista» se queda en «Diago…» en cuanto la barra se llena, y un
+   desplegable truncado no dice qué hay elegido. */
+#view3Sel, #viewMode3Sel{min-width:104px}
+
+/* Leyenda del modo de análisis (Voltaje / Corriente). Va sobre el lienzo,
+   en la esquina superior izquierda, porque el 3D no tiene DOM donde
+   colgarla: es lo único que explica qué significa el color de un cable. */
+.d3-legend{
+  position:absolute;left:14px;top:14px;z-index:6;pointer-events:none;
+  width:186px;padding:10px 12px 8px;border-radius:10px;
+  background:color-mix(in srgb, var(--canvas-paper) 88%, transparent);
+  border:1px solid var(--line);box-shadow:0 6px 18px rgba(20,24,30,.14);
+  backdrop-filter:blur(6px);
+}
+.d3-legend-cap{
+  font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--canvas-ink);margin-bottom:6px;
+}
+.d3-legend-bar{
+  height:9px;border-radius:6px;
+  background:linear-gradient(90deg,#2f6bd6 0%,#9aa0a6 50%,#d64545 100%);
+  border:1px solid rgba(0,0,0,.10);
+}
+.d3-legend[data-mode="curr"] .d3-legend-bar{
+  background:linear-gradient(90deg,#2f6bd6 0%,#f4a261 50%,#d64545 100%);
+}
+.d3-legend-ends{
+  display:flex;justify-content:space-between;margin-top:4px;
+  font-family:var(--mono);font-size:10px;color:var(--canvas-ink-soft);
+}
+.d3-legend-note{
+  margin-top:6px;font-size:10px;line-height:1.35;color:var(--canvas-ink-soft);
+}
+
+/* ============================================================
+   Barra de menús
+   ------------------------------------------------------------
+   Los cinco menús con sus entradas. La barra va debajo de
+   la cabecera y encima de la barra de herramientas, y se come el ancho
+   entero: es la primera cosa que se mira para saber qué hay.
+
+   Una entrada que no aplica se queda en el menú, apagada y con su
+   motivo en el `title`. Esconderla daría a entender que no existe, y el
+   objetivo de esta barra es justo el contrario: que se pueda contar.
+   ============================================================ */
+.dig-menubar{
+  flex:none;position:relative;z-index:40;
+  background:var(--glass-1);
+  border-bottom:1px solid var(--glass-border);
+  padding:0 8px;
+}
+.mb-bar{display:flex;align-items:stretch;gap:2px;font:500 12.5px var(--sans)}
+.mb-menu{position:relative}
+
+.mb-top{
+  display:inline-flex;align-items:center;
+  padding:6px 12px;border:0;background:transparent;cursor:pointer;
+  color:var(--text-dim);font:500 12.5px var(--sans);border-radius:6px;
+  transition:background .15s,color .15s;
+}
+.mb-top:hover{color:var(--accent-ink);background:rgba(var(--accent-rgb),.07)}
+.mb-menu.open .mb-top{
+  color:var(--accent-ink);background:rgba(var(--accent-rgb),.13);
+  box-shadow:inset 0 -2px 0 var(--accent);
+}
+
+.mb-panel{
+  position:absolute;top:calc(100% + 2px);left:0;min-width:258px;
+  padding:6px;border-radius:10px;
+  background:var(--surface);
+  border:1px solid var(--glass-border);
+  box-shadow:0 18px 40px rgba(0,0,0,.34), 0 2px 6px rgba(0,0,0,.2);
+  max-height:min(72vh, 620px);overflow:auto;
+}
+
+.mb-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:6px 10px;border:0;border-radius:6px;background:transparent;
+  color:var(--text);font:500 12.5px var(--sans);text-align:left;cursor:pointer;
+}
+.mb-item:hover:not(:disabled){background:rgba(var(--accent-rgb),.12);color:var(--accent-ink)}
+.mb-lbl{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mb-item kbd{
+  font:500 10px var(--mono);padding:0 4px;border:1px solid var(--border);
+  border-radius:4px;color:var(--text-mute);flex:none;
+}
+/* Lo que no aplica: se lee, pero no se pulsa. */
+.mb-item.na{color:var(--text-mute);cursor:default;opacity:.72}
+.mb-na{
+  font:600 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-mute);border:1px solid var(--border);border-radius:4px;
+  padding:2px 4px;flex:none;
+}
+.mb-arrow{color:var(--text-mute);font-size:10px;flex:none}
+.mb-item.has-sub.open{background:rgba(var(--accent-rgb),.10);color:var(--accent-ink)}
+
+.mb-subpanel{
+  margin:2px 0 4px 12px;padding:4px 0 4px 8px;
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;gap:2px;
+  max-height:280px;overflow:auto;
+}
+.mb-subitem{padding:4px 8px;font-weight:400;font-size:12px}
+.mb-subitem.on{color:var(--accent-ink);background:rgba(var(--accent-rgb),.10)}
+.mb-empty{padding:6px 10px;color:var(--text-mute);font:400 12px var(--sans)}
+.mb-sep{height:1px;margin:4px 6px;background:var(--border)}
+
+/* ---------- diálogo compartido ---------- */
+.mb-back{
+  position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:rgba(0,0,0,.46);backdrop-filter:blur(3px);
+}
+.mb-back[hidden]{display:none}
+.mb-dialog{
+  width:min(760px,100%);max-height:min(86vh,780px);display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;
+  box-shadow:0 30px 70px rgba(0,0,0,.42);
+}
+.mb-dialog-head{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border-bottom:1px solid var(--border);
+}
+.mb-dialog-title{margin:0;font:600 15px var(--sans);color:var(--text);flex:1 1 auto}
+.mb-dialog-close{
+  border:0;background:transparent;color:var(--text-dim);cursor:pointer;
+  font:400 20px/1 var(--sans);padding:2px 6px;border-radius:6px;
+}
+.mb-dialog-close:hover{color:var(--accent-ink);background:rgba(var(--accent-rgb),.1)}
+.mb-dialog-body{padding:14px 16px;overflow:auto;font:400 13px var(--sans);color:var(--text-dim)}
+.mb-dialog-body h3{margin:14px 0 6px;font:600 13px var(--sans);color:var(--text)}
+.mb-dialog-body h3:first-child{margin-top:0}
+.mb-dialog-body ul{margin:0 0 8px;padding-left:18px}
+.mb-dialog-body li{margin:2px 0}
+.mb-dialog-body code{font:500 12px var(--mono);color:var(--text)}
+.mb-dialog-body table{border-collapse:collapse;width:100%;margin:6px 0 10px}
+.mb-dialog-body th,.mb-dialog-body td{
+  text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);
+  font:400 12.5px var(--sans);
+}
+.mb-dialog-body th{color:var(--text);font-weight:600}
+.mb-dialog-body .mb-ok{color:var(--ok)}
+.mb-dialog-body .mb-na-txt{color:var(--text-mute)}
+
+/* Buscador de acciones. */
+.mb-search{
+  display:flex;gap:8px;align-items:center;margin-bottom:10px;
+}
+.mb-search input{
+  flex:1 1 auto;padding:8px 12px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg2);color:var(--text);
+  font:400 13px var(--sans);
+}
+.mb-search input:focus{outline:none;border-color:rgba(var(--accent-rgb),.6)}
+.mb-results{display:flex;flex-direction:column;gap:2px}
+.mb-result{
+  display:flex;align-items:center;gap:10px;width:100%;padding:6px 10px;
+  border:0;border-radius:6px;background:transparent;color:var(--text);
+  font:400 12.5px var(--sans);text-align:left;cursor:pointer;
+}
+.mb-result:hover{background:rgba(var(--accent-rgb),.12);color:var(--accent-ink)}
+.mb-result .mb-where{font:500 10px var(--mono);color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em}
+.mb-result[disabled]{opacity:.55;cursor:default}
+
+/* ---------- Menú contextual de la placa (botón derecho) ---------- */
+/* Menú del botón derecho: girar, duplicar, borrar, agrupar cables. Va
+   en `position:fixed` porque se coloca con las
+   coordenadas del puntero y no debe moverse al desplazar la página. */
+.ctx-menu{
+  position:fixed;z-index:90;min-width:172px;padding:6px;border-radius:10px;
+  background:var(--panel-2,#221f1c);border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 14px 34px rgba(0,0,0,.5);
+}
+.ctx-menu[hidden]{display:none}
+.ctx-item{
+  display:block;width:100%;text-align:left;padding:8px 10px;border-radius:6px;
+  background:none;border:0;color:var(--text,#e9e3d5);cursor:pointer;
+  font:500 12.5px var(--sans);
+}
+.ctx-item:hover,.ctx-item:focus-visible{background:rgba(var(--accent-rgb),.16);outline:none}
+.ctx-item.danger{color:var(--warn)}
+.ctx-sep{height:1px;margin:6px 6px;background:rgba(255,255,255,.12)}
+
+/* La zona de la placa se marca mientras se arrastra una pieza encima:
+   sin eso no se sabe si el navegador va a aceptar el soltado. */
+#view-2d.drop-ok,#view-3d.drop-ok{outline:2px dashed var(--warn);outline-offset:-6px}
+
+/* ---------- Arduino Uno en la protoboard 2D ---------- */
+.d2-uno-pcb{fill:#00878f;stroke:#006468;stroke-width:1.4}
+.d2-uno-hole{fill:#f1eee7;stroke:#c9c1a8;stroke-width:1.6}
+.d2-uno-usb{fill:#b7bcc2;stroke:#7d848c;stroke-width:1.2}
+.d2-uno-jack{fill:#191919;stroke:#000;stroke-width:1}
+.d2-uno-mcu{fill:#1b1b1b;stroke:#000;stroke-width:1}
+.d2-uno-notch{fill:#0b0b0b}
+.d2-uno-chip{fill:#cfc9bd;font:600 8px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em}
+.d2-uno-rst{fill:#d8d8d8;stroke:#8a8a8a;stroke-width:.8}
+.d2-uno-rstcap{fill:#c0392b}
+.d2-uno-logo{fill:#fff;font:800 26px system-ui,sans-serif;letter-spacing:.08em;opacity:.92}
+.d2-uno-name{fill:#e6fbfb;font:600 9px "JetBrains Mono",ui-monospace,monospace;opacity:.8}
+.d2-uno-led{fill:#5a4a2a;stroke:#2c2414;stroke-width:.6}
+.d2-uno-led.green{fill:#2c4a2c}
+.d2-uno-led.amber.on{fill:#ffb020;filter:drop-shadow(0 0 4px rgba(255,176,32,.95))}
+.d2-uno-led.green.on{fill:#3ddc6a;filter:drop-shadow(0 0 4px rgba(61,220,106,.9))}
+.d2-uno-ledlbl{fill:#e6fbfb;font:600 6.5px "JetBrains Mono",ui-monospace,monospace}
+.d2-uno-hdr{fill:#151515}
+.d2-uno-sock{fill:#3a3a3a;stroke:#000;stroke-width:.6}
+.d2-uno-sock.on{fill:#ff6b5b}
+.d2-uno-pin{fill:#fff;font:600 7px "JetBrains Mono",ui-monospace,monospace}
+.d2-uno-pin.deco{opacity:.6}
+.d2-uno-hdrlbl{fill:#e6fbfb;font:700 7px system-ui,sans-serif;letter-spacing:.08em;opacity:.85}
+.d2-uno.run .d2-uno-pcb{stroke:#00e0ff;stroke-width:2.2}
+
+/* ---------- ESP32 y Pico en la protoboard 2D ----------
+   La misma pieza que el Uno (26 patas) pero de pie y estrecha, con su
+   color, su módulo y sus botones. Los colores son los de la placa de
+   verdad: el DevKit es negro y la Pico verde oscuro. */
+.d2-mcu-pcb{fill:#1a1a1a;stroke:#000;stroke-width:1.4}
+.d2-mcu-pcb.pico{fill:#0d4a2f;stroke:#07331f}
+.d2-mcu-shield{fill:#b9bec4;stroke:#7d848c;stroke-width:1.1}
+.d2-mcu-ant{stroke:#8e959c;stroke-width:1.6;fill:none;opacity:.9}
+.d2-mcu-btn{fill:#2a2a2a;stroke:#5a5a5a;stroke-width:.9}
+.d2-mcu-btnlbl{fill:#cfc9bd;font:600 6px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.04em}
+.d2-mcu-logo{fill:#fff;font:800 15px system-ui,sans-serif;letter-spacing:.1em;opacity:.92}
+.d2-mcu-shieldlbl{fill:#33383d;font:700 7.5px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.04em}
+.d2-mcu.run .d2-mcu-pcb{stroke:#00e0ff;stroke-width:2.2}
+
+/* ---------- servo SG90 en el 2D (plan 06 · N-08) ---------- */
+.d2-sv-body{fill:#2f6fb0;stroke:#1d4a78;stroke-width:1.2}
+.d2-sv-tab{fill:#275d94;stroke:#1d4a78;stroke-width:.8}
+.d2-sv-horn{stroke:#e8e8e8;stroke-width:4;stroke-linecap:round}
+.d2-sv-hub{fill:#dcdcdc;stroke:#9a9a9a;stroke-width:.8}
+.d2-sv-name{fill:#6f665a;font:600 7px "JetBrains Mono",ui-monospace,monospace}
+/* Los rótulos van encima del círculo de la pata y se comían el clic: sin
+   `pointer-events:none` no se podía cablear el servo. */
+.d2-sv-pin{fill:#2b2b2b;font:600 5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-sv-pinlbl{fill:#eef4f6;font:600 5.5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-sv-name{pointer-events:none}
+
+/* ---------- sensor HC-SR04 en el 2D (plan 06 · N-08) ---------- */
+.d2-sn-body{fill:#1f3b57;stroke:#0f2437;stroke-width:1.1}
+.d2-sn-eye{fill:#c9cdd2;stroke:#6d747c;stroke-width:1}
+.d2-sn-eyein{fill:#3a4048}
+.d2-sn-name{fill:#6f665a;font:600 6.5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-sn-pin{fill:#eef4f6;font:600 4.5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-sn-pinlbl{fill:#cfe6f5;font:600 5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+
+/* ---------- potenciómetro y LDR en el 2D (plan 06 · N-08) ---------- */
+.d2-an-body{fill:#24405f;stroke:#132436;stroke-width:1.1}
+.d2-ldr .d2-an-body{fill:#4a3a22;stroke:#2b2113}
+.d2-an-slot{stroke:#0d1720;stroke-width:4;stroke-linecap:round}
+.d2-an-knob{fill:#d8d2c4;stroke:#8d8577;stroke-width:1}
+.d2-an-eye{fill:#f0b451}
+.d2-dht .d2-an-body{fill:#2b5f8a;stroke:#173a55}
+.d2-an-grille{stroke:#0d1f2e;stroke-width:2.4;stroke-linecap:round}
+.d2-an-name{fill:#6f665a;font:600 6.5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-an-pin{fill:#eef4f6;font:600 4.5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-an-pinlbl{fill:#cfe6f5;font:600 5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+
+/* ---------- LCD 16×2 por I²C en el 2D (plan 06 · N-08) ---------- */
+.d2-lc-body{fill:#1f3b57;stroke:#0f2437;stroke-width:1.1}
+.d2-lc-screen{fill:#0b3d22;stroke:#062a17;stroke-width:.8}
+.d2-lcd.no-light .d2-lc-screen{fill:#12301f}
+.d2-lc-txt{fill:#8ef0a8;font:600 7px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.2px;pointer-events:none}
+.d2-lcd.no-light .d2-lc-txt{fill:#4e7d5c}
+.d2-lc-cursor{fill:#8ef0a8;pointer-events:none}
+.d2-lc-pin{fill:#eef4f6;font:600 4.5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+.d2-lc-pinlbl{fill:#cfe6f5;font:600 5px "JetBrains Mono",ui-monospace,monospace;pointer-events:none}
+
+/* ---------- tira WS2812 en el 2D (plan 06 · N-08, PLAN 2.1) ---------- */
+.d2-st-body{fill:#1b2a33;stroke:#0d1a21;stroke-width:1}
+/* El color de cada píxel va en línea (`style="fill:rgb(…)"`): aquí sólo el
+   borde, para que se lean los apagados. */
+.d2-st-px{stroke:#0d1a21;stroke-width:.6}
+.d2-st-px.on{stroke:#0a1216}
+
+/* ---------- Arduino: la pestaña del IDE ----------
+   Los colores del IDE 2 de Arduino: el verde azulado (#00979d) en los
+   botones y en las palabras clave, el naranja en las funciones del
+   núcleo y el azul en las constantes. El fondo sigue al tema. */
+.ide-bar .ide-btn{
+  width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;
+  display:inline-grid;place-items:center;
+  background:#00979d;color:#fff;
+  box-shadow:0 1px 0 rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
+  transition:filter .12s, transform .12s;
+}
+.ide-bar .ide-btn svg{width:18px;height:18px}
+.ide-bar .ide-btn:hover{filter:brightness(1.12)}
+.ide-bar .ide-btn:active{transform:translateY(1px)}
+.ide-bar .ide-btn:disabled{opacity:.35;cursor:default;filter:none}
+.ide-bar .ide-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ide-bar select{min-width:9em}
+
+#view-ide.on{display:flex;min-height:0}
+.ide{flex:1;display:flex;min-height:0;padding:10px;gap:10px}
+.ide-empty{margin:auto;text-align:center;max-width:34em;color:var(--text-dim)}
+.ide-empty p{margin:.6em 0}
+.ide-hint{font-size:.9em;color:var(--text-mute)}
+.ide-work{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,34%);gap:10px;min-height:0}
+.ide-work[hidden]{display:none}
+.ide-edit,.ide-serial{
+  display:flex;flex-direction:column;min-height:0;
+  border:1px solid var(--glass-border);border-radius:10px;overflow:hidden;
+  background:var(--code-bg, var(--surface));
+}
+.ide-tabs{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--glass-border);background:var(--glass-1)}
+.ide-file{font:600 12px var(--mono);color:var(--text);padding:4px 10px;border-radius:6px;background:var(--glass-2)}
+.ide-state{margin-left:auto;font:500 12px var(--mono);color:var(--text-mute)}
+.ide-state.run{color:var(--ok)}
+.ide-state.err{color:var(--err)}
+
+.ide-editor{flex:1;display:flex;min-height:0;position:relative}
+.ide-gutter{
+  margin:0;padding:10px 8px 10px 6px;min-width:3.2em;text-align:right;overflow:hidden;
+  font:13px/1.5 var(--mono);color:var(--text-mute);user-select:none;
+  border-right:1px solid var(--glass-border);background:var(--glass-1);
+}
+.ide-errln{color:#fff;background:var(--err);border-radius:4px;padding:0 4px}
+.ide-code{flex:1;position:relative;min-width:0}
+.ide-hl,.ide-ta{
+  position:absolute;inset:0;margin:0;padding:10px 12px;border:0;
+  font:13px/1.5 var(--mono);tab-size:2;white-space:pre;overflow:auto;
+  letter-spacing:0;word-spacing:0;
+}
+.ide-hl{color:var(--code-fg, var(--text));pointer-events:none;overflow:hidden}
+.ide-ta{
+  background:transparent;color:transparent;caret-color:var(--text);
+  resize:none;outline:none;
+}
+.ide-ta::selection{background:rgba(0,151,157,.28);color:transparent}
+.ide-errbg{background:rgba(var(--err-rgb),.16);border-radius:2px}
+
+/* ---------- depurador (plan 08 · C-06) ----------
+   La canaleta es donde se pulsa para poner un punto de ruptura, así que
+   lleva el cursor de dedo. Tres marcas conviven: el error de compilación,
+   el punto de ruptura y la línea donde está parado el sketch. */
+.ide-gutter{cursor:pointer}
+.ide-ln{position:relative}
+.ide-ln.err{color:#fff;background:var(--err);border-radius:4px;padding:0 4px}
+.ide-ln.bp::before{
+  content:'';position:absolute;left:-5px;top:.42em;
+  width:6px;height:6px;border-radius:50%;background:var(--err);
+}
+.ide-ln.cur{color:var(--accent-ink);font-weight:700}
+.ide-curbg{background:rgba(var(--accent-rgb),.18);border-radius:2px;box-shadow:inset 2px 0 0 var(--accent)}
+.ide-debug{
+  display:flex;align-items:center;gap:6px;padding:6px 10px;flex-wrap:wrap;
+  border-bottom:1px solid var(--glass-border);background:var(--glass-1);
+}
+.ide-debug .sim-tool[disabled]{opacity:.4;cursor:default}
+.ide-debug-line{font:500 11.5px var(--mono);color:var(--text-mute)}
+.ide-vars{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.ide-var{
+  display:inline-flex;align-items:baseline;gap:6px;padding:2px 8px;border-radius:999px;
+  background:var(--glass-2);border:1px solid var(--glass-border);
+  font:500 11.5px var(--mono);color:var(--text);
+}
+.ide-var b{font-weight:600;color:var(--accent-ink)}
+.ide-var-none{font:500 11.5px var(--mono);color:var(--text-mute)}
+.ide-state.pause{color:var(--accent-ink)}
+/* Colores para fondo oscuro (el tema por defecto, medianoche y neón);
+   los temas claros (claro y sepia) usan los del IDE 2 tal cual. */
+.ide-c{color:#8a9a9b;font-style:italic}
+.ide-s{color:#7fcbcd}
+.ide-p{color:#b4cf3a}
+.ide-n{color:#c792ea}
+.ide-k{color:#2cc4cb;font-weight:600}
+.ide-k2{color:#b4cf3a;font-weight:600}
+.ide-f{color:#f39c4b}
+.ide-q{color:#4fd6dc}
+html[data-theme="light"] .ide-c,html[data-theme="sepia"] .ide-c,html[data-theme="ivory"] .ide-c,html[data-theme="deepseek"] .ide-c,html[data-theme="custom-light"] .ide-c,html[data-theme="workbuddy"] .ide-c{color:#95a5a6}
+html[data-theme="light"] .ide-s,html[data-theme="sepia"] .ide-s,html[data-theme="ivory"] .ide-s,html[data-theme="deepseek"] .ide-s,html[data-theme="custom-light"] .ide-s,html[data-theme="workbuddy"] .ide-s{color:#005c5f}
+html[data-theme="light"] .ide-p,html[data-theme="sepia"] .ide-p,html[data-theme="ivory"] .ide-p,html[data-theme="deepseek"] .ide-p,html[data-theme="custom-light"] .ide-p,html[data-theme="workbuddy"] .ide-p,
+html[data-theme="light"] .ide-k2,html[data-theme="sepia"] .ide-k2,html[data-theme="ivory"] .ide-k2,html[data-theme="deepseek"] .ide-k2,html[data-theme="custom-light"] .ide-k2,html[data-theme="workbuddy"] .ide-k2{color:#728e00}
+html[data-theme="light"] .ide-n,html[data-theme="sepia"] .ide-n,html[data-theme="ivory"] .ide-n,html[data-theme="deepseek"] .ide-n,html[data-theme="custom-light"] .ide-n,html[data-theme="workbuddy"] .ide-n{color:#8a3aa6}
+html[data-theme="light"] .ide-k,html[data-theme="sepia"] .ide-k,html[data-theme="ivory"] .ide-k,html[data-theme="deepseek"] .ide-k,html[data-theme="custom-light"] .ide-k,html[data-theme="workbuddy"] .ide-k{color:#00979d}
+html[data-theme="light"] .ide-f,html[data-theme="sepia"] .ide-f,html[data-theme="ivory"] .ide-f,html[data-theme="deepseek"] .ide-f,html[data-theme="custom-light"] .ide-f,html[data-theme="workbuddy"] .ide-f{color:#d35400}
+html[data-theme="light"] .ide-q,html[data-theme="sepia"] .ide-q,html[data-theme="ivory"] .ide-q,html[data-theme="deepseek"] .ide-q,html[data-theme="custom-light"] .ide-q,html[data-theme="workbuddy"] .ide-q{color:#0ca1a6}
+/* Sin ligaduras: «==» tiene que verse como dos signos, no como uno. */
+.ide-hl,.ide-ta{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+
+.ide-console{
+  height:7.5em;overflow:auto;padding:6px 10px;border-top:1px solid var(--glass-border);
+  font:12px/1.5 var(--mono);background:var(--glass-1);color:var(--text-dim)
+}
+.ide-msg.err{color:var(--err)}
+.ide-msg.warn{color:var(--warn)}
+.ide-msg.ok{color:var(--ok)}
+.ide-msg.dim{color:var(--text-mute)}
+
+.ide-serial-head{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--glass-border);background:var(--glass-1);flex-wrap:wrap}
+.ide-serial-title{font-weight:600}
+.ide-baud{font:12px var(--mono);color:var(--text-mute)}
+.ide-chk{margin-left:auto;font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:4px}
+.ide-out{flex:1;margin:0;padding:8px 10px;overflow:auto;font:12.5px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;color:var(--text)}
+.ide-send{display:flex;gap:6px;padding:8px;border-top:1px solid var(--glass-border)}
+.ide-send input{flex:1;min-width:0;font:13px var(--mono);padding:6px 8px;border-radius:6px;border:1px solid var(--glass-border);background:var(--surface);color:var(--text)}
+.ide-send select{font-size:12px}
+
+@media (max-width:900px){
+  .ide-work{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(320px,1fr) minmax(220px,auto)}
+  .ide{min-height:70vh}
+}
+
+/* ============================================================
+   Foco del esquemático sincronizado (25 oct 2026)
+   ------------------------------------------------------------
+   Al tocar un integrado en la placa 2D o 3D, el esquemático de al lado
+   lo señala como hace el traductor con una pieza: lo demás se apaga,
+   las compuertas de ese integrado se encienden con un destello, la red
+   completa de cada pata lleva un flujo que corre por el cable, y cada
+   pata del símbolo lleva el número de pata del integrado («U1·3»).
+   Las animaciones llevan un retraso negativo desde JS para no volver a
+   empezar cada vez que el SVG se repinta.
+   ============================================================ */
+.dg-has-focus .dg-fc:not(.on){opacity:.16;transition:opacity .35s ease}
+.dg-has-focus .dg-wire:not(.focus){stroke-opacity:.14}
+.dg-has-focus .dg-wire.focus{
+  stroke:var(--accent);stroke-opacity:1;stroke-width:2.6;
+  filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),calc(.6 * var(--glow,1))));
+}
+.dg-fc.on{
+  animation:dgFocusIn .6s cubic-bezier(.2,.9,.3,1.25) both, dgFocusGlow 2.4s ease-in-out .6s infinite;
+}
+@keyframes dgFocusIn{
+  0%{opacity:.2;filter:drop-shadow(0 0 0 rgba(var(--accent-rgb),0))}
+  45%{opacity:1;filter:drop-shadow(0 0 14px rgba(var(--accent-rgb),calc(.95 * var(--glow,1))))}
+  100%{opacity:1;filter:drop-shadow(0 0 5px rgba(var(--accent-rgb),calc(.55 * var(--glow,1))))}
+}
+@keyframes dgFocusGlow{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),calc(.45 * var(--glow,1))))}
+  50%{filter:drop-shadow(0 0 10px rgba(var(--accent-rgb),calc(.85 * var(--glow,1))))}
+}
+.dg-flow{
+  fill:none;stroke:#fff;stroke-opacity:.9;stroke-width:1.6;
+  stroke-linecap:round;stroke-dasharray:3 13;
+  pointer-events:none;
+  animation:dgFlow .9s linear infinite;
+}
+@keyframes dgFlow{to{stroke-dashoffset:-32}}
+.dg-fpin{pointer-events:none;animation:dgPinIn .5s ease-out both}
+.dg-fpin-ring{
+  fill:rgba(var(--accent-rgb),.18);stroke:var(--accent);stroke-width:1.6;
+  transform-box:fill-box;transform-origin:center;
+  animation:dgPinPulse 1.6s ease-in-out infinite;
+}
+.dg-fpin-lbl{
+  font:700 9.5px/1 var(--font-mono,monospace);fill:var(--accent);
+  paint-order:stroke;stroke:var(--canvas-bg,#111);stroke-width:3px;
+}
+@keyframes dgPinIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes dgPinPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.65}}
+@media (prefers-reduced-motion:reduce){
+  .dg-fc.on,.dg-flow,.dg-fpin,.dg-fpin-ring{animation:none}
+}
+
+/* ---------- 2D digital: lo que cambia se anima una vez ----------
+   `view2d.js` marca con `flip` la palanca o el LED que acaban de cambiar
+   y con `pop` el integrado recién elegido (ver `markChanges`). */
+.d2-lever circle{transition:cx .18s ease}
+.d2-lever.flip rect{animation:d2LeverFlash .45s ease-out}
+.d2-lever.flip circle{animation:d2KnobPop .3s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes d2LeverFlash{0%{filter:drop-shadow(0 0 8px rgba(var(--accent-rgb),calc(.95 * var(--glow,1))))}100%{filter:none}}
+@keyframes d2KnobPop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.d2-lever circle{transform-box:fill-box;transform-origin:center}
+.d2-lamp.on{filter:drop-shadow(0 0 6px rgba(74,222,128,.75))}
+.d2-lamp.on.flip{animation:d2LampOn .55s ease-out}
+.d2-lamp.flip:not(.on){animation:d2LampOff .45s ease-out}
+.d2-lamp{transform-box:fill-box;transform-origin:center}
+@keyframes d2LampOn{
+  0%{transform:scale(.82);filter:drop-shadow(0 0 0 rgba(74,222,128,0))}
+  40%{transform:scale(1.14);filter:drop-shadow(0 0 16px rgba(74,222,128,1))}
+  100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(74,222,128,.75))}
+}
+@keyframes d2LampOff{0%{fill:var(--ok);filter:drop-shadow(0 0 8px rgba(74,222,128,.6))}100%{}}
+.d2-chip{transform-box:fill-box;transform-origin:center}
+.d2-chip.pop{animation:d2ChipPop .42s cubic-bezier(.2,.9,.3,1.3)}
+.d2-chip.sel .d2-body{filter:drop-shadow(0 0 6px rgba(244,162,97,.55))}
+@keyframes d2ChipPop{0%{transform:scale(1)}35%{transform:scale(1.06)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .d2-lever.flip rect,.d2-lever.flip circle,.d2-lamp.flip,.d2-chip.pop{animation:none}
+}
+
+/* ============================================================
+   Osciloscopio de señales digitales (la ventana flotante)
+   ------------------------------------------------------------
+   Se arrastra por la cabecera, se encoge y se estira por la esquina.
+   Flota sobre la vista que esté abierta, así que
+   va con `position:fixed` y por encima de los paneles.
+   ============================================================ */
+.dg-scope-win{
+  position:fixed;z-index:70;display:flex;flex-direction:column;
+  min-width:320px;min-height:180px;
+  background:var(--glass-solid);backdrop-filter:blur(14px);
+  border:1px solid var(--border-hi);border-radius:12px;
+  box-shadow:0 18px 48px var(--shadow);
+  color:var(--text);font-family:var(--sans);overflow:hidden;
+}
+.dg-scope-win[hidden]{display:none}
+.dg-scope-win.dragging{cursor:grabbing;user-select:none}
+.dg-sc-head{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  background:linear-gradient(180deg,rgba(var(--hair-rgb),.06),transparent);
+  border-bottom:1px solid var(--border);cursor:grab;flex:0 0 auto;
+}
+.dg-scope-win.folded .dg-sc-head{border-bottom:0}
+.dg-sc-title{font-weight:600;font-size:13px;letter-spacing:.01em}
+.dg-sc-badge{
+  font-family:var(--mono);font-size:10px;color:var(--text-mute);
+  border:1px solid var(--border);border-radius:999px;padding:2px 8px;
+}
+.dg-sc-btn{
+  font:inherit;font-size:11px;color:var(--text-dim);cursor:pointer;
+  background:var(--glass-control);border:1px solid var(--border);
+  border-radius:6px;padding:4px 8px;line-height:1.5;
+}
+.dg-sc-btn:hover{background:var(--glass-control-hi);color:var(--text)}
+.dg-sc-head .dg-sc-btn:first-of-type{margin-left:auto}
+.dg-sc-x{font-size:14px;padding:2px 8px}
+.dg-sc-body{
+  flex:1 1 auto;overflow:auto;padding:8px 10px;display:flex;
+  flex-direction:column;gap:6px;min-height:0;
+}
+.dg-scope-win.folded .dg-sc-body,
+.dg-scope-win.folded .dg-sc-axis,
+.dg-scope-win.folded .dg-sc-grip{display:none}
+.dg-sc-empty{margin:14px 6px;color:var(--text-mute);font-size:12px;line-height:1.6}
+.dg-sc-lane{display:flex;flex-direction:column;gap:2px}
+.dg-sc-legend{display:flex;align-items:center;gap:8px;font-size:11px}
+.dg-sc-dot{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
+.dg-sc-name{font-family:var(--mono);color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dg-sc-val{
+  font-family:var(--mono);font-size:10px;min-width:14px;text-align:center;
+  border-radius:4px;padding:0 4px;color:var(--text-mute);
+  border:1px solid var(--border);
+}
+.dg-sc-val.on{color:#0c0a09;background:var(--ok);border-color:var(--ok)}
+.dg-sc-stats{color:var(--text-mute);font-size:10px;margin-left:auto;white-space:nowrap}
+.dg-sc-del{padding:0 6px;line-height:1.2;font-size:12px}
+.dg-sc-wave{
+  width:100%;height:40px;display:block;
+  background:linear-gradient(180deg,rgba(var(--hair-rgb),.03),transparent);
+  border-radius:4px;
+}
+.dg-sc-mid{stroke:var(--border);stroke-width:.6;stroke-dasharray:2 4}
+.dg-sc-trace{stroke-width:1.6;stroke-linejoin:miter;vector-effect:non-scaling-stroke}
+.dg-sc-axis{
+  position:relative;flex:0 0 auto;height:16px;margin:0 10px 8px;
+  border-top:1px solid var(--border);
+}
+.dg-sc-tick{
+  position:absolute;top:2px;transform:translateX(-50%);
+  font-family:var(--mono);font-size:9px;color:var(--text-mute);
+}
+.dg-sc-grip{
+  position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:nwse-resize;
+  background:linear-gradient(135deg,transparent 50%,var(--border-hi) 50%,var(--border-hi) 60%,transparent 60%,transparent 70%,var(--border-hi) 70%,var(--border-hi) 80%,transparent 80%);
+}
+
+/* ============================================================
+   Taller de bloques del Arduino (plan 03 · T2)
+   ------------------------------------------------------------
+   Blockly inyecta su propio SVG dentro de este hueco y mide el
+   contenedor: si no tiene altura, dibuja a cero y no se ve nada. De ahí
+   el `height` explícito y el `min-height: 0` para que quepa en el panel.
+   ============================================================ */
+.ide-blocks{
+  height:340px;min-height:0;overflow:hidden;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--bg2);
+}
+.ide-blocks[hidden]{display:none}
+.ide-blocks .injectionDiv{border-radius:8px}
+/* El resaltado del código generado no se toca, pero en modo bloques el
+   textarea está de sólo lectura: que se note. */
+.ide-ta[readonly]{opacity:.92;cursor:default}
+
+/* ============================================================
+   Barra del reto (plan 06 · N-01) · js/challenge-bar.js
+   ============================================================ */
+.ch-bar{position:fixed;left:16px;bottom:16px;z-index:80;width:min(360px,calc(100vw - 32px));
+  max-height:min(62vh,540px);overflow:auto;padding:14px 16px 16px;border-radius:14px;
+  background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glass-border);
+  box-shadow:0 18px 48px rgba(0,0,0,.35);font:13px/1.5 var(--sans);color:var(--text,inherit)}
+.ch-head{display:flex;align-items:center;gap:8px}
+.ch-head strong{flex:1;font-size:13.5px;line-height:1.3}
+.ch-tag{font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink);
+  border:1px solid rgba(var(--accent-rgb),.45);background:rgba(var(--accent-rgb),.12);
+  border-radius:999px;padding:2px 8px}
+.ch-x{border:0;background:none;color:var(--text-dim);font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
+.ch-x:hover{color:var(--text,inherit)}
+.ch-stmt{margin:10px 0 12px;color:var(--text-dim);font-size:12.5px}
+.ch-actions{display:flex;gap:8px;align-items:center}
+.ch-check{border:1px solid rgba(var(--accent-rgb),.6);background:rgba(var(--accent-rgb),.18);
+  color:var(--accent-ink);border-radius:10px;padding:6px 12px;font:600 12px var(--sans);cursor:pointer}
+.ch-check:hover{background:rgba(var(--accent-rgb),.3)}
+.ch-hint{border:1px solid var(--glass-border);background:var(--glass-control);color:var(--text-dim);
+  border-radius:10px;padding:6px 10px;font:500 12px var(--sans);cursor:pointer}
+.ch-hint:disabled{opacity:.55;cursor:default}
+.ch-out{margin-top:10px}
+.ch-pass{color:var(--ok);margin:0}
+.ch-fail{color:var(--warn);margin:0}
+.ch-faults{margin:6px 0 0;padding-left:18px;color:var(--text-dim);font-size:12px}
+.ch-faults li{margin:2px 0}
+.ch-hints{margin:10px 0 0;padding-left:18px;color:var(--text-dim);font-size:12px}
+.ch-hints b{color:var(--accent-ink);font-weight:600}
+@media (max-width:640px){
+  .ch-bar{left:10px;right:10px;width:auto;bottom:10px;max-height:46vh}
+}

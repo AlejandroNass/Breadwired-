@@ -1,0 +1,441 @@
+/* Las variables de color (tema base + acento) viven en css/theme.css */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg); color:var(--text);
+  font:15px/1.45 var(--sans);
+  display:flex;flex-direction:column;overflow:hidden;
+  background-image:var(--body-glow);
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)))}
+
+/* `z-index` > `#toolbar` (30): el header crea contexto de apilamiento por
+   su `backdrop-filter`, así que sin un z-index propio el desplegable de
+   idioma (que cuelga de aquí) quedaría tapado por la barra y sus menús. */
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--glass-2);backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));border-bottom:1px solid var(--glass-border);box-shadow:var(--glass-specular);position:relative;z-index:40;flex:none}
+header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.5),transparent)}
+header .mark{width:26px;height:26px;flex:none;filter:drop-shadow(0 0 8px rgba(var(--accent-rgb),calc(.6 * var(--glow,1))))}
+header h1{font-size:18px;font-weight:600;margin:0;letter-spacing:.02em;background:linear-gradient(90deg,var(--head-grad-a),var(--head-grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+header nav{margin-left:auto;display:flex;gap:4px}
+header nav a{color:var(--text-dim);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s}
+header nav a:hover{color:var(--accent-ink);background:rgba(var(--accent-rgb),.06)}
+header nav a[aria-current]{background:linear-gradient(180deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.08));color:var(--accent-ink);box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),calc(.35 * var(--glow,1))), 0 0 20px rgba(var(--accent-rgb),calc(.15 * var(--glow,1)))}
+
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 240px}
+#editor{display:flex;flex-direction:column;min-width:0;min-height:0}
+
+/* `position` + `z-index`: los menús desplegables (.dd-pop, en
+   css/theme.css) cuelgan de la barra y se dibujan por encima del
+   lienzo. Sin esto, el lienzo —que sí está posicionado— los taparía,
+   porque la barra es estática y pinta antes que los posicionados. */
+#toolbar{position:relative;z-index:30;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;background:var(--glass-1);backdrop-filter:blur(var(--blur-1));-webkit-backdrop-filter:blur(var(--blur-1));border-bottom:1px solid var(--glass-border);font-size:13px}
+#toolbar .sep{width:1px;height:22px;background:var(--border);margin:0 6px}
+.tool{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:transparent;border:1px solid transparent;border-radius:8px;cursor:pointer;color:var(--text-dim);font-size:13px;font-weight:500;transition:all .18s ease}
+.tool:hover{background:rgba(var(--accent-rgb),.06);color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.2);box-shadow:0 0 12px rgba(var(--accent-rgb),calc(.1 * var(--glow,1)))}
+.tool.on{background:linear-gradient(180deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.08));color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.4);box-shadow:0 0 16px rgba(var(--accent-rgb),calc(.2 * var(--glow,1))), inset 0 1px 0 rgba(var(--hair-rgb),.08)}
+.tool.warn-armed{background:linear-gradient(180deg,rgba(var(--err-rgb),.25),rgba(var(--err-rgb),.1));color:var(--err);border-color:rgba(var(--err-rgb),.5);box-shadow:0 0 16px rgba(var(--err-rgb),.3)}
+kbd{font:500 11px var(--mono);padding:0 6px;border:1px solid currentColor;border-radius:4px;opacity:.55}
+
+#canvasWrap{flex:1;min-height:0;padding:4px;display:flex;position:relative;overflow:hidden;background:var(--stage-bg)}
+#svg{width:100%;height:100%;display:block;background:var(--canvas-paper);border:1px solid var(--border);border-radius:10px;touch-action:none;filter:drop-shadow(0 0 40px rgba(var(--accent-rgb),calc(.04 * var(--glow,1))));transform-origin:0 0;will-change:transform}
+#statusbar{display:flex;align-items:center;gap:16px;padding:6px 12px;background:var(--glass-1);backdrop-filter:blur(var(--blur-1));-webkit-backdrop-filter:blur(var(--blur-1));border-top:1px solid var(--glass-border);font-size:12.5px;color:var(--text-dim)}
+#statusbar .coords{margin-left:auto;font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--accent-ink);text-shadow:0 0 6px rgba(var(--accent-rgb),calc(.5 * var(--glow,1)))}
+/* El botón × de la barra de estado (.sb-close) vive en css/theme.css:
+   lo comparten el esquema y la protoboard. Aquí solo se anula su
+   `margin-left:auto`, porque en el esquema ya es `.coords` quien
+   empuja hacia la derecha. */
+html #statusbar .sb-close{margin-left:0}
+
+.gridrect{fill:url(#dots)}
+.comp .body{fill:none;stroke:var(--canvas-ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease, filter .3s ease, stroke .18s ease}
+.comp .body.thick{stroke-width:4}
+.comp .hit{fill:transparent}
+.comp{cursor:grab}
+.comp.sel .body{stroke:var(--accent);filter:drop-shadow(0 0 5px var(--accent)) drop-shadow(0 0 12px rgba(var(--accent-rgb),calc(.6 * var(--glow,1))))}
+.comp.sel .hit{fill:rgba(var(--accent-rgb),.06);stroke:var(--accent);stroke-width:1;stroke-dasharray:4 3}
+.comp.ghost{opacity:.45;pointer-events:none}
+.ref{font:500 13px var(--mono);fill:var(--canvas-ink)}
+.ref.mid{text-anchor:middle}
+.ref.pinout{font-size:10.5px;fill:var(--canvas-ink2);letter-spacing:.05em;opacity:.9}
+.pl{font:500 11px var(--mono);fill:var(--canvas-ink2);pointer-events:none}
+/* Etiqueta sobre un header negro (el ICSP del Arduino). Va en un gris
+   claro fijo, no en `--canvas-ink2`: en los temas claros esa variable se
+   oscurece y el texto desaparecía sobre el bloque negro. */
+.pl.on-dark{fill:#c8d2de}
+.wire .hit{fill:none;stroke:transparent;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;cursor:move}
+.wire .ink{fill:none;stroke:var(--wire-ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;transition:stroke-width .15s ease}
+.wire.floating .ink{stroke:var(--float);stroke-dasharray:6 5}
+.wire.sel .ink{stroke-width:5}
+.wire.dragging .ink{stroke-width:5;stroke-dasharray:6 3}
+.wire.dim .ink{opacity:.18}
+.pin{stroke:var(--canvas-paper);stroke-width:1.5;pointer-events:none}
+.pin.open{fill:var(--canvas-paper);stroke:var(--err);stroke-width:2;filter:drop-shadow(0 0 4px rgba(var(--err-rgb),.7))}
+.junc{stroke:var(--canvas-paper);stroke-width:1.5;pointer-events:none}
+.dang{fill:var(--canvas-paper);stroke:var(--err);stroke-width:2;pointer-events:none;filter:drop-shadow(0 0 4px rgba(var(--err-rgb),.7))}
+.cursor{fill:none;stroke:var(--accent);stroke-width:1.5;pointer-events:none;filter:drop-shadow(0 0 5px var(--accent))}
+.draft{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;filter:drop-shadow(0 0 5px var(--accent))}
+.draft.prev{stroke-dasharray:2 6;opacity:.7}
+.marquee{fill:rgba(var(--accent-rgb),.08);stroke:var(--accent);stroke-width:1.2;stroke-dasharray:5 4;pointer-events:none;filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),calc(.35 * var(--glow,1))))}
+/* Lienzo vacío (plan 09 · IF-03): una tarjeta centrada con por dónde
+   empezar. Sólo la tarjeta captura clics; el lienzo de alrededor sigue
+   siendo el lienzo. */
+.empty-start{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;
+  width:min(440px,calc(100% - 32px));box-sizing:border-box;
+  padding:20px 20px 18px;border-radius:16px;text-align:center;
+  background:var(--glass-2);border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow),var(--glass-specular);
+  backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));
+}
+.empty-start[hidden]{display:none}
+.empty-start h2{margin:0;font-size:18px;font-weight:600;color:var(--text)}
+.empty-start p{margin:6px 0 14px;font-size:13.5px;color:var(--text-dim);line-height:1.5}
+.empty-start-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.empty-start-acts button{
+  display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;
+  border-radius:12px;cursor:pointer;text-align:left;
+  font:500 13.5px var(--sans);color:var(--text);
+  background:var(--glass-control);border:1px solid var(--glass-border);
+  transition:background .2s,border-color .2s,transform .15s;
+}
+.empty-start-acts button svg{width:20px;height:20px;flex:none;color:var(--accent-ink)}
+.empty-start-acts button:hover{background:var(--glass-control-hi);border-color:rgba(var(--accent-rgb),.45);transform:translateY(-1px)}
+.empty-start-acts button:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+.empty-start-acts .es-main{grid-column:1/-1;justify-content:center;color:var(--accent-ink);background:rgba(var(--accent-rgb),.14);border-color:rgba(var(--accent-rgb),.55)}
+.empty-start-acts .es-main:hover{background:rgba(var(--accent-rgb),.24)}
+@media (max-width:420px){.empty-start-acts{grid-template-columns:1fr}}
+
+#inspector{display:none;flex-direction:column;min-height:0;background:var(--glass-1);backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2))}
+/* El panel de detalles está oculto por defecto; el botón «Detalles» le
+   devuelve su columna poniendo `show-inspector` en el <main>. */
+main.show-inspector{grid-template-columns:minmax(0,1fr) 320px 240px}
+main.show-inspector #inspector{display:flex}
+.ptitle{padding:18px 20px 10px}
+.ptitle h2{margin:0 0 4px;font-size:16px;font-weight:600;letter-spacing:.01em;color:var(--text)}
+.ptitle p{margin:0;color:var(--text-dim);font-size:13px;line-height:1.5}
+#notes{list-style:none;margin:8px 0 0;padding:0 20px 10px;display:flex;flex-direction:column;gap:8px}
+#notes li{display:flex;gap:10px;font-size:13.5px;align-items:flex-start;color:var(--text-dim);line-height:1.5}
+#notes li i{flex:none;width:9px;height:9px;border-radius:50%;margin-top:6px;background:var(--info);box-shadow:0 0 8px var(--info)}
+#notes li.ok i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+#notes li.warn i{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+#notes li.err i{background:var(--err);box-shadow:0 0 8px var(--err)}
+#notes b{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--text)}
+
+.tabs{display:flex;gap:2px;padding:0 14px;border-bottom:1px solid var(--border)}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;cursor:pointer;color:var(--text-dim);font-size:13px;font-weight:500;transition:all .18s ease}
+.tabs button:hover{color:var(--accent-ink)}
+.tabs button.on{color:var(--accent-ink);border-bottom-color:var(--accent);font-weight:600;text-shadow:0 0 10px rgba(var(--accent-rgb),calc(.6 * var(--glow,1)))}
+
+#tabbody{flex:1;min-height:0;overflow:auto;padding:16px 20px 24px}
+.lead{margin:0 0 12px;color:var(--text-dim);font-size:13px;line-height:1.5}
+.chip{font:500 12px var(--mono);padding:4px 10px;border-radius:999px;border:1px solid var(--border-hi);background:rgba(var(--hair-rgb),.03);color:var(--text);white-space:nowrap}
+.net{border-left:3px solid var(--c,var(--float));background:linear-gradient(90deg, rgba(var(--hair-rgb),.02), transparent 60%);padding:12px 14px;margin-bottom:12px;border-radius:0 8px 8px 0;transition:background .2s ease, outline .2s ease}
+.net.hl{background:linear-gradient(90deg, rgba(var(--accent-rgb),.12), transparent 70%);outline:1px solid rgba(var(--accent-rgb),.4);box-shadow:0 0 20px rgba(var(--accent-rgb),calc(.15 * var(--glow,1)))}
+.net .h{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.net .h b{font:500 15px var(--mono);color:var(--text)}
+.net .h span{color:var(--text-dim);font-size:12.5px}
+.net .chips{display:flex;flex-wrap:wrap;gap:6px}
+.net p{margin:10px 0 0;font-size:12.5px;color:var(--text-dim);line-height:1.5}
+.cc{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;background:rgba(var(--hair-rgb),.015)}
+.cc .h{display:flex;gap:10px;align-items:baseline;padding:10px 14px;background:rgba(var(--accent-rgb),.04);border-bottom:1px solid var(--border)}
+.cc .h b{font:500 15px var(--mono);color:var(--text)}
+.cc .h span{color:var(--text-dim);font-size:12.5px}
+.cc .h .pos{margin-left:auto;font:400 12px var(--mono);color:var(--accent-ink)}
+.cc table{width:100%;border-collapse:collapse;font-size:13px}
+.cc td{padding:8px 14px;border-top:1px solid var(--border);color:var(--text-dim)}
+.cc td:first-child{font:500 13px var(--mono);width:44px;color:var(--text)}
+.cc td:nth-child(2){font:400 12px var(--mono);color:var(--text-dim)}
+
+.editor{padding:10px 14px;background:rgba(var(--accent-rgb),.04);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.editor label{display:flex;flex-direction:column;gap:4px;color:var(--text-dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.editor select{padding:4px 8px;background:var(--surface);border:1px solid var(--border-hi);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;min-width:80px}
+.editor select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)))}
+.editor.readonly{display:flex;gap:16px;color:var(--text-dim);font-size:12px;align-items:center}
+.editor.readonly .row{display:flex;gap:6px;align-items:baseline}
+.editor.readonly b{color:var(--text);font-family:var(--mono);font-weight:500}
+
+h3{font-size:12px;margin:20px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)}
+pre{margin:8px 0 0;padding:14px;background:var(--code-bg);color:var(--code-fg);border:1px solid var(--border);border-radius:10px;font:400 11.5px/1.6 var(--mono);overflow:auto;max-height:320px}
+pre::selection{background:rgba(var(--accent-rgb),.3);color:#fff}
+
+.copy{margin-top:10px;padding:8px 14px;border:1px solid var(--border-hi);border-radius:8px;background:transparent;color:var(--text-dim);cursor:pointer;font-size:12.5px;font-weight:500;transition:all .18s ease}
+.copy:hover{color:var(--accent-ink);border-color:var(--accent);background:rgba(var(--accent-rgb),.08);box-shadow:0 0 12px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)))}
+
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);padding:10px 18px;background:var(--glass-3);border:1px solid rgba(var(--accent-rgb),.4);color:var(--accent-ink);border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:0 0 24px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)));z-index:100;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.toast.show{opacity:1}
+.toast.err{border-color:rgba(var(--err-rgb),.5);color:var(--err);box-shadow:0 0 24px rgba(var(--err-rgb),.25)}
+
+#palette{display:flex;flex-direction:column;min-height:0;overflow-y:auto;background:var(--glass-1);backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));border-left:1px solid var(--glass-border)}
+#palette .ptitle{padding:16px 16px 8px}
+#palette .ptitle p{margin:0;color:var(--text-dim);font-size:12.5px;line-height:1.5}
+
+/* ---------- Buscador de componentes ----------
+   Va entre el título y la lista. Cachea el filtrado con `sticky` para
+   seguir a la vista al hacer scroll en una categoría larga. */
+.psearch{
+  position:sticky;top:0;z-index:5;
+  display:flex;align-items:center;gap:8px;
+  margin:0 12px 8px;padding:8px 10px;
+  border-radius:10px;
+  background:var(--glass-2);
+  backdrop-filter:blur(var(--blur-1));-webkit-backdrop-filter:blur(var(--blur-1));
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-specular);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.psearch:focus-within{
+  border-color:rgba(var(--accent-rgb),.55);
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),calc(.14 * var(--glow,1))), var(--glass-specular);
+}
+/* Y el anillo en el propio campo, además del de la caja: quien tabula mira
+   dónde está el cursor, no el borde de dos centímetros más allá. */
+html .psearch input[type=search]:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
+.psearch-ic{width:15px;height:15px;flex:none;color:var(--text-mute);display:inline-flex}
+.psearch-ic svg{width:15px;height:15px;display:block}
+.psearch input[type=search]{
+  flex:1;min-width:0;
+  padding:0;border:0;background:transparent;outline:none;
+  color:var(--text);font:500 13px var(--sans);
+  -webkit-appearance:none;appearance:none;
+}
+/* La «x» nativa del input[type=search] sobra: usamos la nuestra. */
+.psearch input[type=search]::-webkit-search-decoration,
+.psearch input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.psearch input[type=search]::placeholder{color:var(--text-mute)}
+.psearch-x{
+  width:20px;height:20px;flex:none;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid transparent;border-radius:6px;cursor:pointer;
+  background:transparent;color:var(--text-mute);
+  font:600 12px/1 var(--mono);
+  transition:color .15s ease, background .15s ease, border-color .15s ease;
+}
+.psearch-x:hover{color:var(--accent-ink);background:rgba(var(--accent-rgb),.12);border-color:rgba(var(--accent-rgb),.3)}
+.psearch-empty{
+  margin:10px 16px;padding:10px 12px;border-radius:10px;
+  font-size:12.5px;line-height:1.5;color:var(--text-dim);
+  background:var(--glass-control);border:1px dashed var(--border-hi);
+}
+.pgroup{border-bottom:1px solid var(--border);animation:groupIn .5s both}
+.pgroup:nth-child(1){animation-delay:.05s}
+.pgroup:nth-child(2){animation-delay:.12s}
+.pgroup:nth-child(3){animation-delay:.19s}
+.pgroup:nth-child(4){animation-delay:.26s}
+@keyframes groupIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.phead{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:rgba(var(--hair-rgb),.01);border:0;cursor:pointer;color:var(--text);font-size:13.5px;font-weight:600;text-align:left;transition:background .2s ease}
+.phead:hover{background:rgba(var(--accent-rgb),.07)}
+.phead .psym{width:34px;height:34px;flex:none;transition:transform .25s ease, filter .25s ease}
+.phead:hover .psym{transform:scale(1.1) rotate(-3deg);filter:drop-shadow(0 0 6px rgba(var(--accent-rgb),calc(.5 * var(--glow,1))))}
+.phead .ptxt{flex:1}
+.pchev{margin-left:auto;color:var(--text-dim);font-size:11px;transition:transform .35s cubic-bezier(.22,.61,.36,1), color .2s ease}
+.pgroup.open .pchev{transform:rotate(180deg);color:var(--accent-ink)}
+.pitems{max-height:0;opacity:0;overflow:hidden;transition:max-height .5s cubic-bezier(.22,.61,.36,1), opacity .35s ease}
+.pgroup.open .pitems{max-height:560px;opacity:1}
+.pitem{display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px 10px 18px;background:transparent;border:0;border-top:1px solid var(--border);cursor:pointer;color:var(--text-dim);font-size:13px;font-weight:500;text-align:left;animation:itemIn .4s both;transition:background .18s ease,color .18s ease,padding-left .18s ease,box-shadow .18s ease}
+.pitem:hover{background:linear-gradient(90deg,rgba(var(--accent-rgb),.12),rgba(var(--accent-rgb),.02));color:var(--accent-ink);padding-left:22px}
+.pitem.on{background:linear-gradient(90deg,rgba(var(--accent-rgb),.18),rgba(var(--accent-rgb),.03));color:var(--accent-ink);box-shadow:inset 3px 0 0 var(--accent)}
+.pitem .psym{width:30px;height:30px;flex:none;transition:transform .22s ease, filter .22s ease}
+.pitem:hover .psym{transform:scale(1.15)}
+.pitem.on .psym{animation:symPulse 1.6s ease-in-out infinite}
+.pitem .pname{flex:1}
+.pitem kbd{margin-left:auto}
+@keyframes itemIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@keyframes symPulse{0%,100%{filter:drop-shadow(0 0 1px var(--accent))}50%{filter:drop-shadow(0 0 7px var(--accent))}}
+/* ============================================================
+   Animaciones generales de la interfaz
+   ------------------------------------------------------------
+   Movimiento de entrada discreto, no decorativo: la cabecera, la
+   barra de herramientas y el lienzo aparecen en cascada al abrir la
+   página, y los controles responden al pulsarlos. Todo bajo
+   `prefers-reduced-motion` (la regla global de theme.css ya apaga las
+   animaciones cuando el sistema lo pide).
+   ============================================================ */
+@keyframes bwHeadIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes bwBarIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes bwCanvasIn{from{opacity:0;transform:scale(.992)}to{opacity:1;transform:none}}
+@keyframes bwAsideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+/* La cabecera y la barra de herramientas entran desde arriba, en
+   cascada; el lienzo lo hace un poco después y el panel lateral desde
+   su borde. `both` mantiene el estado final, así que nada «salta» al
+   reaparecer. */
+header{animation:bwHeadIn .4s cubic-bezier(.22,.61,.36,1) both}
+#toolbar{animation:bwBarIn .44s cubic-bezier(.22,.61,.36,1) .06s both}
+#palette{animation:bwAsideIn .46s cubic-bezier(.22,.61,.36,1) .1s both}
+#canvasWrap,#canvasInner{animation:bwCanvasIn .5s cubic-bezier(.22,.61,.36,1) .14s both}
+/* Al pulsar, los controles se hunden un punto: acuse inmediato. */
+.tool:active,html header nav a:active,.dd-btn:active,.dd-item:active,
+.phead:active,.pitem:active,.lnd-step-btn:active,.gbtn:active{
+  transform:translateY(1px);
+}
+/* El widget de zoom del lienzo: cada botón crece al pasar por encima. */
+#zoomWidget button{transition:transform .16s ease,color .16s ease,background .16s ease,border-color .16s ease}
+#zoomWidget button:hover{transform:scale(1.09)}
+#zoomWidget button:active{transform:scale(.95)}
+/* El indicador de estado late despacio cuando hay un aviso pendiente
+   (la insignia `.vbadge.bad`), para que tire del ojo sin parpadear. */
+html .vbadge.bad{animation:bwBadgePulse 1.8s ease-in-out infinite}
+@keyframes bwBadgePulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--err-rgb),0)}50%{box-shadow:0 0 12px rgba(var(--err-rgb),.35)}}
+
+.psym .body{fill:none;stroke:var(--text-dim);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s ease}
+.psym .body.thick{stroke-width:5}
+.phead:hover .psym .body,.pitem:hover .psym .body,.pitem.on .psym .body{stroke:var(--accent)}
+.psym text{pointer-events:none}
+
+/* El widget de zoom (#zoomWidget, cuatro lupas) vive en css/theme.css:
+   es idéntico en el esquema y en las dos protoboards. */
+/* Recuadro del zoom por zona: se dibuja dentro del SVG, así que lleva
+   `non-scaling-stroke` para que el trazo no engorde al ampliar. */
+.zoomarea{fill:rgba(var(--accent-rgb),.10);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4;pointer-events:none;vector-effect:non-scaling-stroke}
+
+#transPanel{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--glass-3);backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));border:1px solid rgba(var(--accent-rgb),.35);border-radius:12px;box-shadow:var(--glass-shadow), var(--glass-specular), 0 0 18px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)));z-index:9}
+#transPanel[hidden]{display:none}
+#transPanel .trans-title{font-size:12px;font-weight:600;color:var(--accent-ink);text-shadow:0 0 8px rgba(var(--accent-rgb),calc(.5 * var(--glow,1)));white-space:nowrap}
+#transPanel label{display:flex;flex-direction:column;gap:4px;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+#transPanel select{padding:4px 8px;background:var(--surface);border:1px solid var(--border-hi);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px}
+#transPanel select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)))}
+/* Paneles de resistencia y de LED: compactos, anclados abajo a la
+   derecha para no cruzarse con el widget de zoom (abajo izquierda) ni
+   con la barra de estado. Comparten bloque porque el marcado del LED
+   reusa las MISMAS clases (`res-head`, `res-grid`, `res-value`): el
+   panel del LED se quedó sin estilos y salía como un bloque suelto en
+   medio de la sección. Nunca se ven los dos a la vez. */
+#resPanel,#ledPanel{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:6px;padding:8px 10px;max-width:272px;background:var(--glass-3);backdrop-filter:blur(var(--blur-2));-webkit-backdrop-filter:blur(var(--blur-2));border:1px solid rgba(var(--accent-rgb),.35);border-radius:12px;box-shadow:var(--glass-shadow), var(--glass-specular), 0 0 18px rgba(var(--accent-rgb),calc(.12 * var(--glow,1)));z-index:9}
+#resPanel[hidden],#ledPanel[hidden]{display:none}
+#resPanel .res-head,#ledPanel .res-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#resPanel .res-title,#ledPanel .res-title{font-size:11px;font-weight:600;color:var(--accent-ink);text-shadow:0 0 8px rgba(var(--accent-rgb),calc(.5 * var(--glow,1)));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#resPanel .res-grid,#ledPanel .res-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px}
+/* Valor escrito a mano: la vía rápida para rellenar las bandas. */
+#resPanel .res-edit{display:flex;flex-direction:column;gap:2px}
+#resPanel .res-edit label{color:var(--text-dim);font-size:9px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+#resPanel .res-edit input{width:100%;padding:4px 8px;background:var(--surface);border:1px solid var(--border-hi);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px}
+#resPanel .res-edit input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)))}
+#resPanel .res-edit input.bad{border-color:var(--err);box-shadow:0 0 8px rgba(var(--err-rgb),.3)}
+#resPanel label,#ledPanel label{display:flex;flex-direction:column;gap:2px;color:var(--text-dim);font-size:9px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+#resPanel select,#ledPanel select{width:100%;padding:4px 6px;background:var(--surface);border:1px solid var(--border-hi);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px}
+#resPanel select:focus,#ledPanel select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),calc(.2 * var(--glow,1)))}
+#resPanel .res-swatch{display:inline-flex;gap:4px;align-items:center}
+#resPanel .res-swatch i{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 4px rgba(0,0,0,.6);display:inline-block}
+#resPanel .res-value{font:500 12px var(--mono);color:var(--text);text-shadow:0 0 8px rgba(var(--accent-rgb),calc(.4 * var(--glow,1)));white-space:nowrap;text-align:right}
+
+/* ============================================================
+   Vidrio propio del esquema
+   ------------------------------------------------------------
+   Va al final a propósito: misma especificidad que las reglas de
+   arriba, así que estas ganan. Los componentes compartidos con la
+   protoboard (.tool, kbd, pre, chips, campos, scrollbars) viven en
+   css/theme.css.
+   ============================================================ */
+/* Lienzo: marco de vidrio sobre el sustrato */
+#svg{
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+  box-shadow:var(--glass-shadow), var(--glass-specular);
+}
+/* Pestañas del panel lateral */
+.tabs{gap:4px;border-bottom:1px solid var(--glass-border)}
+.tabs button{border-radius:10px 10px 0 0}
+.tabs button:hover{background:var(--glass-control);color:var(--text)}
+.tabs button.on{background:linear-gradient(180deg,rgba(var(--accent-rgb),.16),transparent)}
+/* Tarjetas de red y de componente */
+.net{
+  background:var(--glass-control);
+  border:1px solid var(--glass-border);
+  border-left:3px solid var(--c,var(--float));
+  border-radius:10px;
+  box-shadow:var(--glass-specular);
+}
+.net.hl{
+  background:linear-gradient(90deg,rgba(var(--accent-rgb),.14),transparent 70%);
+  border-color:rgba(var(--accent-rgb),.4);
+  box-shadow:var(--glass-specular), 0 0 20px rgba(var(--accent-rgb),calc(.15 * var(--glow,1)));
+}
+.cc{background:var(--glass-control);border:1px solid var(--glass-border);border-radius:10px;box-shadow:var(--glass-specular)}
+.cc .h{background:transparent;border-bottom:1px solid var(--glass-border)}
+.cc td{border-top:1px solid var(--glass-border)}
+/* Editor de transistores y filas de la paleta */
+.editor{background:var(--glass-control);border-top:1px solid var(--glass-border)}
+.pgroup{border-bottom:1px solid var(--glass-border)}
+.pitem{border-top:1px solid var(--glass-border)}
+.phead:hover{background:var(--glass-control)}
+.pitem:hover{background:linear-gradient(90deg,rgba(var(--accent-rgb),.14),transparent)}
+.pitem.on{background:linear-gradient(90deg,rgba(var(--accent-rgb),.20),transparent);box-shadow:inset 3px 0 0 var(--accent)}
+/* Canto de vidrio entre el lienzo y el panel */
+#inspector{border-left:1px solid var(--glass-border)}
+
+@media (max-width:980px){body{overflow:auto}main{grid-template-columns:1fr;grid-auto-rows:auto}#canvasWrap{height:62vh;flex:none}#editor{border-right:0}#inspector{min-height:60vh}#palette{max-height:45vh;border-left:0;border-top:1px solid var(--border)}}
+/* En una sola columna el panel se coloca debajo, no al lado. */
+@media (max-width:980px){main.show-inspector{grid-template-columns:1fr}}
+
+/* ============================================================
+   Primeros pasos (plan 09 · IF-03)
+   ------------------------------------------------------------
+   Una tarjeta pequeña en la esquina, no un modal: el lienzo tiene que
+   verse. Cada paso se tacha solo cuando el modelo lo confirma, así que el
+   borde del que toca es el que lleva el acento.
+   ============================================================ */
+.bw-mis{
+  /* `bottom:18px` lo ponía justo encima del widget de zoom, que vive en
+     `bottom:14px` y `left:14px` (css/theme.css): los cuatro botones de zoom
+     quedaban tapados y sin poder pulsarse mientras la tarjeta estaba abierta.
+     Se sube por encima del widget (32 px de alto + 14 de margen + aire). */
+  position:fixed;left:18px;bottom:92px;z-index:70;width:268px;
+  padding:12px 14px 10px;border-radius:14px;
+  background:var(--glass-3);backdrop-filter:blur(var(--blur-3));
+  -webkit-backdrop-filter:blur(var(--blur-3));
+  border:1px solid var(--glass-border-hi);
+  box-shadow:var(--glass-shadow), var(--glass-specular);
+  animation:bwMisIn .28s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes bwMisIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.bw-mis-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.bw-mis-head b{font:600 13px var(--sans);color:var(--text)}
+/* Área táctil del tamaño del pulgar (V1.17): el dibujo sigue siendo la × de
+   15 px, pero el botón mide 44 —lo que pide un dedo— y se compensa con
+   márgenes negativos para que la cabecera del globo no crezca más de lo
+   justo. La sonda `t-mobile` mide la caja del botón, no el dibujo: por eso
+   el área va en el propio botón y no en un `::before`. */
+.bw-mis-x{
+  width:44px;height:44px;min-width:44px;min-height:44px;
+  margin:8px 8px 8px 0;padding:0;
+  display:grid;place-items:center;
+  border-radius:10px;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--text-mute);
+  font:400 15px/1 var(--sans);
+}
+.bw-mis-x:hover{background:rgba(var(--hair-rgb),.08);color:var(--text)}
+.bw-mis-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.bw-mis-list li{
+  display:flex;align-items:center;gap:8px;
+  font:400 12.5px var(--sans);color:var(--text-mute);
+  padding:4px 6px;border-radius:8px;border:1px solid transparent;
+}
+/* El paso que toca: con borde de acento. Los hechos: tachados y en verde. */
+.bw-mis-list li.now{color:var(--text);border-color:rgba(var(--accent-rgb),.45);background:rgba(var(--accent-rgb),.07)}
+.bw-mis-list li.ok{color:var(--ok);text-decoration:line-through;text-decoration-thickness:1px}
+.bw-mis-tick{
+  width:14px;height:14px;flex:0 0 auto;border-radius:50%;
+  border:1.5px solid rgba(var(--hair-rgb),.35);
+}
+.bw-mis-list li.now .bw-mis-tick{border-color:var(--accent)}
+.bw-mis-list li.ok .bw-mis-tick{
+  border-color:var(--ok);background:var(--ok);
+  box-shadow:inset 0 0 0 2px var(--glass-3);
+}
+.bw-mis-go{
+  display:block;text-align:center;text-decoration:none;
+  padding:8px 10px;border-radius:10px;
+  font:600 12.5px var(--sans);
+  color:var(--on-accent,#fff);background:var(--accent);border:1px solid transparent;
+}
+.bw-mis-go:hover{filter:brightness(1.08)}
+@media (max-width:640px){
+  .bw-mis{left:10px;right:10px;bottom:10px;width:auto;max-height:46vh;overflow:auto}
+
+  /* En el teléfono, la tarjeta va a ancho completo abajo y el widget de zoom
+     vive justo ahí: lo tapaba **entero** (cuatro botones y el nivel). Un
+     control tapado por otro control es peor que no tenerlo, y en una pantalla
+     táctil el zoom se hace con dos dedos —`t-mobile` lo comprueba con eventos
+     de toque de verdad—. Se retira el widget y se queda el gesto. */
+  html #zoomWidget{display:none}
+}

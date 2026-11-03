@@ -1,0 +1,80 @@
+/* ============================================================
+   breadwire · asistente (js/bot/panel.js) · plan 04
+   ------------------------------------------------------------
+   Panel lateral derecho de 380 px que no tapa la cabecera; en móvil,
+   hoja inferior. Variables del tema: sirve en los ocho.
+   ============================================================ */
+.bot{
+  position:fixed;right:14px;top:68px;bottom:14px;z-index:900;
+  width:min(390px,calc(100vw - 28px));
+  display:flex;flex-direction:column;
+  background:var(--glass-3);color:var(--text);
+  border:1px solid var(--glass-border-hi);border-radius:16px;
+  box-shadow:var(--glass-shadow),var(--glass-specular);
+  font:400 13px/1.5 var(--sans);overflow:hidden;
+}
+.bot[hidden]{display:none}
+.bot.bot-in-anim{animation:bot-in var(--dur-3,.32s) var(--ease-out,ease) both}
+@keyframes bot-in{from{opacity:0;transform:translateX(14px)}}
+.bot-head{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 10px 18px;border-bottom:1px solid var(--glass-border)}
+.bot-head h2{margin:0;font:600 15px var(--sans);text-transform:none;letter-spacing:0}
+html[data-theme="ivory"] .bot-head h2{font:500 17px var(--serif)}
+.bot-x{width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--text-mute);font-size:19px;cursor:pointer}
+.bot-x:hover{background:var(--glass-control-hi);color:var(--text)}
+.bot-log{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.bot-msg{max-width:88%;padding:10px 12px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;animation:bot-pop var(--dur-2,.2s) var(--ease-out,ease) both}
+@keyframes bot-pop{from{opacity:0;transform:translateY(4px)}}
+.bot-msg.user{align-self:flex-end;background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.3)}
+.bot-msg.bot{align-self:flex-start;background:var(--glass-control);border:1px solid var(--glass-border)}
+.bot-msg.bot p{margin:4px 0 0}
+.bot-msg.sys{align-self:center;max-width:100%;font-size:12px;color:var(--text-dim);background:transparent;padding:2px 6px;text-align:center}
+.bot-msg.sys.err{color:var(--err)}
+.bot-msg.pending::after{content:'';display:inline-block;width:10px;height:10px;margin-left:8px;vertical-align:-1px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:bot-spin .7s linear infinite}
+@keyframes bot-spin{to{transform:rotate(360deg)}}
+.bot-card{padding:12px 14px;border-radius:12px;background:var(--glass-control);border:1px solid var(--glass-border);animation:bot-pop var(--dur-3,.32s) var(--ease-out,ease) both}
+.bot-card.warn{border-color:rgba(var(--err-rgb),.35)}
+.bot-card-t{margin:0 0 4px;font:600 14px var(--sans);text-transform:none;letter-spacing:0}
+.bot-card-x{margin:0 0 8px;color:var(--text-dim);white-space:pre-wrap}
+.bot-parts{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.bot-part{padding:2px 8px;border-radius:6px;border:1px solid var(--glass-border-hi);font:600 11.5px var(--mono);color:var(--text-dim)}
+.bot-tt{border-collapse:collapse;margin:4px 0 8px;font:500 12px var(--mono)}
+.bot-tt th,.bot-tt td{padding:2px 10px;text-align:center;border-bottom:1px solid var(--glass-border)}
+.bot-tt th{color:var(--text-mute);font-weight:600}
+.bot-tt .o{color:var(--accent-ink);font-weight:700}
+.bot-expr{margin:2px 0;font:600 12.5px var(--mono);color:var(--text)}
+.bot-diff{margin:2px 0 6px;font-size:12px;color:var(--text-dim)}
+/* Diff de una edición (plan 04 · B-08): lo que entra en verde, lo que sale
+   en rojo, lo que cambia de valor en ámbar. */
+.bot-diff-add{color:var(--ok);font-weight:600}
+.bot-diff-rem{color:var(--err);font-weight:600}
+.bot-diff-chg{color:var(--warn);font-weight:600}
+.bot-issue{margin:4px 0;padding:6px 10px;border-radius:8px;font-size:12px;border-left:3px solid var(--glass-border-hi);background:rgba(var(--hair-rgb),.03)}
+.bot-issue.warning{border-color:var(--warn)}
+.bot-issue.info{border-color:var(--info)}
+.bot-issue.error{border-color:var(--err)}
+.bot-issue.mono{font-family:var(--mono);font-size:11.5px}
+.bot-code{margin:8px 0 0;max-height:220px;overflow:auto;padding:10px;border-radius:8px;background:var(--code-bg);color:var(--code-fg);font:12px/1.45 var(--mono)}
+.bot-code[hidden]{display:none}
+.bot-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.bot-btn{height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--glass-border-hi);background:var(--glass-control);color:var(--text);font:600 12.5px var(--sans);cursor:pointer}
+.bot-btn:hover{border-color:rgba(var(--accent-rgb),.5)}
+.bot-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.bot-btn.ghost{background:transparent;color:var(--text-mute)}
+.bot-btn:disabled{opacity:.55;cursor:default}
+.bot-sug{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.bot-sug[hidden]{display:none}
+.bot-chip{padding:6px 10px;border-radius:999px;border:1px solid var(--glass-border-hi);background:transparent;color:var(--text-dim);font:500 12px var(--sans);cursor:pointer}
+.bot-chip:hover{color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.5)}
+.bot-explain{margin:0 16px 10px;padding:8px 10px;border-radius:8px;border:1px dashed var(--glass-border-hi);background:transparent;color:var(--text-dim);font:500 12px var(--sans);cursor:pointer;text-align:left}
+.bot-explain:hover{color:var(--accent-ink);border-color:rgba(var(--accent-rgb),.5)}
+.bot-explain[hidden]{display:none}
+.bot-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--glass-border)}
+.bot-in{flex:1;min-width:0;resize:none;padding:8px 10px;border-radius:10px;border:1px solid var(--glass-border-hi);background:var(--glass-control);color:var(--text);font:400 13px/1.4 var(--sans)}
+.bot-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16)}
+.bot-send{align-self:flex-end;height:36px;padding:0 14px;border-radius:10px;border:0;background:var(--accent);color:#fff;font:600 13px var(--sans);cursor:pointer}
+.bot-privacy{margin:0;padding:0 14px 10px;font-size:11px;color:var(--text-mute)}
+.bot-kbd{margin-left:auto;font:600 11px var(--mono);color:var(--text-mute);border:1px solid var(--glass-border-hi);border-radius:6px;padding:2px 6px}
+@media (max-width:640px){
+  .bot{left:8px;right:8px;top:auto;width:auto;height:min(78vh,620px);bottom:8px;border-radius:16px 16px 12px 12px}
+}
+@media (prefers-reduced-motion:reduce){.bot.bot-in-anim,.bot-msg,.bot-card{animation:none}}
