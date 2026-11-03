@@ -1,0 +1,18 @@
+Who am I?
+I am Néstor Alejandro Menjuren Sepúlveda, a 21-year-old Electronics Engineering student from Colombia. I am deeply passionate about the physical layer of computing, specifically Edge AI, FPGAs, and semiconductor architecture. My ultimate goal is to research AI hardware acceleration at the University of Tokyo. I am an open-source advocate and a builder who uses modern AI tools to solve real educational gaps in developing regions.
+
+What is Breadwire and what is my vision?
+Breadwire is a browser-based electronics workbench that bridges the critical gap between software simulation and physical hardware assembly. It allows students to design schematics, simulate digital logic (from truth tables to 74xx chips), and automatically translate them into 2D/3D breadboard routings.
+
+The Mission (Social Impact):
+My goal with Breadwire is to democratize hardware education. Universities and schools in Latin America often lack the budget for expensive proprietary software (like Proteus or Altium). I want to provide free "Education Licenses" to public universities and high schools, allowing students to learn electronics without the barrier of costly software.
+
+The Open-Core Strategy:
+To ensure Breadwire's financial sustainability while keeping the social impact alive, we use an Open-Core model:
+
+The Core (Open Source): The foundational schematic translator and basic 2D/3D UI will remain open-source and free for everyone.
+
+The Pro (Commercial): Advanced features like the High-Level Synthesis (HLS) engine to generate VHDL/Verilog code for FPGAs, and institutional dashboards for professors, will be commercialized to fund the free licenses for schools.
+
+Why I need Claude Ultra:
+I am applying for the Claude for Open Source program to accelerate the development of our HLS engine (converting logic to VHDL for hardware acceleration). Claude Ultra will be the engine that helps me write the IEEE research paper on our routing algorithms, optimize the AC circuit simulation, and ultimately build the infrastructure that will bring free hardware education to thousands of students in developing countries.
