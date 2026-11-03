@@ -1,5 +1,7 @@
 # breadwire
 
+Breadwire is an open-source, browser-based electronics workbench designed to bridge the gap between schematic design and physical breadboarding. It features automated 2D/3D topological routing, a digital logic environment, and AC/DC circuit analysis. Our mission is to democratize hardware education by providing free licenses to public universities and schools in developing regions.
+
 **Del esquema a la protoboard, hueco por hueco.** breadwire es un banco de
 electrónica que funciona en el navegador: dibujas un esquema y te dice dónde va
 cada pata y cada cable en una protoboard de verdad, en 2D y en 3D, comprobado
